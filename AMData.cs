@@ -1,17 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.IO.Ports;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
-using System.Timers;
 using System.Linq;
-using System.Management;
 using System.IO;
+using System.IO.Ports;
 
 namespace WinAMBurner
 {
+    enum ErrCode
+    {
+        OK = 0,
+        ERROR = -1,
+        EPARAM = -2
+    }
     class SerialPortEventArgs : EventArgs
     {
         public int maximum;
@@ -92,15 +94,15 @@ namespace WinAMBurner
             serialPort.WriteTimeout = wrTimeout;
         }
 
-        public async Task<int> AMDataRead()
+        public async Task<ErrCode> AMDataCheckConnect()
         {
-            int errcode = -1;
+            ErrCode errcode = ErrCode.ERROR;
             string[] serialPorts = SerialPort.GetPortNames();
             foreach (string port in serialPorts)
             {
                 serialPort.PortName = port;
-                errcode = await serialPortRead();
-                if (errcode == 0)
+                errcode = await serialPortCheckConnect();
+                if (errcode == ErrCode.OK)
                 {
                     LogFile.logWrite(serialPort.PortName);
                     break;
@@ -109,12 +111,34 @@ namespace WinAMBurner
             return errcode;
         }
 
-        private async Task<int> serialPortRead()
+        private async Task<ErrCode> serialPortCheckConnect()
         {
-            int errcode = -1;
-            //errcode = await serialPortFind();
-            //if (errcode < 0)
-            //    return errcode;
+            ErrCode errcode = ErrCode.ERROR;
+            try
+            {
+                serialPort.Open();
+            }
+            catch (Exception e)
+            {
+                LogFile.logWrite(e.ToString());
+                return errcode;
+            }
+            List<string> cmd = new List<string>();
+            cmd.Add("getid,3#");
+            cmd.Add("debug#");
+
+            string dataRdStr = await serialReadWrite(cmd);
+            //write to log
+            LogFile.logWrite(cmd, dataRdStr);
+            //parse data
+            errcode = amDataParseId(dataRdStr);
+            serialPort.Close();
+            return errcode;
+        }
+
+        public async Task<ErrCode> AMDataRead()
+        {
+            ErrCode errcode = ErrCode.ERROR;
             try
             {
                 serialPort.Open();
@@ -146,17 +170,14 @@ namespace WinAMBurner
             return errcode;
         }
 
-        public async Task<int> AMDataWrite()
+        public async Task<ErrCode> AMDataWrite()
         {
-            int errcode = -1;
+            ErrCode errcode = ErrCode.ERROR;
             if ((snum == 0) || (maxiSet == 0))
             {
-                errcode = -2;
+                errcode = ErrCode.EPARAM;
                 return errcode;
             }
-            //errcode = await serialPortFind();
-            //if (errcode < 0)
-            //    return errcode;
             try
             {
                 serialPort.Open();
@@ -197,16 +218,16 @@ namespace WinAMBurner
             //write to log
             LogFile.logWrite(cmd, dataRdStr);
             serialPort.Close();
-            errcode = 0;
+            errcode = ErrCode.OK;
             return errcode;
         }
 
-        private int amDataParse(string dataRdStr)
+        private ErrCode amDataParse(string dataRdStr)
         {
-            int errcode = -1;
+            ErrCode errcode = ErrCode.ERROR;
             int idate = 0;
             //parse to lines
-            string[] dataRd = dataRdStr.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+            string[] dataRd = amDataParseStr(dataRdStr);
             //maxi
             if ((dataLineParse(dataRd, "0x1f-0x85-0x01", ref id) >= 0) &&
                 //maxi
@@ -217,21 +238,37 @@ namespace WinAMBurner
                 (dataLineParse(dataRd, "0xFFFF6", ref snum) >= 0))
             {
                 date = idate;
-                errcode = 0;
+                errcode = ErrCode.OK;
             }
             return errcode;
         }
 
-        private int dataLineParse(string[] dataRd, string pattern, ref int number)
+        private ErrCode amDataParseId(string dataRdStr)
         {
-            int errcode = -1;
+            ErrCode errcode = ErrCode.ERROR;
+            //parse to lines
+            string[] dataRd = amDataParseStr(dataRdStr);
+            //maxi
+            if ((dataLineParse(dataRd, "0x1f-0x85-0x01", ref id) >= 0))
+                errcode = ErrCode.OK;
+            return errcode;
+        }
+
+        private string[] amDataParseStr(string dataRdStr)
+        {
+            return dataRdStr.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        }
+
+        private ErrCode dataLineParse(string[] dataRd, string pattern, ref int number)
+        {
+            ErrCode errcode = ErrCode.ERROR;
             try
             {
                 string[] dataSplit = dataRd.ToList().Find(data => data.Contains(pattern))
                     .Split(new char[] { ' ', ':', 'x' }, StringSplitOptions.RemoveEmptyEntries);
                 if (int.TryParse(dataSplit[3], NumberStyles.HexNumber,
                     CultureInfo.InvariantCulture, out number))
-                    errcode = 0;
+                    errcode = ErrCode.OK;
             }
             catch(Exception e)
             {
@@ -240,9 +277,9 @@ namespace WinAMBurner
             return errcode;
         }
 
-        private int dataLineParse(string[] dataRd, string pattern, ref int[] number)
+        private ErrCode dataLineParse(string[] dataRd, string pattern, ref int[] number)
         {
-            int errcode = -1;
+            ErrCode errcode = ErrCode.ERROR;
             try
             {
                 string[] dataSplit = dataRd.ToList().Find(data => data.Contains(pattern))
@@ -250,7 +287,7 @@ namespace WinAMBurner
                 if (int.TryParse(dataSplit[1], NumberStyles.HexNumber, CultureInfo.InvariantCulture, out number[0]) &&
                     int.TryParse(dataSplit[3], NumberStyles.HexNumber, CultureInfo.InvariantCulture, out number[1]) &&
                     int.TryParse(dataSplit[5], NumberStyles.HexNumber, CultureInfo.InvariantCulture, out number[2]))
-                    errcode = 0;
+                    errcode = ErrCode.OK;
             }
             catch (Exception e)
             {
