@@ -8,6 +8,13 @@ using System.Management;
 using System.Text;
 using System.Windows.Forms;
 
+using System.Data;
+using System.Data.SqlClient;
+
+using System.Globalization;
+using System.Xml.Linq;
+using System.Linq;
+
 namespace WinAMBurner
 {
     enum Place
@@ -181,13 +188,11 @@ namespace WinAMBurner
         public static string GetBIOSserNo()
         {
             ManagementObjectSearcher searcher = new ManagementObjectSearcher("root\\CIMV2", "SELECT * FROM Win32_BIOS");
-
             foreach (ManagementObject wmi in searcher.Get())
             {
                 try
                 {
                     return wmi.GetPropertyValue("SerialNumber").ToString();
-
                 }
                 catch { }
             }
@@ -622,6 +627,9 @@ namespace WinAMBurner
 
         private void screenFarmUpdateShow()
         {
+            CultureInfo[] ci = CultureInfo.GetCultures(CultureTypes.AllCultures & ~CultureTypes.NeutralCultures);
+            RegionInfo region = new RegionInfo(ci[0].Name);
+
             textBoxSmallDraw(ref richTextBox1, new System.Drawing.Point(360, 300), "", placeh: Place.Left);
             textBoxSmallDraw(ref richTextBox2, new System.Drawing.Point(360, 400), "", placeh: Place.Left);
             textBoxSmallDraw(ref richTextBox3, new System.Drawing.Point(360, 500), "", placeh: Place.Left);
