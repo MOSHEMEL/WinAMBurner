@@ -28,28 +28,32 @@ namespace WinAMBurner
         public FormNotify()
         {
             InitializeComponent();
+            this.Scale(new SizeF(Misc.ScaleFactor, Misc.ScaleFactor));
+            this.Font = new System.Drawing.Font("Segoe UI", Misc.DefaultFont, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
         }
 
         public FormNotify(string caption, string [] text, NotifyButtons notifyButtons)
         {
             InitializeComponent();
+            this.Scale(new SizeF(Misc.ScaleFactor, Misc.ScaleFactor));
+            this.Font = new System.Drawing.Font("Segoe UI", Misc.DefaultFont, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             Name = caption;
-            
-            labelDraw(ref label1, new Point(35, 240), text[0], Place.Center);
+
+            Misc.labelDraw(this, ref label1, text[0], placev: Misc.Place.One);
             if (text.Length > 1)
-                labelDraw(ref label2, new Point(35, 300), text[1], Place.Center);
+                Misc.labelDraw(this, ref label2, text[1], placev: Misc.Place.Two);
             if (text.Length > 2)
-                labelDraw(ref label3, new Point(35, 360), text[2], Place.Center);
+                Misc.labelDraw(this, ref label3, text[2], placev: Misc.Place.Three);
             if (text.Length > 3)
-                labelDraw(ref label4, new Point(35, 420), text[3], Place.Center);
+                Misc.labelDraw(this, ref label4, text[3], placev: Misc.Place.Four);
             if (text.Length > 4)
-                labelDraw(ref label5, new Point(35, 480), text[4], Place.Center);
+                Misc.labelDraw(this, ref label5, text[4], placev: Misc.Place.Five);
             if (text.Length > 5)
-                labelDraw(ref label6, new Point(35, 540), text[5], Place.Center);
-            
-            buttonDraw(ref buttonOK, new System.Drawing.Point(438, 660), "OK", new System.EventHandler(this.buttonOK_Click), Place.Center);
-            buttonDraw(ref buttonYes, new System.Drawing.Point(820, 660), "Yes", new System.EventHandler(this.buttonYes_Click), Place.Right);
-            buttonDraw(ref buttonNo, new System.Drawing.Point(60, 660), "No", new System.EventHandler(this.buttonNo_Click), Place.Left);
+                Misc.labelDraw(this, ref label6, text[5], placev: Misc.Place.Six);
+
+            Misc.buttonDraw(this, ref buttonOK, "OK", new System.EventHandler(this.buttonOK_Click), placev: Misc.Place.Five);
+            Misc.buttonDraw(this, ref buttonYes, "Yes", new System.EventHandler(this.buttonOK_Click), placev: Misc.Place.Five, placeh: Misc.Place.Right);
+            Misc.buttonDraw(this, ref buttonNo, "No", new System.EventHandler(this.buttonOK_Click), placev: Misc.Place.Five, placeh: Misc.Place.Left);
 
             switch (notifyButtons)
             {
@@ -64,47 +68,6 @@ namespace WinAMBurner
                     buttonYes.Visible = true;
                     break;
             }
-        }
-
-        private void buttonDraw(ref Button button, Point location, string text, EventHandler eventHandler, Place place)
-        {
-            button = new System.Windows.Forms.Button();
-            Controls.Add(button);
-            button.Anchor = System.Windows.Forms.AnchorStyles.Top;
-            button.Margin = new System.Windows.Forms.Padding(4);
-            //button.Name = "button";
-            button.Size = new System.Drawing.Size(300, 90);
-            button.TabIndex = 3;
-            button.Text = text;
-            button.Location = placeCalc(button, location, place);
-            button.UseVisualStyleBackColor = true;
-            button.Click += eventHandler;
-        }
-
-        private Point placeCalc(Control control, Point location, Place place)
-        {
-            if (place == Place.Center)
-                location.X = this.Width / 2 - control.Width / 2;
-            else if (place == Place.Left)
-                location.X = this.Width / 4 - control.Width / 2;
-            else if (place == Place.Right)
-                location.X = this.Width / 4 - control.Width / 2 + this.Width / 2;
-            return location;
-        }
-
-        private void labelDraw(ref Label label, Point location, string text, Place place)
-        {
-            label = new System.Windows.Forms.Label();
-            Controls.Add(label);
-            label.Anchor = System.Windows.Forms.AnchorStyles.Top;
-            label.AutoSize = true;
-            //label.Name = "label";
-            label.Size = new System.Drawing.Size(300, 48);
-            label.TabIndex = 20;
-            label.Text = text;
-            //if (place == Place.Center)
-            //    location.X = this.Width / 2 - label.Width / 2;
-            label.Location = placeCalc(label, location, place);
         }
 
         private void buttonOK_Click(object sender, EventArgs e)

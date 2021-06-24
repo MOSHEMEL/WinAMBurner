@@ -132,7 +132,15 @@ namespace WinAMBurner
             LogFile.logWrite(cmd, dataRdStr);
             //parse data
             errcode = amDataParseId(dataRdStr);
-            serialPort.Close();
+            try
+            {
+                serialPort.Close();
+            }
+            catch (Exception e)
+            {
+                LogFile.logWrite(e.ToString());
+                return errcode;
+            }
             return errcode;
         }
 
@@ -166,7 +174,15 @@ namespace WinAMBurner
             LogFile.logWrite(cmd, dataRdStr);
             //parse data
             errcode = amDataParse(dataRdStr);
-            serialPort.Close();
+            try
+            {
+                serialPort.Close();
+            }
+            catch (Exception e)
+            {
+                LogFile.logWrite(e.ToString());
+                return errcode;
+            }
             return errcode;
         }
 
@@ -217,7 +233,15 @@ namespace WinAMBurner
             string dataRdStr = await serialReadWrite(cmd);
             //write to log
             LogFile.logWrite(cmd, dataRdStr);
-            serialPort.Close();
+            try
+            {
+                serialPort.Close();
+            }
+            catch (Exception e)
+            {
+                LogFile.logWrite(e.ToString());
+                return errcode;
+            }
             errcode = ErrCode.OK;
             return errcode;
         }
@@ -302,7 +326,15 @@ namespace WinAMBurner
             string dataRdStr = string.Empty;
             for (int i = cmd.Count - 1; i >= 0; i--)
             {
-                serialPort.Write(cmd[i]); 
+                try
+                {
+                    serialPort.Write(cmd[i]);
+                }
+                catch (Exception e)
+                {
+                    LogFile.logWrite(e.ToString());
+                    return dataRdStr;
+                }
                 time = 0;
                 string dataExist = string.Empty;
                 while (time < maxTimeout)
