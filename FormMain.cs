@@ -7,6 +7,7 @@ using System.Linq;
 using System.Management;
 using System.Net;
 using System.Net.Http;
+using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -48,11 +49,6 @@ namespace WinAMBurner
         private RichTextBox richTextBox8;
         private RichTextBox richTextBox9;
         private RichTextBox richTextBox10;
-        private RichTextBox richTextBox11;
-        private RichTextBox richTextBox12;
-        private RichTextBox richTextBox13;
-        private RichTextBox richTextBox14;
-        private RichTextBox richTextBox15;
         private Label label1;
         private Label label2;
         private Label label3;
@@ -90,11 +86,18 @@ namespace WinAMBurner
         private readonly HttpClient client = new HttpClient();
 
         private List<Farm> farms;
+        private Farm farm = new Farm();
         private DataTable farmTable;
         private List<Service> services;
+        private Service service = new Service();
         private DataTable serviceTable;
 
         private string tabletNo = null;
+
+        private Login login;
+        private string token;
+        private User user;
+
         private string TabletNo
         {
             get
@@ -199,44 +202,54 @@ namespace WinAMBurner
 
         private async void buttonLogin_Click(object sender, EventArgs e)
         {
-            HttpResponseMessage response = await loginPost();
-            if(response.StatusCode != HttpStatusCode.OK)
-            {
-                // if failed
-                FormNotify formNotify = new FormNotify("Login Failed",
-                    new string[] {
-                "Login failed Check your username and password,",
-                "make sure your tablet is connected to the internet"},
-                    NotifyButtons.OK);
-                formNotify.ShowDialog();
-                formNotify.Dispose();
-            }
+            login = new Login()
+            { 
+                email = richTextBox1.Text,
+                password = richTextBox2.Text,
+                tablet = TabletNo
+            };
+            LoginResponse loginResponse= await loginPost(login);
+            if(loginResponse != null)
             {
                 // if ok
-
+                token = loginResponse.token;
+                user = loginResponse.user;
                 screenLoginHide();
                 screenActionShow();
             }
+            // if failed
+            FormNotify formNotify = new FormNotify("Login Failed",
+                new string[] {
+            "Login failed Check your username and password,",
+            "make sure your tablet is connected to the internet"},
+                NotifyButtons.OK);
+            formNotify.ShowDialog();
+            formNotify.Dispose();
         }
 
-        private async Task<HttpResponseMessage> loginPost()
-        {          
-            var request = new HttpRequestMessage(new HttpMethod("POST"), "https://90fd534a-bb34-45c5-8622-5a1bba51db6e.mock.pstmn.io/" + "api/p/login/");
-            
-            Dictionary<string, string> postParams = new Dictionary<string, string>() 
-            { { "email", richTextBox1.Text }, { "password", richTextBox2.Text }, { "tablet", TabletNo } };
+        private async Task<LoginResponse> loginPost(Login login)
+        {
+            var response = await client.PostAsync("https://90fd534a-bb34-45c5-8622-5a1bba51db6e.mock.pstmn.io/" + "api/p/login/",
+                new StringContent(JsonSerializer.Serialize(login), Encoding.UTF8, "application/json"));
+            var loginResponse = await JsonSerializer.DeserializeAsync<LoginResponse>(await response.Content.ReadAsStreamAsync());
+            return loginResponse;
 
-            foreach (var param in postParams)
-            {
-
-                request.Headers.Add(param.Key, param.Value);
-
-            }
-            var response = await client.SendAsync(request);
-
-            var responseString = await response.Content.ReadAsStringAsync();
-
-            return response;
+            //var request = new HttpRequestMessage(new HttpMethod("POST"), "https://90fd534a-bb34-45c5-8622-5a1bba51db6e.mock.pstmn.io/" + "api/p/login/");
+            //
+            //Dictionary<string, string> postParams = new Dictionary<string, string>() 
+            //{ { "email", richTextBox1.Text }, { "password", richTextBox2.Text }, { "tablet", TabletNo } };
+            //
+            //foreach (var param in postParams)
+            //{
+            //
+            //    request.Headers.Add(param.Key, param.Value);
+            //
+            //}
+            //response = await client.SendAsync(request);
+            //
+            //var responseString = await response.Content.ReadAsStringAsync();
+            //
+            //return response;
         }
 
         private async Task<List<Farm>> farmsGet()
@@ -253,52 +266,70 @@ namespace WinAMBurner
             return services;
         }
 
-        private async Task<HttpResponseMessage> farmAdd(Farm farm)
+        private async Task<FarmResponse> farmAdd(Farm farm)
         {
-            var request = new HttpRequestMessage(new HttpMethod("POST"), "https://90fd534a-bb34-45c5-8622-5a1bba51db6e.mock.pstmn.io/" + "api/p/farms/");
-
-            return await farmAddEdit(farm, request);
+            var response = await client.PostAsync("https://90fd534a-bb34-45c5-8622-5a1bba51db6e.mock.pstmn.io/" + "api/p/farms/1/",
+                new StringContent(JsonSerializer.Serialize(farm), Encoding.UTF8, "application/json"));
+            var farmResponse = await JsonSerializer.DeserializeAsync<FarmResponse>(await response.Content.ReadAsStreamAsync());
+            return farmResponse;
         }
 
-        private async Task<HttpResponseMessage> farmEdit(Farm farm)
+        private async Task<FarmResponse> farmEdit(Farm farm)
         {
-            var request = new HttpRequestMessage(new HttpMethod("PATCH"), "https://90fd534a-bb34-45c5-8622-5a1bba51db6e.mock.pstmn.io/" + "api/p/farms/" + farm.id);
-
-            return await farmAddEdit(farm, request);
+            var response = await client.PatchAsync("https://90fd534a-bb34-45c5-8622-5a1bba51db6e.mock.pstmn.io/" + "api/p/farms/",
+                new StringContent(JsonSerializer.Serialize(farm), Encoding.UTF8, "application/json"));
+            var farmResponse = await JsonSerializer.DeserializeAsync<FarmResponse>(await response.Content.ReadAsStreamAsync());
+            return farmResponse;
         }
 
-        private async Task<HttpResponseMessage> farmAddEdit(Farm farm, HttpRequestMessage request)
+        private async Task<ServiceResponse> serviceAdd(Service service)
         {
-            Dictionary<string, string> postParams = new Dictionary<string, string>()
-            {
-                  {"name", farm.name},
-                  {"farm_type", farm.farm_type },
-                  {"breed_type", farm.breed_type },
-                  {"address", farm.address},
-                  {"country", farm.country },
-                  {"city", farm.city },
-                  {"state", farm.state },
-                  {"mobile", farm.mobile },
-                  {"location_of_treatment_type", farm.location_of_treatment_type.ToString() },
-                  {"number_of_lactating_cows", farm.number_of_lactating_cows.ToString()},
-                  {"dhi_test", farm.dhi_test.ToString()},
-                  {"contract_type", farm.contract_type },
-                  {"milking_setup_type", farm.milking_setup_type}
-            };
-
-
-            foreach (var param in postParams)
-            {
-
-                request.Headers.Add(param.Key, param.Value);
-
-            }
-            var response = await client.SendAsync(request);
-
-            var responseString = await response.Content.ReadAsStringAsync();
-
-            return response;
+            var response = await client.PostAsync("https://90fd534a-bb34-45c5-8622-5a1bba51db6e.mock.pstmn.io/" + "api/p/service_providers/",
+                new StringContent(JsonSerializer.Serialize(service), Encoding.UTF8, "application/json"));
+            var serviceResponse = await JsonSerializer.DeserializeAsync<ServiceResponse>(await response.Content.ReadAsStreamAsync());
+            return serviceResponse;
         }
+
+        private async Task<ServiceResponse> serviceEdit(Service service)
+        {
+            var response = await client.PatchAsync("https://90fd534a-bb34-45c5-8622-5a1bba51db6e.mock.pstmn.io/" + "api/p/service_providers/1/",
+                new StringContent(JsonSerializer.Serialize(service), Encoding.UTF8, "application/json"));
+            var serviceResponse = await JsonSerializer.DeserializeAsync<ServiceResponse>(await response.Content.ReadAsStreamAsync());
+            return serviceResponse;
+        }
+
+        //private async Task<HttpResponseMessage> farmAddEdit(Farm farm, HttpRequestMessage request)
+        //{
+        //    Dictionary<string, string> postParams = new Dictionary<string, string>()
+        //    {
+        //          {"name", farm.name},
+        //          {"farm_type", farm.farm_type },
+        //          {"breed_type", farm.breed_type },
+        //          {"address", farm.address},
+        //          {"country", farm.country },
+        //          {"city", farm.city },
+        //          {"state", farm.state },
+        //          {"mobile", farm.mobile },
+        //          {"location_of_treatment_type", farm.location_of_treatment_type.ToString() },
+        //          {"number_of_lactating_cows", farm.number_of_lactating_cows.ToString()},
+        //          {"dhi_test", farm.dhi_test.ToString()},
+        //          {"contract_type", farm.contract_type },
+        //          {"milking_setup_type", farm.milking_setup_type}
+        //    };
+        //
+        //
+        //    foreach (var param in postParams)
+        //    {
+        //
+        //        request.Headers.Add(param.Key, param.Value);
+        //
+        //    }
+        //    var response = await client.SendAsync(request);
+        //
+        //    var responseString = await response.Content.ReadAsStringAsync();
+        //
+        //    return response;
+        //}
 
         private string GetBIOSSerNo()
         {
@@ -792,16 +823,20 @@ namespace WinAMBurner
 
         private void screenFarmAddShow()
         {
-            screenFarmUpdateShow(new Farm());
+            //farm = new Farm();
+            screenFarmUpdateShow(farm);
             Misc.labelDraw(this, ref label16, "Add Farm", placev: Misc.Place.One,
                 font: new System.Drawing.Font("Segoe UI", 24F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point));
-            comboBoxSmallDraw(ref comboBox5, new System.EventHandler(comboBox5_SelectedIndexChanged), Farm.CONTRACT_TYPE, (new Farm()).contract_type, placeh: Misc.Place.RightTwo, placev: Misc.Place.Eight);
+            comboBoxSmallDraw(ref comboBox5, new System.EventHandler(comboBoxFarm5_SelectedIndexChanged), Farm.CONTRACT_TYPE, farm.contract_type, placeh: Misc.Place.RightTwo, placev: Misc.Place.Eight);
             Misc.labelDraw(this, ref label15, "Contract:", autoSize: false, placeh: Misc.Place.RightOne, placev: Misc.Place.Eight);
             //locationStart = 0;
+            Misc.buttonDraw(this, ref button2, "Submit", new System.EventHandler(buttonFarmAddSubmit_Click), placeh: Misc.Place.RightTwo,
+                placev: Misc.Place.Ten);
         }
 
-        private void comboBox7_SelectedIndexChanged(object sender, EventArgs e)
+        private void comboBoxFarm5_SelectedIndexChanged(object sender, EventArgs e)
         {
+            //farm.ContractType = (sender as ComboBox).SelectedItem as string;
         }
 
         private void screenFarmEditShow(Farm farm)
@@ -809,6 +844,8 @@ namespace WinAMBurner
             screenFarmUpdateShow(farm);
             Misc.labelDraw(this, ref label16, "Edit Farm", placev: Misc.Place.One,
                 font: new System.Drawing.Font("Segoe UI", 24F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point));
+            Misc.buttonDraw(this, ref button2, "Submit", new System.EventHandler(buttonFarmEditSubmit_Click), placeh: Misc.Place.RightTwo,
+                placev: Misc.Place.Ten);
         }
 
         private void screenFarmUpdateShow(Farm farm)
@@ -825,12 +862,12 @@ namespace WinAMBurner
             textBoxSmallDraw(ref richTextBox6, farm.Contact, Farm.CONTACT, placeh: Misc.Place.LeftOne, placev: Misc.Place.Seven);
             textBoxSmallDraw(ref richTextBox7, farm.Mobile, Farm.MOBILE, placeh: Misc.Place.LeftOne, placev: Misc.Place.Eight);
             textBoxSmallDraw(ref richTextBox8, "", Farm.EMAIL, placeh: Misc.Place.LeftOne, placev: Misc.Place.Nine);
-            comboBoxSmallDraw(ref comboBox1, new System.EventHandler(comboBox1_SelectedIndexChanged), Farm.FARM_TYPE, farm.FarmType, placeh: Misc.Place.RightTwo, placev: Misc.Place.Two);
-            comboBoxSmallDraw(ref comboBox2, new System.EventHandler(comboBox2_SelectedIndexChanged), Farm.BREED_TYPE, farm.BreedType, placeh: Misc.Place.RightTwo, placev: Misc.Place.Three);
+            comboBoxSmallDraw(ref comboBox1, new System.EventHandler(comboBoxFarm1_SelectedIndexChanged), Farm.FARM_TYPE, farm.FarmType, placeh: Misc.Place.RightTwo, placev: Misc.Place.Two);
+            comboBoxSmallDraw(ref comboBox2, new System.EventHandler(comboBoxFarm2_SelectedIndexChanged), Farm.BREED_TYPE, farm.BreedType, placeh: Misc.Place.RightTwo, placev: Misc.Place.Three);
             textBoxSmallDraw(ref richTextBox9, farm.NumberOfLactatingCows, Farm.NUMBER_OF_LACTATING_COWS, placeh: Misc.Place.RightTwo, placev: Misc.Place.Four);
             textBoxSmallDraw(ref richTextBox10, farm.DhiTest, Farm.DHI_TEST, placeh: Misc.Place.RightTwo, placev: Misc.Place.Five);
-            comboBoxSmallDraw(ref comboBox3, new System.EventHandler(comboBox3_SelectedIndexChanged), Farm.MILKING_SETUP_TYPE, farm.MilkingSetupType, placeh: Misc.Place.RightTwo, placev: Misc.Place.Six);
-            comboBoxSmallDraw(ref comboBox4, new System.EventHandler(comboBox4_SelectedIndexChanged), Farm.LOCATION_OF_TREATMENT_TYPE, farm.LocationOfTreatmentType, placeh: Misc.Place.RightTwo, placev: Misc.Place.Seven);
+            comboBoxSmallDraw(ref comboBox3, new System.EventHandler(comboBoxFarm3_SelectedIndexChanged), Farm.MILKING_SETUP_TYPE, farm.MilkingSetupType, placeh: Misc.Place.RightTwo, placev: Misc.Place.Six);
+            comboBoxSmallDraw(ref comboBox4, new System.EventHandler(comboBoxFarm4_SelectedIndexChanged), Farm.LOCATION_OF_TREATMENT_TYPE, farm.LocationOfTreatmentType, placeh: Misc.Place.RightTwo, placev: Misc.Place.Seven);
 
             //locationIdx = locationStart;
             Misc.labelDraw(this, ref label1, "Name of Dairy farm:", autoSize: false, placeh: Misc.Place.LeftTwo, placev: Misc.Place.Two);
@@ -851,28 +888,33 @@ namespace WinAMBurner
             //locationIdx = 0;
             Misc.buttonDraw(this, ref button1, "Cancel", new System.EventHandler(buttonFarmCancel_Click), placeh: Misc.Place.LeftOne,
                 placev: Misc.Place.Ten);
-            Misc.buttonDraw(this, ref button2, "Submit", new System.EventHandler(buttonFarmSubmit_Click), placeh: Misc.Place.RightTwo,
-                placev: Misc.Place.Ten);
+            //Misc.buttonDraw(this, ref button2, "Submit", new System.EventHandler(buttonFarmSubmit_Click), placeh: Misc.Place.RightTwo,
+            //    placev: Misc.Place.Ten);
         }
 
-        private void comboBox6_SelectedIndexChanged(object sender, EventArgs e)
+        private void comboBoxFarm1_SelectedIndexChanged(object sender, EventArgs e)
         {
+            //farm.FarmType = (sender as ComboBox).SelectedItem as string;
         }
 
-        private void comboBox5_SelectedIndexChanged(object sender, EventArgs e)
+        private void comboBoxFarm2_SelectedIndexChanged(object sender, EventArgs e)
         {
+            //farm.BreedType = (sender as ComboBox).SelectedItem as string;
         }
 
-        private void comboBox4_SelectedIndexChanged(object sender, EventArgs e)
+        private void comboBoxFarm4_SelectedIndexChanged(object sender, EventArgs e)
         {
+            //farm.MilkingSetupType = (sender as ComboBox).SelectedItem as string;
         }
 
-        private void comboBox3_SelectedIndexChanged(object sender, EventArgs e)
+        private void comboBoxFarm3_SelectedIndexChanged(object sender, EventArgs e)
         {
+            //farm.LocationOfTreatmentType = (sender as ComboBox).SelectedItem as string;
         }
 
         private void buttonFarmCancel_Click(object sender, EventArgs e)
         {
+            farm = new Farm();
             screenFarmUpdateHide();
             screenFarmShow();
         }
@@ -941,10 +983,92 @@ namespace WinAMBurner
         //    label9.Dispose();
         //}
 
-        private void buttonFarmSubmit_Click(object sender, EventArgs e)
+        private async void buttonFarmAddSubmit_Click(object sender, EventArgs e)
         {
-            screenFarmUpdateHide();
-            screenFarmShow();
+            farmParams();
+            FarmResponse farmResponse = await farmAdd(farm);
+            farmParse(farmResponse);
+        }
+
+        private void farmParse(FarmResponse farmResponse)
+        {
+            if (farmResponse.mobile != "OK")
+            {
+                FormNotify formNotify = new FormNotify("Login Failed", new string[] { farmResponse.mobile }, NotifyButtons.OK);
+                formNotify.ShowDialog();
+                formNotify.Dispose();
+            }
+            else if (farmResponse.country != "OK")
+            {
+                FormNotify formNotify = new FormNotify("Login Failed", new string[] { farmResponse.country }, NotifyButtons.OK);
+                formNotify.ShowDialog();
+                formNotify.Dispose();
+            }
+            else if (farmResponse.state != "OK")
+            {
+                FormNotify formNotify = new FormNotify("Login Failed", new string[] { farmResponse.state }, NotifyButtons.OK);
+                formNotify.ShowDialog();
+                formNotify.Dispose();
+            }
+            else if (farmResponse.name != "OK")
+            {
+                FormNotify formNotify = new FormNotify("Login Failed", new string[] { farmResponse.name }, NotifyButtons.OK);
+                formNotify.ShowDialog();
+                formNotify.Dispose();
+            }
+            else if (farmResponse.breed_type != "OK")
+            {
+                FormNotify formNotify = new FormNotify("Login Failed", new string[] { farmResponse.breed_type }, NotifyButtons.OK);
+                formNotify.ShowDialog();
+                formNotify.Dispose();
+            }
+            else if (farmResponse.location_of_treatment_type != "OK")
+            {
+                FormNotify formNotify = new FormNotify("Login Failed", new string[] { farmResponse.location_of_treatment_type }, NotifyButtons.OK);
+                formNotify.ShowDialog();
+                formNotify.Dispose();
+            }
+            else if (farmResponse.number_of_lactating_cows != "OK")
+            {
+                FormNotify formNotify = new FormNotify("Login Failed", new string[] { farmResponse.number_of_lactating_cows }, NotifyButtons.OK);
+                formNotify.ShowDialog();
+                formNotify.Dispose();
+            }
+            else
+            {
+                farms.Remove(farm);
+                farms.Add(farm);
+                farmTable.Rows.Add((new List<string>() { farm.name, farm.country, farm.city, farm.address }).ToArray<string>());
+
+                screenFarmUpdateHide();
+                screenFarmShow();
+            }
+        }
+
+        private void farmParams()
+        {
+            farm.Name = richTextBox1.Text;
+            farm.Address = richTextBox2.Text;
+            farm.Country = richTextBox3.Text;
+            farm.State = richTextBox4.Text;
+            farm.City = richTextBox5.Text;
+            farm.Contact = richTextBox6.Text;
+            farm.Mobile = richTextBox7.Text;
+            //"" = richTextBox8
+            farm.FarmType = comboBox1.Text;
+            farm.BreedType = comboBox2.Text;
+            farm.NumberOfLactatingCows = richTextBox9.Text;
+            farm.DhiTest = richTextBox10.Text;
+            farm.MilkingSetupType = comboBox3.Text;
+            farm.LocationOfTreatmentType = comboBox4.Text;
+            farm.ContractType = comboBox5.Text;
+        }
+
+        private async void buttonFarmEditSubmit_Click(object sender, EventArgs e)
+        {
+            farmParams();
+            FarmResponse farmResponse = await farmEdit(farm);
+            farmParse(farmResponse);
         }
 
 
@@ -978,6 +1102,8 @@ namespace WinAMBurner
             comboBoxSmallDraw(ref comboBox1, new System.EventHandler(comboBox1_SelectedIndexChanged), Service.CONTRACT_TYPE, (new Service()).contract_type, placeh: Misc.Place.RightTwo, placev: Misc.Place.Six);
             //textBoxSmallDraw(ref richTextBox15, "", "Contract:", placeh: Misc.Place.RightTwo, placev: Misc.Place.Six);
             Misc.labelDraw(this, ref label10, "Contract:", autoSize: false, placeh: Misc.Place.RightOne, placev: Misc.Place.Six);
+            Misc.buttonDraw(this, ref button2, "Submit", new System.EventHandler(buttonServiceAddSubmit_Click), placeh: Misc.Place.RightTwo,
+                placev: Misc.Place.Ten);
         }
 
         private void buttonServiceEdit_Click(object sender, EventArgs e)
@@ -995,6 +1121,8 @@ namespace WinAMBurner
             screenServiceUpdateShow(service);
             Misc.labelDraw(this, ref label11, "Edit Service provider", placev: Misc.Place.One,
                 font: new System.Drawing.Font("Segoe UI", 24F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point));
+            Misc.buttonDraw(this, ref button2, "Submit", new System.EventHandler(buttonServiceEditSubmit_Click), placeh: Misc.Place.RightTwo,
+                placev: Misc.Place.Ten);
         }
 
         private void buttonServiceBack_Click(object sender, EventArgs e)
@@ -1027,8 +1155,8 @@ namespace WinAMBurner
 
             Misc.buttonDraw(this, ref button1, "Cancel", new System.EventHandler(buttonServiceCancel_Click), placeh: Misc.Place.LeftOne,
                 placev: Misc.Place.Ten);
-            Misc.buttonDraw(this, ref button2, "Submit", new System.EventHandler(buttonServiceSubmit_Click), placeh: Misc.Place.RightTwo,
-                placev: Misc.Place.Ten);
+            //Misc.buttonDraw(this, ref button2, "Submit", new System.EventHandler(buttonServiceSubmit_Click), placeh: Misc.Place.RightTwo,
+            //    placev: Misc.Place.Ten);
         }
 
         private void screenServiceUpdateHide()
@@ -1071,10 +1199,75 @@ namespace WinAMBurner
             screenServiceShow();
         }
 
-        private void buttonServiceSubmit_Click(object sender, EventArgs e)
+        private async void buttonServiceAddSubmit_Click(object sender, EventArgs e)
         {
-            screenServiceUpdateHide();
-            screenServiceShow();
+            serviceParams();
+            ServiceResponse serviceResponse = await serviceAdd(service);
+            serviceParse(serviceResponse);
+        }
+
+        private void serviceParse(ServiceResponse serviceResponse)
+        {
+            if (serviceResponse.mobile != "OK")
+            {
+                FormNotify formNotify = new FormNotify("Login Failed", new string[] { serviceResponse.mobile }, NotifyButtons.OK);
+                formNotify.ShowDialog();
+                formNotify.Dispose();
+            }
+            else if (serviceResponse.country != "OK")
+            {
+                FormNotify formNotify = new FormNotify("Login Failed", new string[] { serviceResponse.country }, NotifyButtons.OK);
+                formNotify.ShowDialog();
+                formNotify.Dispose();
+            }
+            else if (serviceResponse.state != "OK")
+            {
+                FormNotify formNotify = new FormNotify("Login Failed", new string[] { serviceResponse.state }, NotifyButtons.OK);
+                formNotify.ShowDialog();
+                formNotify.Dispose();
+            }
+            else if (serviceResponse.email != "OK")
+            {
+                FormNotify formNotify = new FormNotify("Login Failed", new string[] { serviceResponse.email }, NotifyButtons.OK);
+                formNotify.ShowDialog();
+                formNotify.Dispose();
+            }
+            else if (serviceResponse.name != "OK")
+            {
+                FormNotify formNotify = new FormNotify("Login Failed", new string[] { serviceResponse.name }, NotifyButtons.OK);
+                formNotify.ShowDialog();
+                formNotify.Dispose();
+            }
+            else
+            {
+                services.Remove(service);
+                services.Add(service);
+                serviceTable.Rows.Add((new List<string>() { service.name, service.country, service.city, service.address }).ToArray<string>());
+
+                screenServiceUpdateHide();
+                screenServiceShow();
+            }
+        }
+
+        private void serviceParams()
+        {
+            service.NumberOfDairyFarms = richTextBox1.Text;
+            service.NumberOfDairyCows = richTextBox2.Text;
+            service.Address = richTextBox3.Text;
+            service.Country = richTextBox4.Text;
+            service.State = richTextBox5.Text;
+            service.City = richTextBox6.Text;
+            service.Name = richTextBox7.Text;
+            service.Mobile = richTextBox8.Text;
+            service.Email = richTextBox9.Text;
+            service.ContractType = comboBox1.Text;
+        }
+
+        private async void buttonServiceEditSubmit_Click(object sender, EventArgs e)
+        {
+            serviceParams();
+            ServiceResponse serviceResponse = await serviceEdit(service);
+            serviceParse(serviceResponse);
         }
 
         private void linkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
