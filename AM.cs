@@ -46,7 +46,7 @@ namespace WinAMBurner
         }
     }
 
-    class AMData
+    class AM
     {
         private SerialPort serialPort;
         private const int serialPortBaudRate = 115200;
@@ -82,7 +82,7 @@ namespace WinAMBurner
 
         public event EventHandler serialPortProgressEvent;
 
-        public AMData()
+        public AM()
         {
             serialPort = new SerialPort();
             serialPort.BaudRate = serialPortBaudRate;

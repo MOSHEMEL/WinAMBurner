@@ -47,22 +47,22 @@ namespace WinAMBurner
         {
             get
             {
-                return Misc.intToString(number_of_dairy_farms);
+                return Gui.intToString(number_of_dairy_farms);
             }
             set
             {
-                number_of_dairy_farms = Misc.stringToInt(value);
+                number_of_dairy_farms = Gui.stringToInt(value);
             }
         }
         public string NumberOfDairyCows
         {
             get
             {
-                return Misc.intToString(number_of_dairy_cows);
+                return Gui.intToString(number_of_dairy_cows);
             }
             set
             {
-                number_of_dairy_cows = Misc.stringToInt(value);
+                number_of_dairy_cows = Gui.stringToInt(value);
             }
         }
         public string Name { get { return name; } set { name = value; } }
@@ -71,22 +71,22 @@ namespace WinAMBurner
         {
             get
             {
-                return Misc.intToString(contact);
+                return Gui.intToString(contact);
             }
             set
             {
-                contact = Misc.stringToInt(value);
+                contact = Gui.stringToInt(value);
             }
         }
         public string Distributor
         {
             get
             {
-                return Misc.intToString(distributor);
+                return Gui.intToString(distributor);
             }
             set
             {
-                distributor = Misc.stringToInt(value);
+                distributor = Gui.stringToInt(value);
             }
         }
 

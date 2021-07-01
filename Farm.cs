@@ -1,32 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace WinAMBurner
 {
-    class Farm
+    class FarmJson
     {
-        public static int ID = 0;
-        public static string MOBILE = "123456";
-        public static string EMAIL = "email@email.com";
-        public static string ADDRESS = "Adress";
-        public static string COUNTRY = "Country";
-        public static string CITY = "City";
-        public static string STATE = "State";
-        public static string IS_ACTIVE = "No";
-        public static string NAME = "Name";
-        public static List<string> FARM_TYPE = new List<string>() { "Organic" };
-        public static List<string> BREED_TYPE = new List<string>() { "Holshtien" };
-        public static List<string> MILKING_SETUP_TYPE = new List<string>() { "Parallel" };
-        public static List<string> LOCATION_OF_TREATMENT_TYPE = new List<string>() { "Milking Parolee" };
-        public static List<string> CONTRACT_TYPE = new List<string>() { "Purchase" };
-        public static string NUMBER_OF_LACTATING_COWS = "0";
-        public static string DHI_TEST = "No";
-        public static string CONTACT = "0";
-        public static string DISTRIBUTOR = "0";
-
         public int id { get; set; }
         public string mobile { get; set; }
         public string address { get; set; }
@@ -44,6 +21,46 @@ namespace WinAMBurner
         public bool dhi_test { get; set; }
         public int contact { get; set; }
         public int distributor { get; set; }
+    }
+
+    class Farm : FarmJson
+    {
+        public static int ID = 0;
+        public static string MOBILE = "123456";
+        public static string EMAIL = "email@email.com";
+        public static string ADDRESS = "Adress";
+        public static string COUNTRY = "Country";
+        public static string CITY = "City";
+        public static string STATE = "State";
+        public static string IS_ACTIVE = "No";
+        public static string NAME = "Name";
+        public static List<string> FARM_TYPE = new List<string>() { "ORGANIC" };
+        public static List<string> BREED_TYPE = new List<string>() { "HOLSHTIEN" };
+        public static List<string> MILKING_SETUP_TYPE = new List<string>() { "PARALLEL" };
+        public static List<string> LOCATION_OF_TREATMENT_TYPE = new List<string>() { "MILKING_PAROLEE" };
+        public static List<string> CONTRACT_TYPE = new List<string>() { "PURCHASE" };
+        public static string NUMBER_OF_LACTATING_COWS = "0";
+        public static string DHI_TEST = "No";
+        public static string CONTACT = "0";
+        public static string DISTRIBUTOR = "0";
+
+        //public int id { get; set; }
+        //public string mobile { get; set; }
+        //public string address { get; set; }
+        //public string country { get; set; }
+        //public string city { get; set; }
+        //public string state { get; set; }
+        //public bool is_active { get; set; }
+        //public string name { get; set; }
+        //public string farm_type { get; set; }
+        //public string breed_type { get; set; }
+        //public string milking_setup_type { get; set; }
+        //public string location_of_treatment_type { get; set; }
+        //public string contract_type { get; set; }
+        //public int number_of_lactating_cows { get; set; }
+        //public bool dhi_test { get; set; }
+        //public int contact { get; set; }
+        //public int distributor { get; set; }
 
         public int Id { get { return id; } set { id = value; } }
         public string Mobile { get { return mobile; } set { mobile = value; } }
@@ -55,11 +72,11 @@ namespace WinAMBurner
         {
             get
             {
-                return Misc.boolToString(is_active);
+                return Gui.boolToString(is_active);
             }
             set
             {
-                is_active = Misc.stringToBool(value);
+                is_active = Gui.stringToBool(value);
             }
         }
         public string Name { get { return name; } set { name = value; } }
@@ -72,44 +89,44 @@ namespace WinAMBurner
         {
             get
             {
-                return Misc.intToString(number_of_lactating_cows);
+                return Gui.intToString(number_of_lactating_cows);
             }
             set
             {
-                number_of_lactating_cows = Misc.stringToInt(value);
+                number_of_lactating_cows = Gui.stringToInt(value);
             }
         }
         public string DhiTest
         {
             get
             {
-                return Misc.boolToString(dhi_test);
+                return Gui.boolToString(dhi_test);
             }
             set
             {
-                dhi_test = Misc.stringToBool(value);
+                dhi_test = Gui.stringToBool(value);
             }
         }
         public string Contact
         {
             get
             {
-                return Misc.intToString(contact);
+                return Gui.intToString(contact);
             }
             set
             {
-                contact = Misc.stringToInt(value);
+                contact = Gui.stringToInt(value);
             }
         }
         public string Distributor
         {
             get
             {
-                return Misc.intToString(distributor);
+                return Gui.intToString(distributor);
             }
             set
             {
-                distributor = Misc.stringToInt(value);
+                distributor = Gui.stringToInt(value);
             }
         }
 

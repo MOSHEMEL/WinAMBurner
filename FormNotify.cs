@@ -28,32 +28,33 @@ namespace WinAMBurner
         public FormNotify()
         {
             InitializeComponent();
-            this.Scale(new SizeF(Misc.ScaleFactor, Misc.ScaleFactor));
-            this.Font = new System.Drawing.Font("Segoe UI", Misc.DefaultFont, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.Scale(new SizeF(Gui.ScaleFactor, Gui.ScaleFactor));
+            this.Font = new System.Drawing.Font("Segoe UI", Gui.DefaultFont, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
         }
 
-        public FormNotify(string caption, string [] text, NotifyButtons notifyButtons)
+        //public FormNotify(string[] text, NotifyButtons notifyButtons, string caption = "Error")
+        public FormNotify(List<string> text, NotifyButtons notifyButtons, string caption = "Error")
         {
             InitializeComponent();
-            this.Scale(new SizeF(Misc.ScaleFactor, Misc.ScaleFactor));
-            this.Font = new System.Drawing.Font("Segoe UI", Misc.DefaultFont, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.Scale(new SizeF(Gui.ScaleFactor, Gui.ScaleFactor));
+            this.Font = new System.Drawing.Font("Segoe UI", Gui.DefaultFont, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             Name = caption;
 
-            Misc.labelDraw(this, ref label1, text[0], placev: Misc.Place.One);
-            if (text.Length > 1)
-                Misc.labelDraw(this, ref label2, text[1], placev: Misc.Place.Two);
-            if (text.Length > 2)
-                Misc.labelDraw(this, ref label3, text[2], placev: Misc.Place.Three);
-            if (text.Length > 3)
-                Misc.labelDraw(this, ref label4, text[3], placev: Misc.Place.Four);
-            if (text.Length > 4)
-                Misc.labelDraw(this, ref label5, text[4], placev: Misc.Place.Five);
-            if (text.Length > 5)
-                Misc.labelDraw(this, ref label6, text[5], placev: Misc.Place.Six);
+            Gui.labelDraw(this, ref label1, text[0], placev: Gui.Place.One);
+            if (text.Count > 1)
+                Gui.labelDraw(this, ref label2, text[1], placev: Gui.Place.Two);
+            if (text.Count > 2)
+                Gui.labelDraw(this, ref label3, text[2], placev: Gui.Place.Three);
+            if (text.Count > 3)
+                Gui.labelDraw(this, ref label4, text[3], placev: Gui.Place.Four);
+            if (text.Count > 4)
+                Gui.labelDraw(this, ref label5, text[4], placev: Gui.Place.Five);
+            //if (text.Count > 5)
+            //    Gui.labelDraw(this, ref label6, text[5], placev: Gui.Place.Six);
 
-            Misc.buttonDraw(this, ref buttonOK, "OK", new System.EventHandler(this.buttonOK_Click), placev: Misc.Place.Five);
-            Misc.buttonDraw(this, ref buttonYes, "Yes", new System.EventHandler(this.buttonOK_Click), placev: Misc.Place.Five, placeh: Misc.Place.Right);
-            Misc.buttonDraw(this, ref buttonNo, "No", new System.EventHandler(this.buttonOK_Click), placev: Misc.Place.Five, placeh: Misc.Place.Left);
+            Gui.buttonDraw(this, ref buttonOK, "OK", new System.EventHandler(this.buttonOK_Click), placev: Gui.Place.Six);
+            Gui.buttonDraw(this, ref buttonYes, "Yes", new System.EventHandler(this.buttonOK_Click), placev: Gui.Place.Six, placeh: Gui.Place.Right);
+            Gui.buttonDraw(this, ref buttonNo, "No", new System.EventHandler(this.buttonOK_Click), placev: Gui.Place.Six, placeh: Gui.Place.Left);
 
             switch (notifyButtons)
             {

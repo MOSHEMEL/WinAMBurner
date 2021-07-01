@@ -3,13 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace WinAMBurner
 {
-    class Login
+    class Screen
     {
-        public string email { get; set; }
-        public string password { get; set; }
-        public int tablet { get; set; }
+        List<Element> elements;
     }
 }
