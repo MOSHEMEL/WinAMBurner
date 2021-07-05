@@ -87,15 +87,19 @@ namespace WinAMBurner
             var jsonDocument = await JsonSerializer.DeserializeAsync<JsonDocument>(await response.Content.ReadAsStreamAsync());
 
             JsonElement jsonElement = jsonDocument.RootElement.GetProperty("actions").GetProperty("POST");
-            Dictionary<JsonElement, JsonElement> countries = jsonElement.GetProperty("country").GetProperty("choices").EnumerateArray().ToDictionary(c => c.GetProperty("value"), c => c.GetProperty("display_name"));
-            Dictionary<JsonElement, JsonElement> farm_types = jsonElement.GetProperty("farm_type").GetProperty("choices").EnumerateArray().ToDictionary(c => c.GetProperty("value"), c => c.GetProperty("display_name"));
-            Dictionary<JsonElement, JsonElement> breed_types = jsonElement.GetProperty("breed_type").GetProperty("choices").EnumerateArray().ToDictionary(c => c.GetProperty("value"), c => c.GetProperty("display_name"));
-            Dictionary<JsonElement, JsonElement> milking_setup_types = jsonElement.GetProperty("milking_setup_type").GetProperty("choices").EnumerateArray().ToDictionary(c => c.GetProperty("value"), c => c.GetProperty("display_name"));
-            Dictionary<JsonElement, JsonElement> location_of_treatment_types = jsonElement.GetProperty("location_of_treatment_type").GetProperty("choices").EnumerateArray().ToDictionary(c => c.GetProperty("value"), c => c.GetProperty("display_name"));
-            Dictionary<JsonElement, JsonElement> contract_types = jsonElement.GetProperty("contract_type").GetProperty("choices").EnumerateArray().ToDictionary(c => c.GetProperty("value"), c => c.GetProperty("display_name"));
-            
+            Farm.COUNTRY = convert(jsonElement, "country");
+            Dictionary<JsonElement, JsonElement> farm_types = convert(jsonElement, "farm_type");
+            Dictionary<JsonElement, JsonElement> breed_types = convert(jsonElement, "breed_type");
+            Dictionary<JsonElement, JsonElement> milking_setup_types = convert(jsonElement, "milking_setup_type");
+            Dictionary<JsonElement, JsonElement> location_of_treatment_types = convert(jsonElement, "location_of_treatment_type");
+            Dictionary<JsonElement, JsonElement> contract_types = convert(jsonElement, "contract_type");
+
             return jsonDocument;
         }
 
+        private Dictionary<JsonElement, JsonElement> convert(JsonElement jsonElement, string key)
+        {
+            return jsonElement.GetProperty(key).GetProperty("choices").EnumerateArray().ToDictionary(c => c.GetProperty("value"), c => c.GetProperty("display_name"));
+        }
     }
 }

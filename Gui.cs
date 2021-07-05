@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -21,6 +22,7 @@ namespace WinAMBurner
             LeftTwo,
             Start,
             End,
+            Zero,
             One,
             Two,
             Three,
@@ -41,6 +43,43 @@ namespace WinAMBurner
         public const float PlaceOne = 200 * ScaleFactor;
         public const float DeltaV = 100 * ScaleFactor;
         public const float DefaultFont = 18F * ScaleFactor;
+
+        public static void draw<T>(Form thisForm, string text = null, 
+            string name = null, float font = DefaultFont, int width = DefaultWidth, int height = DefaultHeight, 
+            EventHandler eventHandler = null, LinkLabelLinkClickedEventHandler linkLabelLinkClickedEventHandler = null,
+            Place placeh = Place.Center, Place placev = Place.Center)
+        {
+            //control = new System.Windows.Forms.RichTextBox();
+            Control control = typeof(T).GetConstructor(new Type[] { }).Invoke(null) as Control;
+            thisForm.Controls.Add(control);
+            //textBox.AutoSize = true;
+            control.Anchor = ((System.Windows.Forms.AnchorStyles.Top) | (System.Windows.Forms.AnchorStyles.Left));//((System.Windows.Forms.AnchorStyles.Right) | (System.Windows.Forms.AnchorStyles.Top) | (System.Windows.Forms.AnchorStyles.Bottom));
+            control.Margin = new System.Windows.Forms.Padding(4);
+            control.Size = new System.Drawing.Size(width, height);
+            control.Scale(new SizeF(ScaleFactor, ScaleFactor));
+            control.TabIndex = 1;
+            if (text != null)
+            control.Text = text;
+            if (name == null)
+                control.Name = name;
+            control.Font = new System.Drawing.Font("Segoe UI", font, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            control.Location = placeCalc(thisForm, control, placeh: placeh, placev: placev);
+            if (typeof(T) == typeof(PictureBox))
+                (control as PictureBox).Image = global::WinAMBurner.Properties.Resources.ARmentaSmall;
+            if (typeof(T) == typeof(RichTextBox))
+            {
+                if (name == text)
+                    control.ForeColor = Color.Silver;
+                control.Enter += new System.EventHandler(richTextBoxEnter_Click);
+                control.Leave += new System.EventHandler(richTextBoxLeave_Click);
+            }
+            if (typeof(T) == typeof(Button))
+                if (eventHandler != null)
+                    control.Click += eventHandler;
+            if (typeof(T) == typeof(LinkLabel))
+                if (linkLabelLinkClickedEventHandler != null)
+                    (control as LinkLabel).LinkClicked += linkLabelLinkClickedEventHandler;
+        }
 
         public static Point placeCalc(Form thisForm,
                 Control control, Point location = new System.Drawing.Point(), Place placeh = Place.Center, Place placev = Place.Center)
@@ -64,7 +103,9 @@ namespace WinAMBurner
             else if (placeh == Place.End)
                 location.X = thisForm.Width / 2 + control.Width / 2 + control.Width + control.Width * 2 / 4;
 
-            if (placev == Place.One)
+            if (placev == Place.Zero)
+                location.Y = 30;
+            else if (placev == Place.One)
                 location.Y = (int)(PlaceOne + 0 * DeltaV);//200;
             else if (placev == Place.Two)
                 location.Y = (int)(PlaceOne + 1 * DeltaV);//300;
@@ -158,8 +199,8 @@ namespace WinAMBurner
             textBox.Font = new System.Drawing.Font("Segoe UI", DefaultFont, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             textBox.ForeColor = Color.Silver;
             textBox.Location = placeCalc(thisForm, textBox, placeh: placeh, placev: placev);
-            textBox.Enter += new System.EventHandler(textBoxEnter_Click);
-            textBox.Leave += new System.EventHandler(textBoxLeave_Click);
+            textBox.Enter += new System.EventHandler(richTextBoxEnter_Click);
+            textBox.Leave += new System.EventHandler(richTextBoxLeave_Click);
         }
 
         public static void textBoxSmallDraw(Form thisForm, ref RichTextBox textBox, string text, string name, Place placeh = Place.Center, Place placev = Place.Center)
@@ -178,8 +219,8 @@ namespace WinAMBurner
             if (name == text)
                 textBox.ForeColor = Color.Silver;
             textBox.Location = placeCalc(thisForm, textBox, placeh: placeh, placev: placev);
-            textBox.Enter += new System.EventHandler(textBoxEnter_Click);
-            textBox.Leave += new System.EventHandler(textBoxLeave_Click);
+            textBox.Enter += new System.EventHandler(richTextBoxEnter_Click);
+            textBox.Leave += new System.EventHandler(richTextBoxLeave_Click);
         }
 
         public static void comboBoxSmallDraw(Form thisForm, ref ComboBox comboBox, string text, List<string> items, EventHandler eventHandler, Place placeh = Place.Center, Place placev = Place.Center)
@@ -196,8 +237,25 @@ namespace WinAMBurner
             comboBox.Location = placeCalc(thisForm, comboBox, placeh: placeh, placev: placev);
             comboBox.TabIndex = 17;
             comboBox.SelectedIndexChanged += eventHandler;
-            //comboBox.Items.AddRange(items.ToArray());
-            comboBox.Items.AddRange(items.ToDictionary(i => i).ToArray());
+            comboBox.Items.AddRange(items.ToArray());
+            comboBox.Text = text;
+        }
+
+        public static void comboBoxSmallDraw1(Form thisForm, ref ComboBox comboBox, string text, List<JsonElement> items, EventHandler eventHandler, Place placeh = Place.Center, Place placev = Place.Center)
+        {
+            comboBox = new System.Windows.Forms.ComboBox();
+            thisForm.Controls.Add(comboBox);
+            //comboBox.AutoSize = true;
+            comboBox.Anchor = ((System.Windows.Forms.AnchorStyles.Top) | (System.Windows.Forms.AnchorStyles.Left));//((System.Windows.Forms.AnchorStyles.Right) | (System.Windows.Forms.AnchorStyles.Top) | (System.Windows.Forms.AnchorStyles.Bottom));
+            comboBox.FormattingEnabled = true;
+            comboBox.Margin = new System.Windows.Forms.Padding(4);
+            comboBox.Size = new System.Drawing.Size(DefaultWidth, DefaultHeight);
+            comboBox.Scale(new SizeF(ScaleFactor, ScaleFactor));
+            comboBox.Font = new System.Drawing.Font("Segoe UI", DefaultFont, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            comboBox.Location = placeCalc(thisForm, comboBox, placeh: placeh, placev: placev);
+            comboBox.TabIndex = 17;
+            comboBox.SelectedIndexChanged += eventHandler;
+            comboBox.Items.AddRange(items.Select(i => i.ToString()).ToArray());
             comboBox.Text = text;
         }
 
@@ -217,7 +275,55 @@ namespace WinAMBurner
             comboBox.SelectedIndexChanged += eventHandler;
         }
 
-        private static void textBoxEnter_Click(object sender, EventArgs e)
+        public static void dataGridDraw(Form thisForm, ref DataGridView dataGridView, Place placeh = Place.Center, Place placev = Place.Center)
+        {
+            //this.components = new System.ComponentModel.Container();
+            //this.bindingSource1 = new System.Windows.Forms.BindingSource(this.components);
+            dataGridView = new System.Windows.Forms.DataGridView();
+            //((System.ComponentModel.ISupportInitialize)(this.bindingSource1)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(dataGridView)).BeginInit();
+            //dataGridView.AutoSize = true;
+            dataGridView.Anchor = ((System.Windows.Forms.AnchorStyles.Top) | (System.Windows.Forms.AnchorStyles.Left));//((System.Windows.Forms.AnchorStyles.Right) | (System.Windows.Forms.AnchorStyles.Top) | (System.Windows.Forms.AnchorStyles.Bottom));
+            dataGridView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dataGridView.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
+            dataGridView.RowHeadersWidth = 62;
+            dataGridView.RowTemplate.Height = 33;
+            dataGridView.Size = new System.Drawing.Size(1853, 800);
+            dataGridView.Scale(new SizeF(ScaleFactor, ScaleFactor));
+            dataGridView.Font = new System.Drawing.Font("Segoe UI", DefaultFont, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            dataGridView.Location = placeCalc(thisForm, dataGridView, placeh: placeh, placev: placev);
+            dataGridView.TabIndex = 6;
+            thisForm.Controls.Add(dataGridView);
+            //((System.ComponentModel.ISupportInitialize)(this.bindingSource1)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(dataGridView)).EndInit();
+            //this.bindingSource1.DataSource = new DataSet1.DataTable1DataTable();
+            //dataGridView.DataSource = this.bindingSource1;
+        }
+
+        public static void labelDraw(Form thisForm, Label label, Point location, string text, Color color, Place placeh, Place placev)
+        {
+            label.ForeColor = color;
+            label.Text = text;
+            label.Font = new System.Drawing.Font("Segoe UI", DefaultFont, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            label.Location = placeCalc(thisForm, label, location: location, placeh: placeh, placev: placev);
+        }
+
+        public static void progressBarDraw(Form thisForm, ref ProgressBar progressBar, Place placeh = Place.Center, Place placev = Place.Center)
+        {
+            progressBar = new System.Windows.Forms.ProgressBar();
+            thisForm.Controls.Add(progressBar);
+            //progressBar.AutoSize = true;
+            progressBar.Anchor = ((System.Windows.Forms.AnchorStyles.Top) | (System.Windows.Forms.AnchorStyles.Left));//((System.Windows.Forms.AnchorStyles.Right) | (System.Windows.Forms.AnchorStyles.Top) | (System.Windows.Forms.AnchorStyles.Bottom));
+            progressBar.Margin = new System.Windows.Forms.Padding(4);
+            progressBar.Size = new System.Drawing.Size(DefaultWidthLarge, 24);
+            progressBar.Scale(new SizeF(ScaleFactor, ScaleFactor));
+            progressBar.Location = placeCalc(thisForm, progressBar, placev: placev);
+            progressBar.Style = System.Windows.Forms.ProgressBarStyle.Continuous;
+            progressBar.TabIndex = 18;
+            progressBar.Visible = false;
+        }
+
+        private static void richTextBoxEnter_Click(object sender, EventArgs e)
         {
             Control control = sender as Control;
             string text = control.Name;
@@ -228,7 +334,7 @@ namespace WinAMBurner
             }
         }
 
-        private static void textBoxLeave_Click(object sender, EventArgs e)
+        private static void richTextBoxLeave_Click(object sender, EventArgs e)
         {
             Control control = sender as Control;
             string text = control.Name;

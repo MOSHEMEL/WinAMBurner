@@ -181,18 +181,29 @@ namespace WinAMBurner
 
         private void screenLoginHide()
         {
-            richTextBox1.Dispose();
-            richTextBox2.Dispose();
-            linkLabel1.Dispose();
-            button1.Dispose();
+            //richTextBox1.Dispose();
+            //richTextBox2.Dispose();
+            //linkLabel1.Dispose();
+            //button1.Dispose();
+            //foreach (Control control in this.Controls)
+
+            while(this.Controls.Count > 0)
+                this.Controls[0].Dispose();
         }
+
         private void screenLoginShow()
         {
-            Gui.linkLabelDraw(this, ref linkLabel1, "Forgot password",
-                new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkLabel1_LinkClicked), placev: Gui.Place.Five);
-            Gui.buttonDraw(this, ref button1, "Login", new EventHandler(buttonLogin_Click), placev: Gui.Place.End);
-            Gui.textBoxDraw(this, ref richTextBox1, "Username", placev: Gui.Place.One);
-            Gui.textBoxDraw(this, ref richTextBox2, "Password", placev: Gui.Place.Three);
+            Gui.draw<PictureBox>(this, width: 500, height: 130, placev: Gui.Place.Zero);
+            //Gui.linkLabelDraw(this, ref linkLabel1, "Forgot password",
+            Gui.draw<LinkLabel>(this, text: "Forgot password",
+                linkLabelLinkClickedEventHandler: new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkLabel1_LinkClicked), 
+                placev: Gui.Place.Five);
+            //Gui.buttonDraw(this, ref button1, "Login", new EventHandler(buttonLogin_Click), placev: Gui.Place.End);
+            Gui.draw<Button>(this, text: "Login", eventHandler: new EventHandler(buttonLogin_Click), placev: Gui.Place.End);
+            //Gui.textBoxDraw(this, ref richTextBox1, "Username", placev: Gui.Place.One);
+            Gui.draw<RichTextBox>(this, text: "Username", width: Gui.DefaultWidthLarge, placev: Gui.Place.One);
+            //Gui.textBoxDraw(this, ref richTextBox2, "Password", placev: Gui.Place.Three);
+            Gui.draw<RichTextBox>(this, text: "Password", width: Gui.DefaultWidthLarge, placev: Gui.Place.Three);
         }
 
         //private void textBoxEnter_Click(object sender, EventArgs e)
@@ -481,7 +492,7 @@ namespace WinAMBurner
                 font: new System.Drawing.Font("Segoe UI", 24F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point));
             Gui.labelDraw(this, ref label2, "Please make sure the AM is connected to your tablet before continue", placev: Gui.Place.Three);
             Gui.labelDraw(this, ref label3, "", placev: Gui.Place.Five);
-            progressBarDraw(ref progressBar1, placev: Gui.Place.Five);
+            Gui.progressBarDraw(this, ref progressBar1, placev: Gui.Place.Five);
             Gui.buttonDraw(this, ref button1, "Check AM present", new EventHandler(buttonCheckAM_Click), placeh: Gui.Place.Left, placev: Gui.Place.End);
             Gui.buttonDraw(this, ref button2, "Forward", new EventHandler(buttonConnectForward_Click), placeh: Gui.Place.Right, placev: Gui.Place.End);
             if (AMConnected)
@@ -531,25 +542,25 @@ namespace WinAMBurner
 
         private void AMDisconnectedShow()
         {
-            labelDraw(label3, new System.Drawing.Point(360, 620), "AM not found – make sure AM is connected using USB cable", Color.Red,
+            Gui.labelDraw(this, label3, new System.Drawing.Point(360, 620), "AM not found – make sure AM is connected using USB cable", Color.Red,
                 Gui.Place.Center, Gui.Place.Five);
             button2.Enabled = false;
         }
 
         private void AMConnectedShow()
         {
-            labelDraw(label3, new System.Drawing.Point(360, 620), "AM found – connected to AM", Color.Green,
+            Gui.labelDraw(this, label3, new System.Drawing.Point(360, 620), "AM found – connected to AM", Color.Green,
                 Gui.Place.Center, Gui.Place.Five);
             button2.Enabled = true;
         }
 
-        private void labelDraw(Label label, Point location, string text, Color color, Gui.Place placeh, Gui.Place placev)
-        {
-            label.ForeColor = color;
-            label.Text = text;
-            label.Font = new System.Drawing.Font("Segoe UI", Gui.DefaultFont, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            label.Location = Gui.placeCalc(this, label, location: location, placeh: placeh, placev: placev);
-        }
+        //private void labelDraw(Label label, Point location, string text, Color color, Gui.Place placeh, Gui.Place placev)
+        //{
+        //    label.ForeColor = color;
+        //    label.Text = text;
+        //    label.Font = new System.Drawing.Font("Segoe UI", Gui.DefaultFont, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+        //    label.Location = Gui.placeCalc(this, label, location: location, placeh: placeh, placev: placev);
+        //}
 
         private void buttonConnectForward_Click(object sender, EventArgs e)
         {
@@ -557,20 +568,20 @@ namespace WinAMBurner
             screenInfoShow();
         }
 
-        private void progressBarDraw(ref ProgressBar progressBar, Gui.Place placeh = Gui.Place.Center, Gui.Place placev = Gui.Place.Center)
-        {
-            progressBar = new System.Windows.Forms.ProgressBar();
-            Controls.Add(progressBar);
-            //progressBar.AutoSize = true;
-            progressBar.Anchor = ((System.Windows.Forms.AnchorStyles.Top) | (System.Windows.Forms.AnchorStyles.Left));//((System.Windows.Forms.AnchorStyles.Right) | (System.Windows.Forms.AnchorStyles.Top) | (System.Windows.Forms.AnchorStyles.Bottom));
-            progressBar.Margin = new System.Windows.Forms.Padding(4);
-            progressBar.Size = new System.Drawing.Size(Gui.DefaultWidthLarge, 24);
-            progressBar.Scale(new SizeF(Gui.ScaleFactor, Gui.ScaleFactor));
-            progressBar.Location = Gui.placeCalc(this, progressBar, placev: placev);
-            progressBar.Style = System.Windows.Forms.ProgressBarStyle.Continuous;
-            progressBar.TabIndex = 18;
-            progressBar.Visible = false;
-        }
+        //private void progressBarDraw(ref ProgressBar progressBar, Gui.Place placeh = Gui.Place.Center, Gui.Place placev = Gui.Place.Center)
+        //{
+        //    progressBar = new System.Windows.Forms.ProgressBar();
+        //    Controls.Add(progressBar);
+        //    //progressBar.AutoSize = true;
+        //    progressBar.Anchor = ((System.Windows.Forms.AnchorStyles.Top) | (System.Windows.Forms.AnchorStyles.Left));//((System.Windows.Forms.AnchorStyles.Right) | (System.Windows.Forms.AnchorStyles.Top) | (System.Windows.Forms.AnchorStyles.Bottom));
+        //    progressBar.Margin = new System.Windows.Forms.Padding(4);
+        //    progressBar.Size = new System.Drawing.Size(Gui.DefaultWidthLarge, 24);
+        //    progressBar.Scale(new SizeF(Gui.ScaleFactor, Gui.ScaleFactor));
+        //    progressBar.Location = Gui.placeCalc(this, progressBar, placev: placev);
+        //    progressBar.Style = System.Windows.Forms.ProgressBarStyle.Continuous;
+        //    progressBar.TabIndex = 18;
+        //    progressBar.Visible = false;
+        //}
 
         private void screenConnectHide()
         {
@@ -624,7 +635,7 @@ namespace WinAMBurner
             Gui.labelDraw(this, ref label3, "Add treatments to AM – SN" + amData.SNum, placev: Gui.Place.Five);
             Gui.comboBoxDraw(this, ref comboBox2, new System.EventHandler(comboBox2_SelectedIndexChanged), placev: Gui.Place.Six);
             comboBox2.Items.AddRange(new string[] { "50", "100", "150", "200", "250", "300" });
-            progressBarDraw(ref progressBar1, placev: Gui.Place.Seven);
+            Gui.progressBarDraw(this, ref progressBar1, placev: Gui.Place.Seven);
             Gui.buttonDraw(this, ref button1, "Cancel", new EventHandler(buttonTreatCansel_Click), placeh: Gui.Place.Left, placev: Gui.Place.End);
             Gui.buttonDraw(this, ref button2, "Approve", new EventHandler(buttonTreatApprove_Click), placeh: Gui.Place.Right, placev: Gui.Place.End);
         }
@@ -814,7 +825,7 @@ namespace WinAMBurner
             Gui.buttonDraw(this, ref button2, "Add New", eventHandlerButton2, placeh: Gui.Place.RightTwo, placev: Gui.Place.Two);
             Gui.textBoxSmallDraw(this, ref richTextBox1, "Search", "Search", placeh: Gui.Place.LeftOne, placev: Gui.Place.Two);
             Gui.buttonDraw(this, ref button3, "Back", eventHandler3, placeh: Gui.Place.LeftTwo, placev: Gui.Place.Two);
-            dataGridDraw(ref dataGridView1, placev: Gui.Place.Three);
+            Gui.dataGridDraw(this, ref dataGridView1, placev: Gui.Place.Three);
         }
 
         private void buttonFarmBack_Click(object sender, EventArgs e)
@@ -835,31 +846,31 @@ namespace WinAMBurner
             dataGridView1.Dispose();
         }
 
-        private void dataGridDraw(ref DataGridView dataGridView, Gui.Place placeh = Gui.Place.Center, Gui.Place placev = Gui.Place.Center)
-        {
-            this.components = new System.ComponentModel.Container();
-            //this.bindingSource1 = new System.Windows.Forms.BindingSource(this.components);
-            dataGridView = new System.Windows.Forms.DataGridView();
-            //((System.ComponentModel.ISupportInitialize)(this.bindingSource1)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(dataGridView)).BeginInit();
-            //dataGridView.AutoSize = true;
-            dataGridView.Anchor = ((System.Windows.Forms.AnchorStyles.Top) | (System.Windows.Forms.AnchorStyles.Left));//((System.Windows.Forms.AnchorStyles.Right) | (System.Windows.Forms.AnchorStyles.Top) | (System.Windows.Forms.AnchorStyles.Bottom));
-            dataGridView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridView.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
-            dataGridView.RowHeadersWidth = 62;
-            dataGridView.RowTemplate.Height = 33;
-            dataGridView.Size = new System.Drawing.Size(1853, 800);
-            dataGridView.Scale(new SizeF(Gui.ScaleFactor, Gui.ScaleFactor));
-            dataGridView.Font = new System.Drawing.Font("Segoe UI", Gui.DefaultFont, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            dataGridView.Location = Gui.placeCalc(this, dataGridView, placeh: placeh, placev: placev);
-            dataGridView.TabIndex = 6;
-            Controls.Add(dataGridView);
-            //((System.ComponentModel.ISupportInitialize)(this.bindingSource1)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(dataGridView)).EndInit();
-            //this.bindingSource1.DataSource = new DataSet1.DataTable1DataTable();
-            //dataGridView.DataSource = this.bindingSource1;
-
-        }
+        //private void dataGridDraw(ref DataGridView dataGridView, Gui.Place placeh = Gui.Place.Center, Gui.Place placev = Gui.Place.Center)
+        //{
+        //  this.components = new System.ComponentModel.Container();
+        //    //this.bindingSource1 = new System.Windows.Forms.BindingSource(this.components);
+        //    dataGridView = new System.Windows.Forms.DataGridView();
+        //    //((System.ComponentModel.ISupportInitialize)(this.bindingSource1)).BeginInit();
+        //    ((System.ComponentModel.ISupportInitialize)(dataGridView)).BeginInit();
+        //    //dataGridView.AutoSize = true;
+        //    dataGridView.Anchor = ((System.Windows.Forms.AnchorStyles.Top) | (System.Windows.Forms.AnchorStyles.Left));//((System.Windows.Forms.AnchorStyles.Right) | (System.Windows.Forms.AnchorStyles.Top) | (System.Windows.Forms.AnchorStyles.Bottom));
+        //    dataGridView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+        //    dataGridView.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
+        //    dataGridView.RowHeadersWidth = 62;
+        //    dataGridView.RowTemplate.Height = 33;
+        //    dataGridView.Size = new System.Drawing.Size(1853, 800);
+        //    dataGridView.Scale(new SizeF(Gui.ScaleFactor, Gui.ScaleFactor));
+        //    dataGridView.Font = new System.Drawing.Font("Segoe UI", Gui.DefaultFont, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+        //    dataGridView.Location = Gui.placeCalc(this, dataGridView, placeh: placeh, placev: placev);
+        //    dataGridView.TabIndex = 6;
+        //    Controls.Add(dataGridView);
+        //    //((System.ComponentModel.ISupportInitialize)(this.bindingSource1)).EndInit();
+        //    ((System.ComponentModel.ISupportInitialize)(dataGridView)).EndInit();
+        //    //this.bindingSource1.DataSource = new DataSet1.DataTable1DataTable();
+        //    //dataGridView.DataSource = this.bindingSource1;
+        //
+        //}
 
         //private void textBoxSmallDraw(ref RichTextBox textBox, string text, string name, Gui.Place placeh = Gui.Place.Center, Gui.Place placev = Gui.Place.Center)
         //{
@@ -948,7 +959,7 @@ namespace WinAMBurner
 
             Gui.textBoxSmallDraw(this, ref richTextBox1, farm.Name, Farm.NAME, placeh: Gui.Place.LeftOne, placev: Gui.Place.Two);
             Gui.textBoxSmallDraw(this, ref richTextBox2, farm.Address, Farm.ADDRESS, placeh: Gui.Place.LeftOne, placev: Gui.Place.Three);
-            Gui.textBoxSmallDraw(this, ref richTextBox3, farm.Country, Farm.COUNTRY, placeh: Gui.Place.LeftOne, placev: Gui.Place.Four);
+            Gui.comboBoxSmallDraw1(this, ref comboBox1, farm.Country, Farm.COUNTRY.Values.ToList(), new System.EventHandler(comboBoxFarm4_SelectedIndexChanged), placeh: Gui.Place.LeftOne, placev: Gui.Place.Four);
             Gui.textBoxSmallDraw(this, ref richTextBox4, farm.State, Farm.STATE, placeh: Gui.Place.LeftOne, placev: Gui.Place.Five);
             Gui.textBoxSmallDraw(this, ref richTextBox5, farm.City, Farm.CITY, placeh: Gui.Place.LeftOne, placev: Gui.Place.Six);
             Gui.textBoxSmallDraw(this, ref richTextBox6, farm.Contact, Farm.CONTACT, placeh: Gui.Place.LeftOne, placev: Gui.Place.Seven);

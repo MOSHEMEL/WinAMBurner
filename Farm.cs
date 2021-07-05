@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Text.Json;
 
 namespace WinAMBurner
 {
@@ -29,7 +30,7 @@ namespace WinAMBurner
         public static string MOBILE = "123456";
         public static string EMAIL = "email@email.com";
         public static string ADDRESS = "Adress";
-        public static string COUNTRY = "Country";
+        public static Dictionary<JsonElement, JsonElement> COUNTRY;
         public static string CITY = "City";
         public static string STATE = "State";
         public static string IS_ACTIVE = "No";
@@ -135,7 +136,7 @@ namespace WinAMBurner
             Id = ID;
             Mobile = MOBILE;
             Address = ADDRESS;
-            Country = COUNTRY;
+            Country = "";
             City = CITY;
             State = STATE;
             IsActive = IS_ACTIVE;
