@@ -22,7 +22,6 @@ namespace WinAMBurner
             LeftTwo,
             Start,
             End,
-            Zero,
             One,
             Two,
             Three,
@@ -32,7 +31,8 @@ namespace WinAMBurner
             Seven,
             Eight,
             Nine,
-            Ten
+            Ten,
+            Eleven
         }
 
         public const int DefaultWidth = 390;
@@ -43,9 +43,14 @@ namespace WinAMBurner
         public const float PlaceOne = 200 * ScaleFactor;
         public const float DeltaV = 100 * ScaleFactor;
         public const float DefaultFont = 18F * ScaleFactor;
+        public const float DefaultFontLarge = 24F * ScaleFactor;
 
-        public static void draw<T>(Form thisForm, string text = null, 
-            string name = null, float font = DefaultFont, int width = DefaultWidth, int height = DefaultHeight, 
+        //public static Control draw<T>(Form thisForm, Type type, string text = null, string name = null, 
+        public static Control draw<T>(Form thisForm, string text = null, string name = null, 
+            float font = DefaultFont, Color color = new Color(), 
+            int width = DefaultWidth, int height = DefaultHeight, bool autoSize = true,
+            //List<JsonElement> items = null, List<string> sitems = null,
+            List<string> items = null,
             EventHandler eventHandler = null, LinkLabelLinkClickedEventHandler linkLabelLinkClickedEventHandler = null,
             Place placeh = Place.Center, Place placev = Place.Center)
         {
@@ -58,17 +63,25 @@ namespace WinAMBurner
             control.Size = new System.Drawing.Size(width, height);
             control.Scale(new SizeF(ScaleFactor, ScaleFactor));
             control.TabIndex = 1;
-            if (text != null)
             control.Text = text;
+            control.Name = name;
             if (name == null)
-                control.Name = name;
+                control.Name = text;
             control.Font = new System.Drawing.Font("Segoe UI", font, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            control.Location = placeCalc(thisForm, control, placeh: placeh, placev: placev);
+
+            if ((typeof(T) == typeof(PictureBox)) || (typeof(T) == typeof(LinkLabel)))
+                control.AutoSize = true;
+            if (typeof(T) == typeof(Label))
+            {
+                if (color != Color.Empty)
+                    control.ForeColor = color;
+                control.AutoSize = autoSize;
+            }
             if (typeof(T) == typeof(PictureBox))
                 (control as PictureBox).Image = global::WinAMBurner.Properties.Resources.ARmentaSmall;
             if (typeof(T) == typeof(RichTextBox))
             {
-                if (name == text)
+                if (control.Name == control.Text)
                     control.ForeColor = Color.Silver;
                 control.Enter += new System.EventHandler(richTextBoxEnter_Click);
                 control.Leave += new System.EventHandler(richTextBoxLeave_Click);
@@ -79,6 +92,22 @@ namespace WinAMBurner
             if (typeof(T) == typeof(LinkLabel))
                 if (linkLabelLinkClickedEventHandler != null)
                     (control as LinkLabel).LinkClicked += linkLabelLinkClickedEventHandler;
+            if (typeof(T) == typeof(ComboBox))
+            {
+                if (items != null)
+                    (control as ComboBox).Items.AddRange(items.ToArray());
+                //(control as ComboBox).SelectedItem = items.Where(i => i == text);
+            }
+
+            control.Location = placeCalc(thisForm, control, placeh: placeh, placev: placev);
+
+            return control;
+        }
+
+        public static void hide(Form thisForm)
+        {
+            while(thisForm.Controls.Count > 0)
+                thisForm.Controls[0].Dispose();
         }
 
         public static Point placeCalc(Form thisForm,
@@ -103,27 +132,27 @@ namespace WinAMBurner
             else if (placeh == Place.End)
                 location.X = thisForm.Width / 2 + control.Width / 2 + control.Width + control.Width * 2 / 4;
 
-            if (placev == Place.Zero)
+            if (placev == Place.One)
                 location.Y = 30;
-            else if (placev == Place.One)
-                location.Y = (int)(PlaceOne + 0 * DeltaV);//200;
             else if (placev == Place.Two)
-                location.Y = (int)(PlaceOne + 1 * DeltaV);//300;
+                location.Y = (int)(PlaceOne + 0 * DeltaV);//200;
             else if (placev == Place.Three)
-                location.Y = (int)(PlaceOne + 2 * DeltaV);//400;
+                location.Y = (int)(PlaceOne + 1 * DeltaV);//300;
             else if (placev == Place.Four)
-                location.Y = (int)(PlaceOne + 3 * DeltaV);//500;
+                location.Y = (int)(PlaceOne + 2 * DeltaV);//400;
             else if (placev == Place.Five)
-                location.Y = (int)(PlaceOne + 4 * DeltaV);//600;
+                location.Y = (int)(PlaceOne + 3 * DeltaV);//500;
             else if (placev == Place.Six)
-                location.Y = (int)(PlaceOne + 5 * DeltaV);//700;
+                location.Y = (int)(PlaceOne + 4 * DeltaV);//600;
             else if (placev == Place.Seven)
-                location.Y = (int)(PlaceOne + 6 * DeltaV);//800;
+                location.Y = (int)(PlaceOne + 5 * DeltaV);//700;
             else if (placev == Place.Eight)
-                location.Y = (int)(PlaceOne + 7 * DeltaV);//900;
+                location.Y = (int)(PlaceOne + 6 * DeltaV);//800;
             else if (placev == Place.Nine)
-                location.Y = (int)(PlaceOne + 8 * DeltaV);//1000;
+                location.Y = (int)(PlaceOne + 7 * DeltaV);//900;
             else if (placev == Place.Ten)
+                location.Y = (int)(PlaceOne + 8 * DeltaV);//1000;
+            else if (placev == Place.Eleven)
                 location.Y = (int)(PlaceOne + 9 * DeltaV);//1100;
             else if (placev == Place.End)
                 location.Y = (int)(PlaceOne + 10 * DeltaV);//1200;
@@ -368,7 +397,9 @@ namespace WinAMBurner
 
         public static int stringToInt(string sVal)
         {
-            return int.Parse(sVal);
+            int iVal = 0;
+            int.TryParse(sVal, out iVal);
+            return iVal;
         }
     }
 }

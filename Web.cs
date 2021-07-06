@@ -14,6 +14,8 @@ namespace WinAMBurner
         private readonly HttpClient client = new HttpClient();
         //private string token;
 
+        public List<string> partNumbers;
+
         public async Task<LoginResponse> loginPost(Login login)
         {
             var response = await client.PostAsync(URL + "api/p/login/",
@@ -87,19 +89,34 @@ namespace WinAMBurner
             var jsonDocument = await JsonSerializer.DeserializeAsync<JsonDocument>(await response.Content.ReadAsStreamAsync());
 
             JsonElement jsonElement = jsonDocument.RootElement.GetProperty("actions").GetProperty("POST");
-            Farm.COUNTRY = convert(jsonElement, "country");
-            Dictionary<JsonElement, JsonElement> farm_types = convert(jsonElement, "farm_type");
-            Dictionary<JsonElement, JsonElement> breed_types = convert(jsonElement, "breed_type");
-            Dictionary<JsonElement, JsonElement> milking_setup_types = convert(jsonElement, "milking_setup_type");
-            Dictionary<JsonElement, JsonElement> location_of_treatment_types = convert(jsonElement, "location_of_treatment_type");
-            Dictionary<JsonElement, JsonElement> contract_types = convert(jsonElement, "contract_type");
+            Farm.DCOUNTRY = jsonElement.GetProperty("country").GetProperty("choices").EnumerateArray().ToDictionary(c => c.GetProperty("value").ToString(), c => c.GetProperty("display_name").ToString());
+            Farm.COUNTRY = Farm.DCOUNTRY.Values.ToList();
+            Farm.FARM_TYPE = convert(jsonElement, "farm_type");
+            Farm.BREED_TYPE = convert(jsonElement, "breed_type");
+            Farm.MILKING_SETUP_TYPE = convert(jsonElement, "milking_setup_type");
+            Farm.LOCATION_OF_TREATMENT_TYPE = convert(jsonElement, "location_of_treatment_type");
+            Farm.CONTRACT_TYPE = convert(jsonElement, "contract_type");
 
             return jsonDocument;
         }
 
-        private Dictionary<JsonElement, JsonElement> convert(JsonElement jsonElement, string key)
+        private List<string> convert(JsonElement jsonElement, string key)
         {
-            return jsonElement.GetProperty(key).GetProperty("choices").EnumerateArray().ToDictionary(c => c.GetProperty("value"), c => c.GetProperty("display_name"));
+            return jsonElement.GetProperty(key).GetProperty("choices").EnumerateArray().Select(c => c.GetProperty("value").ToString()).ToList();
         }
+
+        public async Task<JsonDocument> treatmentPackagesGet()
+        {
+            var response = await client.SendAsync(new HttpRequestMessage(HttpMethod.Get, URL + "api/p/treatment_package/"));
+            var jsonDocument = await JsonSerializer.DeserializeAsync<JsonDocument>(await response.Content.ReadAsStreamAsync());
+
+            //var parts = jsonDocument.RootElement.EnumerateArray().Select(e => e.GetProperty("part_number").ToString()).ToList();
+            //partNumbers = jsonDocument.RootElement.EnumerateArray().Select(e => e.GetProperty("part_number")).ToDictionary();
+            //var parts = jsonDocument.RootElement.EnumerateArray().Select(e => e.GetProperty("part_number")).ToDictionary(p => p.ValueKind);
+            partNumbers = jsonDocument.RootElement.EnumerateArray().Select(e => e.GetProperty("part_number").ToString()).ToList();
+
+            return jsonDocument;
+        }
+
     }
 }
