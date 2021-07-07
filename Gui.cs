@@ -44,9 +44,10 @@ namespace WinAMBurner
         public const float DeltaV = 100 * ScaleFactor;
         public const float DefaultFont = 18F * ScaleFactor;
         public const float DefaultFontLarge = 24F * ScaleFactor;
+        public const string DefaultText = "DefaultText";
 
-        //public static Control draw<T>(Form thisForm, Type type, string text = null, string name = null, 
-        public static Control draw<T>(Form thisForm, string text = null, string name = null, 
+        public static Control draw(Form thisForm, Type type, string text = null, string name = DefaultText, 
+        //public static Control draw<T>(Form thisForm, string text = null, string name = DefaultText, 
             float font = DefaultFont, Color color = new Color(), 
             int width = DefaultWidth, int height = DefaultHeight, bool autoSize = true,
             //List<JsonElement> items = null, List<string> sitems = null,
@@ -55,7 +56,7 @@ namespace WinAMBurner
             Place placeh = Place.Center, Place placev = Place.Center)
         {
             //control = new System.Windows.Forms.RichTextBox();
-            Control control = typeof(T).GetConstructor(new Type[] { }).Invoke(null) as Control;
+            Control control = type.GetConstructor(new Type[] { }).Invoke(null) as Control;
             thisForm.Controls.Add(control);
             //textBox.AutoSize = true;
             control.Anchor = ((System.Windows.Forms.AnchorStyles.Top) | (System.Windows.Forms.AnchorStyles.Left));//((System.Windows.Forms.AnchorStyles.Right) | (System.Windows.Forms.AnchorStyles.Top) | (System.Windows.Forms.AnchorStyles.Bottom));
@@ -64,35 +65,36 @@ namespace WinAMBurner
             control.Scale(new SizeF(ScaleFactor, ScaleFactor));
             control.TabIndex = 1;
             control.Text = text;
-            control.Name = name;
-            if (name == null)
-                control.Name = text;
+            //control.Name = name;
+            //if (name == null)
+            //    control.Name = text;
             control.Font = new System.Drawing.Font("Segoe UI", font, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
 
-            if ((typeof(T) == typeof(PictureBox)) || (typeof(T) == typeof(LinkLabel)))
+            if ((type == typeof(PictureBox)) || (type == typeof(LinkLabel)))
                 control.AutoSize = true;
-            if (typeof(T) == typeof(Label))
+            if (type == typeof(Label))
             {
                 if (color != Color.Empty)
                     control.ForeColor = color;
                 control.AutoSize = autoSize;
             }
-            if (typeof(T) == typeof(PictureBox))
+            if (type == typeof(PictureBox))
                 (control as PictureBox).Image = global::WinAMBurner.Properties.Resources.ARmentaSmall;
-            if (typeof(T) == typeof(RichTextBox))
+            if (type == typeof(RichTextBox))
             {
-                if (control.Name == control.Text)
+                control.Name = name;
+                if (control.Name == DefaultText)
                     control.ForeColor = Color.Silver;
                 control.Enter += new System.EventHandler(richTextBoxEnter_Click);
                 control.Leave += new System.EventHandler(richTextBoxLeave_Click);
             }
-            if (typeof(T) == typeof(Button))
+            if (type == typeof(Button))
                 if (eventHandler != null)
                     control.Click += eventHandler;
-            if (typeof(T) == typeof(LinkLabel))
+            if (type == typeof(LinkLabel))
                 if (linkLabelLinkClickedEventHandler != null)
                     (control as LinkLabel).LinkClicked += linkLabelLinkClickedEventHandler;
-            if (typeof(T) == typeof(ComboBox))
+            if (type == typeof(ComboBox))
             {
                 if (items != null)
                     (control as ComboBox).Items.AddRange(items.ToArray());
@@ -252,7 +254,7 @@ namespace WinAMBurner
             textBox.Leave += new System.EventHandler(richTextBoxLeave_Click);
         }
 
-        public static void comboBoxSmallDraw(Form thisForm, ref ComboBox comboBox, string text, List<string> items, EventHandler eventHandler, Place placeh = Place.Center, Place placev = Place.Center)
+        public static void comboBoxSmallDraw(Form thisForm, ref ComboBox comboBox, string text, List<string> items, EventHandler eventHandler = null, Place placeh = Place.Center, Place placev = Place.Center)
         {
             comboBox = new System.Windows.Forms.ComboBox();
             thisForm.Controls.Add(comboBox);
@@ -355,9 +357,9 @@ namespace WinAMBurner
         private static void richTextBoxEnter_Click(object sender, EventArgs e)
         {
             Control control = sender as Control;
-            string text = control.Name;
-            if (control.Text == text)
+            if (control.Name == DefaultText)
             {
+                control.Name = control.Text;
                 control.Text = "";
                 control.ForeColor = Color.Black;
             }
@@ -366,10 +368,10 @@ namespace WinAMBurner
         private static void richTextBoxLeave_Click(object sender, EventArgs e)
         {
             Control control = sender as Control;
-            string text = control.Name;
             if (control.Text == string.Empty)
             {
-                control.Text = text;
+                control.Text = control.Name;
+                control.Name = DefaultText;
                 control.ForeColor = Color.Silver;
             }
         }

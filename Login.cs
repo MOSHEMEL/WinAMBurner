@@ -10,6 +10,6 @@ namespace WinAMBurner
     {
         public string email { get; set; }
         public string password { get; set; }
-        public int tablet { get; set; }
+        public string tablet { get; set; }
     }
 }

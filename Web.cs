@@ -28,14 +28,16 @@ namespace WinAMBurner
 
         public async Task<List<Farm>> farmsGet()
         {
-            try
-            {
-                var streamTask = client.GetStreamAsync(URL + "api/p/farms/");
-                var farms = await JsonSerializer.DeserializeAsync<List<Farm>>(await streamTask);
-                return farms;
-            }
-            catch { }
-            return null;
+            //try
+            //{
+            var streamTask = client.GetStreamAsync(URL + "api/p/farms/");
+            var farms = await JsonSerializer.DeserializeAsync<List<Farm>>(await streamTask);
+            //var farms1 = await JsonSerializer.DeserializeAsync<List<FarmJson>>(await streamTask);
+            return farms;
+            //return null;
+            //}
+            //catch { }
+            //return null;
         }
 
         public async Task<List<Service>> servicesGet()
@@ -89,18 +91,27 @@ namespace WinAMBurner
             var jsonDocument = await JsonSerializer.DeserializeAsync<JsonDocument>(await response.Content.ReadAsStreamAsync());
 
             JsonElement jsonElement = jsonDocument.RootElement.GetProperty("actions").GetProperty("POST");
-            Farm.DCOUNTRY = jsonElement.GetProperty("country").GetProperty("choices").EnumerateArray().ToDictionary(c => c.GetProperty("value").ToString(), c => c.GetProperty("display_name").ToString());
+            //Farm.DCOUNTRY = jsonElement.GetProperty("country").GetProperty("choices").EnumerateArray().ToDictionary(c => c.GetProperty("value").ToString(), c => c.GetProperty("display_name").ToString());
+            Farm.DCOUNTRY = convertToDic(jsonElement, "country");
             Farm.COUNTRY = Farm.DCOUNTRY.Values.ToList();
-            Farm.FARM_TYPE = convert(jsonElement, "farm_type");
-            Farm.BREED_TYPE = convert(jsonElement, "breed_type");
-            Farm.MILKING_SETUP_TYPE = convert(jsonElement, "milking_setup_type");
-            Farm.LOCATION_OF_TREATMENT_TYPE = convert(jsonElement, "location_of_treatment_type");
-            Farm.CONTRACT_TYPE = convert(jsonElement, "contract_type");
+            //Farm.DSTATE = jsonElement.GetProperty("state").GetProperty("choices").EnumerateArray().ToDictionary(c => c.GetProperty("value").ToString(), c => c.GetProperty("display_name").ToString());
+            Farm.DSTATE = convertToDic(jsonElement, "state");
+            Farm.STATE = Farm.DSTATE.Values.ToList();
+            Farm.FARM_TYPE = convertTolist(jsonElement, "farm_type");
+            Farm.BREED_TYPE = convertTolist(jsonElement, "breed_type");
+            Farm.MILKING_SETUP_TYPE = convertTolist(jsonElement, "milking_setup_type");
+            Farm.LOCATION_OF_TREATMENT_TYPE = convertTolist(jsonElement, "location_of_treatment_type");
+            Farm.CONTRACT_TYPE = convertTolist(jsonElement, "contract_type");
 
             return jsonDocument;
         }
 
-        private List<string> convert(JsonElement jsonElement, string key)
+        private Dictionary<string, string> convertToDic(JsonElement jsonElement, string key)
+        {
+            return jsonElement.GetProperty(key).GetProperty("choices").EnumerateArray().ToDictionary(c => c.GetProperty("value").ToString(), c => c.GetProperty("display_name").ToString());
+        }
+
+        private List<string> convertTolist(JsonElement jsonElement, string key)
         {
             return jsonElement.GetProperty(key).GetProperty("choices").EnumerateArray().Select(c => c.GetProperty("value").ToString()).ToList();
         }
