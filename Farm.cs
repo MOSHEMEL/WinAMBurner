@@ -28,54 +28,60 @@ namespace WinAMBurner
         public int distributor { get; set; }
     }
 
+    class SettingsJson
+    {
+        public int max_device_pulses;
+        public int number_of_pulses_per_treatment;
+    }
+
     class Farm : FarmJson
     {
         public static int ID = 0;
         public static string MOBILE = "123456";
         public static string EMAIL = "email@email.com";
         public static string ADDRESS = "Adress";
-        public static Dictionary<string, string> DCOUNTRY;
-        public static List<string> COUNTRY;
+        //public static Dictionary<string, string> DCOUNTRY;
+        //public static List<string> COUNTRY;
         public static string CITY = "City";
-        public static Dictionary<string, string> DSTATE;
-        public static List<string> STATE;
+        //public static Dictionary<string, string> DSTATE;
+        //public static List<string> STATE;
         public static string IS_ACTIVE = "Yes";
         public static string NAME = "Name";
         public static List<string> FARM_TYPE;
         public static List<string> BREED_TYPE;
         public static List<string> MILKING_SETUP_TYPE;
         public static List<string> LOCATION_OF_TREATMENT_TYPE;
-        public static List<string> CONTRACT_TYPE;
+        //public static List<string> CONTRACT_TYPE;
         public static string NUMBER_OF_LACTATING_COWS = "0";
         public static List<string> DHI_TEST = new List<string>() { "No", "Yes" };
         public static string CONTACT = "0";
         public static string DISTRIBUTOR = "0";
 
-        public class Field
-        {
-            public string val;
-            public string deflt;
-            public List<string> items;
-            public Control control;
-            public Control lcontrol;
-            public Type type;
-            public string text;
-            public Gui.Place placeh;
-            public Gui.Place lplaceh;
-            public Gui.Place placev;
-
-            public Field(string deflt, List<string> items, Type type, string text, Gui.Place placeh, Gui.Place lplaceh, Gui.Place placev)
-            {
-                this.deflt = deflt;
-                this.val = deflt;
-                this.items = items;
-                this.type = type;
-                this.text = text;
-                this.placeh = placeh;
-                this.lplaceh = lplaceh;
-                this.placev = placev;
-            }
-        }
+        //public class Field
+        //{
+        //    public string val;
+        //    public string deflt;
+        //    public List<string> items;
+        //    public Control control;
+        //    public Control lcontrol;
+        //    public Type type;
+        //    public string text;
+        //    public Gui.Place placeh = Gui.Place.Center;
+        //    public Gui.Place lplaceh = Gui.Place.Center;
+        //    public Gui.Place placev = Gui.Place.Center;
+        //
+        //    public Field(string deflt, List<string> items, Type type, string text, Gui.Place placeh, Gui.Place lplaceh, Gui.Place placev)
+        //    {
+        //        this.deflt = deflt;
+        //        this.val = deflt;
+        //        this.items = items;
+        //        this.type = type;
+        //        this.text = text;
+        //        this.placeh = placeh;
+        //        this.lplaceh = lplaceh;
+        //        this.placev = placev;
+        //    }
+        //}
 
         public int Id { get { return id; } set { id = value; } }
 
@@ -92,12 +98,12 @@ namespace WinAMBurner
             get 
             { 
                 string value; 
-                DCOUNTRY.TryGetValue(country, out value); 
+                Cnst.DCOUNTRY.TryGetValue(country, out value); 
                 return value; 
             } 
             set 
             { 
-                country = DCOUNTRY.Single(c => (c.Value == value)).Key;
+                country = Cnst.DCOUNTRY.Single(c => (c.Value == value)).Key;
             } 
         }
         public Field fCountry;// = new Field(ADDRESS, null, typeof(RichTextBox), "Address:", Gui.Place.LeftOne, Gui.Place.LeftTwo, Gui.Place.Four);
@@ -112,12 +118,12 @@ namespace WinAMBurner
             get
             {
                 string value;
-                DSTATE.TryGetValue(state, out value);
+                Cnst.DSTATE.TryGetValue(state, out value);
                 return value;
             }
             set
             {
-                state = DSTATE.Single(c => (c.Value == value)).Key;
+                state = Cnst.DSTATE.Single(c => (c.Value == value)).Key;
             }
         }
         public Field fState;// = new Field(ADDRESS, null, typeof(RichTextBox), "Address:", Gui.Place.LeftOne, Gui.Place.LeftTwo, Gui.Place.Four);
@@ -236,9 +242,9 @@ namespace WinAMBurner
             Id = ID;
             Mobile = new Field(MOBILE, null, typeof(RichTextBox), "Mobile:", Gui.Place.LeftOne, Gui.Place.LeftTwo, Gui.Place.Nine); //MOBILE;
             Address = new Field(ADDRESS, null, typeof(RichTextBox), "Address:", Gui.Place.LeftOne, Gui.Place.LeftTwo, Gui.Place.Four); //ADDRESS;
-            Country = new Field(COUNTRY.First(), COUNTRY, typeof(ComboBox), "Country:", Gui.Place.LeftOne, Gui.Place.LeftTwo, Gui.Place.Five); //COUNTRY.First();
+            Country = new Field(Cnst.COUNTRY.First(), Cnst.COUNTRY, typeof(ComboBox), "Country:", Gui.Place.LeftOne, Gui.Place.LeftTwo, Gui.Place.Five); //COUNTRY.First();
             City = new Field(CITY, null, typeof(RichTextBox), "City:", Gui.Place.LeftOne, Gui.Place.LeftTwo, Gui.Place.Seven); //CITY;
-            State = new Field(STATE.First(), STATE, typeof(ComboBox), "State:", Gui.Place.LeftOne, Gui.Place.LeftTwo, Gui.Place.Six); //STATE;
+            State = new Field(Cnst.STATE.First(), Cnst.STATE, typeof(ComboBox), "State:", Gui.Place.LeftOne, Gui.Place.LeftTwo, Gui.Place.Six); //STATE;
             IsActive = IS_ACTIVE;
             Email = new Field(EMAIL, null, typeof(RichTextBox), "Email Address:", Gui.Place.LeftOne, Gui.Place.LeftTwo, Gui.Place.Ten);
             Name = new Field(NAME, null, typeof(RichTextBox), "Name:", Gui.Place.LeftOne, Gui.Place.LeftTwo, Gui.Place.Three); //NAME;
@@ -246,11 +252,64 @@ namespace WinAMBurner
             BreedType = new Field(BREED_TYPE.First(), BREED_TYPE, typeof(ComboBox), "Breed Type:", Gui.Place.RightTwo, Gui.Place.RightOne, Gui.Place.Four); //BREED_TYPE.First();
             MilkingSetupType = new Field(MILKING_SETUP_TYPE.First(), MILKING_SETUP_TYPE, typeof(ComboBox), "Milking Setup:", Gui.Place.RightTwo, Gui.Place.RightOne, Gui.Place.Seven); //MILKING_SETUP_TYPE.First();
             LocationOfTreatmentType = new Field(LOCATION_OF_TREATMENT_TYPE.First(), LOCATION_OF_TREATMENT_TYPE, typeof(ComboBox), "Location of Treatment:", Gui.Place.RightTwo, Gui.Place.RightOne, Gui.Place.Eight); //LOCATION_OF_TREATMENT_TYPE.First();
-            ContractType = new Field(CONTRACT_TYPE.First(), CONTRACT_TYPE, typeof(ComboBox), "Contract Type:", Gui.Place.RightTwo, Gui.Place.RightOne, Gui.Place.Nine); //CONTRACT_TYPE.First();
+            ContractType = new Field(Cnst.CONTRACT_TYPE.First(), Cnst.CONTRACT_TYPE, typeof(ComboBox), "Contract Type:", Gui.Place.RightTwo, Gui.Place.RightOne, Gui.Place.Nine); //CONTRACT_TYPE.First();
             NumberOfLactatingCows = new Field(NUMBER_OF_LACTATING_COWS, null, typeof(RichTextBox), "# of Lactating Cows:", Gui.Place.RightTwo, Gui.Place.RightOne, Gui.Place.Five); //NUMBER_OF_LACTATING_COWS;
             DhiTest = new Field(DHI_TEST.First(), DHI_TEST, typeof(ComboBox), "Monthly DHI test:", Gui.Place.RightTwo, Gui.Place.RightOne, Gui.Place.Six); //DHI_TEST;
             Contact = new Field(CONTACT, null, typeof(RichTextBox), "Contact Name:", Gui.Place.LeftOne, Gui.Place.LeftTwo, Gui.Place.Eight); //CONTACT;
             Distributor = DISTRIBUTOR;
+        }
+    }
+
+    class Settings : SettingsJson
+    {
+        public string maxDevicePulses
+        {
+            get
+            {
+                return Gui.intToString(max_device_pulses);
+            }
+            set
+            {
+                max_device_pulses = Gui.stringToInt(value);
+            }
+        }
+
+        public string numberOfPulsesPerTreatment
+        {
+            get
+            {
+                return Gui.intToString(number_of_pulses_per_treatment);
+            }
+            set
+            {
+                number_of_pulses_per_treatment = Gui.stringToInt(value);
+            }
+        }
+    }
+
+    class Field
+    {
+        public string val;
+        public string deflt;
+        public List<string> items;
+        public Control control;
+        public Control lcontrol;
+        public Type type;
+        public string text;
+        public Gui.Place placeh = Gui.Place.Center;
+        public Gui.Place lplaceh = Gui.Place.Center;
+        public Gui.Place placev = Gui.Place.Center;
+
+        public Field(string deflt, List<string> items, Type type, string text, Gui.Place placeh, Gui.Place lplaceh, Gui.Place placev)
+        {
+            this.deflt = deflt;
+            this.val = deflt;
+            this.items = items;
+            this.type = type;
+            this.text = text;
+            this.placeh = placeh;
+            this.lplaceh = lplaceh;
+            this.placev = placev;
         }
     }
 }

@@ -87,6 +87,7 @@ namespace WinAMBurner
                     control.ForeColor = Color.Silver;
                 control.Enter += new System.EventHandler(richTextBoxEnter_Click);
                 control.Leave += new System.EventHandler(richTextBoxLeave_Click);
+                (control as RichTextBox).AutoWordSelection = true;
             }
             if (type == typeof(Button))
                 if (eventHandler != null)
@@ -99,6 +100,7 @@ namespace WinAMBurner
                 if (items != null)
                     (control as ComboBox).Items.AddRange(items.ToArray());
                 //(control as ComboBox).SelectedItem = items.Where(i => i == text);
+                (control as ComboBox).SelectedIndexChanged += eventHandler;
             }
 
             control.Location = placeCalc(thisForm, control, placeh: placeh, placev: placev);
@@ -310,18 +312,20 @@ namespace WinAMBurner
         {
             //this.components = new System.ComponentModel.Container();
             //this.bindingSource1 = new System.Windows.Forms.BindingSource(this.components);
-            dataGridView = new System.Windows.Forms.DataGridView();
+            dataGridView = new DataGridView();
             //((System.ComponentModel.ISupportInitialize)(this.bindingSource1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(dataGridView)).BeginInit();
             //dataGridView.AutoSize = true;
-            dataGridView.Anchor = ((System.Windows.Forms.AnchorStyles.Top) | (System.Windows.Forms.AnchorStyles.Left));//((System.Windows.Forms.AnchorStyles.Right) | (System.Windows.Forms.AnchorStyles.Top) | (System.Windows.Forms.AnchorStyles.Bottom));
-            dataGridView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridView.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
+            dataGridView.Anchor = (AnchorStyles.Top) | (AnchorStyles.Left);//((System.Windows.Forms.AnchorStyles.Right) | (System.Windows.Forms.AnchorStyles.Top) | (System.Windows.Forms.AnchorStyles.Bottom));
+            dataGridView.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dataGridView.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dataGridView.RowHeadersWidth = 62;
             dataGridView.RowTemplate.Height = 33;
-            dataGridView.Size = new System.Drawing.Size(1853, 800);
+            dataGridView.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
+            dataGridView.ReadOnly = true;
+            dataGridView.Size = new Size(1853, 800);
             dataGridView.Scale(new SizeF(ScaleFactor, ScaleFactor));
-            dataGridView.Font = new System.Drawing.Font("Segoe UI", DefaultFont, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            dataGridView.Font = new Font("Segoe UI", DefaultFont, FontStyle.Regular, GraphicsUnit.Point);
             dataGridView.Location = placeCalc(thisForm, dataGridView, placeh: placeh, placev: placev);
             dataGridView.TabIndex = 6;
             thisForm.Controls.Add(dataGridView);
