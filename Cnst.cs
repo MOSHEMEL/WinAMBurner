@@ -9,5 +9,6 @@ namespace WinAMBurner
         public static Dictionary<string, string> DSTATE;
         public static List<string> STATE;
         public static List<string> CONTRACT_TYPE;
+        public static string IS_ACTIVE = "Yes";
     }
 }

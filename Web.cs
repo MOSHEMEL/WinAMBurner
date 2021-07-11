@@ -16,41 +16,55 @@ namespace WinAMBurner
 
         //public List<string> partNumbers;
 
-        public async Task<LoginResponse> loginPost(Login login)
+        public async Task<LoginResponseJson> loginPost(LoginJson login)
         {
             var response = await client.PostAsync(URL + "api/p/login/",
                 new StringContent(JsonSerializer.Serialize(login), Encoding.UTF8, "application/json"));
-            var loginResponse = await JsonSerializer.DeserializeAsync<LoginResponse>(await response.Content.ReadAsStreamAsync());
+            var loginResponse = await JsonSerializer.DeserializeAsync<LoginResponseJson>(await response.Content.ReadAsStreamAsync());
             client.DefaultRequestHeaders.Authorization
                          = new AuthenticationHeaderValue("JWT", loginResponse.token);
             return loginResponse;
         }
 
-        public async Task<List<Farm>> farmsGet()
+        public async Task<T> entityGet<T>(string entityUrl)
         {
             //try
             //{
-            var streamTask = client.GetStreamAsync(URL + "api/p/farms/");
-            var farms = await JsonSerializer.DeserializeAsync<List<Farm>>(await streamTask);
+            var streamTask = client.GetStreamAsync(URL + entityUrl);
+            var entitiy = await JsonSerializer.DeserializeAsync<T>(await streamTask);
             //var farms1 = await JsonSerializer.DeserializeAsync<List<FarmJson>>(await streamTask);
-            return farms;
+            return entitiy;
             //return null;
             //}
             //catch { }
             //return null;
         }
 
-        public async Task<List<Service>> servicesGet()
-        {
-            //try
-            //{
-            var streamTask = client.GetStreamAsync(URL + "api/p/service_providers/");
-            var services = await JsonSerializer.DeserializeAsync<List<Service>>(await streamTask);
-            return services;
-            //}
-            //catch { }
-            //return null;
-        }
+        //public async Task<List<Farm>> farmsGet()
+        //{
+        //    //try
+        //    //{
+        //    var streamTask = client.GetStreamAsync(URL + "api/p/farms/");
+        //    var farms = await JsonSerializer.DeserializeAsync<List<Farm>>(await streamTask);
+        //    //var farms1 = await JsonSerializer.DeserializeAsync<List<FarmJson>>(await streamTask);
+        //    return farms;
+        //    //return null;
+        //    //}
+        //    //catch { }
+        //    //return null;
+        //}
+
+        //public async Task<List<Service>> servicesGet()
+        //{
+        //    //try
+        //    //{
+        //    var streamTask = client.GetStreamAsync(URL + "api/p/service_providers/");
+        //    var services = await JsonSerializer.DeserializeAsync<List<Service>>(await streamTask);
+        //    return services;
+        //    //}
+        //    //catch { }
+        //    //return null;
+        //}
 
         //public async Task<JsonDocument> farmAdd(Farm farm)
         //{
@@ -133,27 +147,31 @@ namespace WinAMBurner
             return jsonElement.GetProperty(key).GetProperty("choices").EnumerateArray().Select(c => c.GetProperty("value").ToString()).ToList();
         }
 
-        public async Task<List<string>> treatmentPackagesGet()
-        {
-            var response = await client.SendAsync(new HttpRequestMessage(HttpMethod.Get, URL + "api/p/treatment_package/"));
-            var jsonDocument = await JsonSerializer.DeserializeAsync<JsonDocument>(await response.Content.ReadAsStreamAsync());
+        //public async Task<List<TreatmentPackage>> treatmentPackageGet()
+        //{
+        //    //    var response = await client.SendAsync(new HttpRequestMessage(HttpMethod.Get, URL + "api/p/treatment_package/"));
+        //    //    var jsonDocument = await JsonSerializer.DeserializeAsync<JsonDocument>(await response.Content.ReadAsStreamAsync());
+        //    //
+        //    //    //var parts = jsonDocument.RootElement.EnumerateArray().Select(e => e.GetProperty("part_number").ToString()).ToList();
+        //    //    //partNumbers = jsonDocument.RootElement.EnumerateArray().Select(e => e.GetProperty("part_number")).ToDictionary();
+        //    //    //var parts = jsonDocument.RootElement.EnumerateArray().Select(e => e.GetProperty("part_number")).ToDictionary(p => p.ValueKind);
+        //    //    return jsonDocument.RootElement.EnumerateArray().Select(e => e.GetProperty("part_number").ToString()).ToList();
+        //
+        //    var streamTask = client.GetStreamAsync(URL + "api/p/treatment_package/");
+        //    var treatmentPackages = await JsonSerializer.DeserializeAsync<List<TreatmentPackage>>(await streamTask);
+        //    return treatmentPackages;
+        //}
 
-            //var parts = jsonDocument.RootElement.EnumerateArray().Select(e => e.GetProperty("part_number").ToString()).ToList();
-            //partNumbers = jsonDocument.RootElement.EnumerateArray().Select(e => e.GetProperty("part_number")).ToDictionary();
-            //var parts = jsonDocument.RootElement.EnumerateArray().Select(e => e.GetProperty("part_number")).ToDictionary(p => p.ValueKind);
-            return jsonDocument.RootElement.EnumerateArray().Select(e => e.GetProperty("part_number").ToString()).ToList();
-        }
-
-        public async Task<Settings> settingsGet()
-        {
-            //var response = await client.SendAsync(new HttpRequestMessage(HttpMethod.Get, URL + "api/p/settings/"));
-            //var jsonDocument = await JsonSerializer.DeserializeAsync<JsonDocument>(await response.Content.ReadAsStreamAsync());
-            //
-            //return jsonDocument.RootElement.GetProperty("number_of_pulses_per_treatment").ToString();
-
-            var streamTask = client.GetStreamAsync(URL + "api/p/settings/");
-            var settings = await JsonSerializer.DeserializeAsync<Settings>(await streamTask);
-            return settings;
-        }
+        //public async Task<Settings> settingsGet()
+        //{
+        //    //var response = await client.SendAsync(new HttpRequestMessage(HttpMethod.Get, URL + "api/p/settings/"));
+        //    //var jsonDocument = await JsonSerializer.DeserializeAsync<JsonDocument>(await response.Content.ReadAsStreamAsync());
+        //    //
+        //    //return jsonDocument.RootElement.GetProperty("number_of_pulses_per_treatment").ToString();
+        //
+        //    var streamTask = client.GetStreamAsync(URL + "api/p/settings/");
+        //    var settings = await JsonSerializer.DeserializeAsync<Settings>(await streamTask);
+        //    return settings;
+        //}
     }
 }

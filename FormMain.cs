@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
-using System.Globalization;
 using System.Linq;
 using System.Management;
 using System.Reflection;
@@ -17,6 +16,7 @@ namespace WinAMBurner
         private Label label1;
         private Button button1;
         private Button button2;
+        private ComboBox comboBox1;
         private ProgressBar progressBar1;
         //private System.Windows.Forms.BindingSource bindingSource1;
         private DataGridView dataGridView1;
@@ -41,11 +41,12 @@ namespace WinAMBurner
 
         private string tabletNo = null;
 
-        private List<string> partNumbers;
+        //private List<string> partNumbers;
+        private List<TreatmentPackage> treatmentPackages;
         private Settings settings;
 
-        private Login login;
-        private User user;
+        private LoginJson login;
+        private UserJson user;
 
         private string TabletNo
         {
@@ -95,14 +96,14 @@ namespace WinAMBurner
         private async void buttonLogin_Click(object sender, EventArgs e)
         {
             allControlsDisable();
-            login = new Login()
+            login = new LoginJson()
             { 
                 email = "yael@gmail.com",//richTextBox1.Text,
                 password = "yael123",//richTextBox2.Text,
                 tablet = TabletNo
             };
             
-            LoginResponse loginResponse= await web.loginPost(login);
+            LoginResponseJson loginResponse= await web.loginPost(login);
             if ((loginResponse != null) && (loginResponse.token != null))
             {
                 // if ok
@@ -112,11 +113,16 @@ namespace WinAMBurner
                 Gui.hide(this);
                 screenActionShow();
                 await web.farmOptions();
-                farms = await web.farmsGet();
+                //farms = await web.farmsGet();
+                farms = await web.entityGet<List<Farm>>("api/p/farms/");
                 farms = farms.Where(f => f.is_active).ToList();
-                services = await web.servicesGet();
-                partNumbers = await web.treatmentPackagesGet();
-                settings = await web.settingsGet();
+                //services = await web.servicesGet();
+                services = await web.entityGet<List<Service>>("api/p/service_providers/");
+                //partNumbers = await web.treatmentPackagesGet();
+                //treatmentPackages = await web.treatmentPackageGet();
+                treatmentPackages = await web.entityGet<List<TreatmentPackage>>("api/p/treatment_package/");
+                //settings = await web.settingsGet();
+                settings = await web.entityGet<Settings>("api/p/settings/");
             }
             else
             {
@@ -221,7 +227,7 @@ namespace WinAMBurner
 
         private async Task serviceTableGet()
         {
-            services = await web.servicesGet();
+            //services = await web.servicesGet();
             if (services != null)
             {
                 serviceTable = new DataTable();
@@ -367,11 +373,13 @@ namespace WinAMBurner
             //Gui.labelDraw(this, ref label2, "Select Farm / Service provider", placev: Gui.Place.Three);
             Gui.draw(this, typeof(Label), text: "Select Farm / Service provider", placev: Gui.Place.Four);
             //Gui.comboBoxDraw(this, ref comboBox1, new System.EventHandler(comboBox1_SelectedIndexChanged), placev: Gui.Place.Five);
-            //comboBox1.Items.AddRange(new string[] { "farm1", "farm2", "farm3", "farm4", "farm5", "farm6" });
-            Gui.draw(this, typeof(ComboBox), text: farms.First().name, items: farms.Select(f => f.name).ToList(), placev: Gui.Place.Five);
+            //Gui.draw(this, typeof(ComboBox), text: farms.First().name, items: farms.Select(f => f.name).ToList(), placev: Gui.Place.Five);
+            Gui.draw(this, typeof(ComboBox), text: Farm.NAME, items: farms.Select(f => f.name).ToList(), placev: Gui.Place.Five);
             Gui.draw(this, typeof(Label), text: "Add treatments to AM – SN" + amData.SNum, placev: Gui.Place.Six);
-            //comboBox2.Items.AddRange(new string[] { "50", "100", "150", "200", "250", "300" });
-            Gui.draw(this, typeof(ComboBox), text: partNumbers.First(), items: partNumbers, placev: Gui.Place.Seven);
+            //List<string> pulsNumbers = settings.Select(s => (s.number_of_pulses_per_treatment * treatmentPackages.amount_of_pulses).ToString()).ToList();
+            List<string> partNumbers = treatmentPackages.Select(t => t.PartNumber).ToList();
+            //comboBox1 = Gui.draw(this, typeof(ComboBox), text: partNumbers.First(), items: partNumbers, placev: Gui.Place.Seven) as ComboBox;
+            comboBox1 = Gui.draw(this, typeof(ComboBox), text: TreatmentPackage.PART_NUMBER, items: partNumbers, placev: Gui.Place.Seven) as ComboBox;
             progressBar1 = Gui.draw(this, typeof(ProgressBar), width: Gui.DefaultWidthLarge, placev: Gui.Place.Eight) as ProgressBar;
             Gui.draw(this, typeof(Button), text: "Cancel", eventHandler: new EventHandler(buttonTreatCansel_Click), placeh: Gui.Place.Left, placev: Gui.Place.End);
             Gui.draw(this, typeof(Button), text: "Approve", eventHandler: new EventHandler(buttonTreatApprove_Click), placeh: Gui.Place.Right, placev: Gui.Place.End);
@@ -411,19 +419,27 @@ namespace WinAMBurner
             progressBar1.Visible = true;
             amData.serialPortProgressEvent += new EventHandler(progressBar1_Callback);
             progressBar1.Maximum = 160;
+            
+            TreatmentPackage treatmentPackage = treatmentPackages.Single(t => t.PartNumber == comboBox1.Text);
             //int.TryParse(comboBox1.Text, out amData.MaxiSet);
+            amData.MaxiSet = treatmentPackage.amount_of_treatments * settings.number_of_pulses_per_treatment;
+            
             ErrCode errcode = await amData.AMDataWrite();
             if (errcode >= ErrCode.OK)
             {
                 errcode = await amData.AMDataRead();
             }
+            
             progressBar1.Value = progressBar1.Minimum;
             progressBar1.Visible = false;
+            
             if (errcode == ErrCode.OK)
             {
+                treatmentPackage.amount_of_treatments = amData.Maxi / settings.number_of_pulses_per_treatment;
+                JsonDocument jsonDocument = await web.entityEdit<TreatmentPackageJson>(treatmentPackage as TreatmentPackageJson, "api/p/treatment_package/" + treatmentPackage.Id + "/");
                 FormNotify formNotify = new FormNotify(new List<string>() {
-                    string.Format("{0} treatments updated,",amData.MaxiSet),
-                    string.Format("{0} treatments available on AM - SN {1},", amData.Maxi, amData.SNum),
+                    string.Format("{0} treatments updated,",amData.MaxiSet / settings.number_of_pulses_per_treatment),
+                    string.Format("{0} treatments available on AM - SN {1},", amData.Maxi / settings.number_of_pulses_per_treatment, amData.SNum),
                     "please disconnect the AM"},
                     NotifyButtons.OK, caption: "Success");
                 formNotify.ShowDialog();
@@ -876,8 +892,8 @@ namespace WinAMBurner
             allControlsDisable();
             updateParams(farm);
             //JsonDocument farmResponse = await web.farmEdit(farm);
-            JsonDocument farmResponse = await web.entityEdit<FarmJson>(farm as FarmJson, "api/p/farms/" + farm.Id + "/");
-            if (responseParse<Farm>(farmResponse) == ErrCode.OK)
+            JsonDocument jsonDocument = await web.entityEdit<FarmJson>(farm as FarmJson, "api/p/farms/" + farm.Id + "/");
+            if (responseParse<Farm>(jsonDocument) == ErrCode.OK)
             {
                 //farms.Remove(farm);
                 //farms.Add(farm);
@@ -898,8 +914,8 @@ namespace WinAMBurner
         {
             allControlsDisable();
             updateParams(service);
-            JsonDocument serviceResponse = await web.entityEdit<ServiceJson>(service as ServiceJson, "api/p/service_providers/" + service.Id + "/");
-            if (responseParse<Service>(serviceResponse) == ErrCode.OK)
+            JsonDocument jsonDocument = await web.entityEdit<ServiceJson>(service as ServiceJson, "api/p/service_providers/" + service.Id + "/");
+            if (responseParse<Service>(jsonDocument) == ErrCode.OK)
             {
                 serviceTable.Rows.Remove(serviceRow);
                 serviceTable.Rows.Add(entityToRow(service).ToArray<string>());
