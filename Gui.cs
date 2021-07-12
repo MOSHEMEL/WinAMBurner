@@ -11,6 +11,7 @@ namespace WinAMBurner
     {
         public enum Place
         {
+            None,
             Center,
             Right,
             RightOne,
@@ -45,28 +46,22 @@ namespace WinAMBurner
         public const string DefaultText = "DefaultText";
 
         public static Control draw(Form thisForm, Type type, string text = null, string name = DefaultText, 
-        //public static Control draw<T>(Form thisForm, string text = null, string name = DefaultText, 
             float font = DefaultFont, Color color = new Color(), 
             int width = DefaultWidth, int height = DefaultHeight, bool autoSize = true,
-            //List<JsonElement> items = null, List<string> sitems = null,
             List<string> items = null,
+            //List<Farm> oitems = null,
             EventHandler eventHandler = null, LinkLabelLinkClickedEventHandler linkLabelLinkClickedEventHandler = null,
             Place placeh = Place.Center, Place placev = Place.Center)
         {
-            //control = new System.Windows.Forms.RichTextBox();
             Control control = type.GetConstructor(new Type[] { }).Invoke(null) as Control;
             thisForm.Controls.Add(control);
-            //textBox.AutoSize = true;
-            control.Anchor = ((System.Windows.Forms.AnchorStyles.Top) | (System.Windows.Forms.AnchorStyles.Left));//((System.Windows.Forms.AnchorStyles.Right) | (System.Windows.Forms.AnchorStyles.Top) | (System.Windows.Forms.AnchorStyles.Bottom));
-            control.Margin = new System.Windows.Forms.Padding(4);
-            control.Size = new System.Drawing.Size(width, height);
+            control.Anchor = (AnchorStyles.Top) | (AnchorStyles.Left);
+            control.Margin = new Padding(4);
+            control.Size = new Size(width, height);
             control.Scale(new SizeF(ScaleFactor, ScaleFactor));
             control.TabIndex = 1;
             control.Text = text;
-            //control.Name = name;
-            //if (name == null)
-            //    control.Name = text;
-            control.Font = new System.Drawing.Font("Segoe UI", font, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            control.Font = new Font("Segoe UI", font, FontStyle.Regular, GraphicsUnit.Point);
 
             if ((type == typeof(PictureBox)) || (type == typeof(LinkLabel)))
                 control.AutoSize = true;
@@ -77,14 +72,10 @@ namespace WinAMBurner
                 control.AutoSize = autoSize;
             }
             if (type == typeof(PictureBox))
-                (control as PictureBox).Image = global::WinAMBurner.Properties.Resources.ARmentaSmall;
+                (control as PictureBox).Image = Properties.Resources.ARmentaSmall;
             if (type == typeof(RichTextBox))
             {
-                control.Name = name;
-                if (control.Name == DefaultText)
-                    control.ForeColor = Color.Silver;
-                control.Enter += new System.EventHandler(richTextBoxEnter_Click);
-                control.Leave += new System.EventHandler(richTextBoxLeave_Click);
+                defaultText(name, control);
                 (control as RichTextBox).AutoWordSelection = true;
             }
             if (type == typeof(Button))
@@ -97,13 +88,25 @@ namespace WinAMBurner
             {
                 if (items != null)
                     (control as ComboBox).Items.AddRange(items.ToArray());
+                //if (oitems != null)
+                //    (control as ComboBox).Items.AddRange(oitems.ToArray());
                 //(control as ComboBox).SelectedItem = items.Where(i => i == text);
-                (control as ComboBox).SelectedIndexChanged += eventHandler;
+                //(control as ComboBox).SelectedIndexChanged += eventHandler;
+                defaultText(name, control);
             }
 
             control.Location = placeCalc(thisForm, control, placeh: placeh, placev: placev);
 
             return control;
+        }
+
+        private static void defaultText(string name, Control control)
+        {
+            control.Name = name;
+            if (control.Name == DefaultText)
+                control.ForeColor = Color.Silver;
+            control.Enter += new System.EventHandler(controlEnter_Click);
+            control.Leave += new System.EventHandler(controlLeave_Click);
         }
 
         public static void hide(Form thisForm)
@@ -230,8 +233,8 @@ namespace WinAMBurner
             textBox.Font = new System.Drawing.Font("Segoe UI", DefaultFont, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             textBox.ForeColor = Color.Silver;
             textBox.Location = placeCalc(thisForm, textBox, placeh: placeh, placev: placev);
-            textBox.Enter += new System.EventHandler(richTextBoxEnter_Click);
-            textBox.Leave += new System.EventHandler(richTextBoxLeave_Click);
+            textBox.Enter += new System.EventHandler(controlEnter_Click);
+            textBox.Leave += new System.EventHandler(controlLeave_Click);
         }
 
         public static void textBoxSmallDraw(Form thisForm, ref RichTextBox textBox, string text, string name, Place placeh = Place.Center, Place placev = Place.Center)
@@ -250,8 +253,8 @@ namespace WinAMBurner
             if (name == text)
                 textBox.ForeColor = Color.Silver;
             textBox.Location = placeCalc(thisForm, textBox, placeh: placeh, placev: placev);
-            textBox.Enter += new System.EventHandler(richTextBoxEnter_Click);
-            textBox.Leave += new System.EventHandler(richTextBoxLeave_Click);
+            textBox.Enter += new System.EventHandler(controlEnter_Click);
+            textBox.Leave += new System.EventHandler(controlLeave_Click);
         }
 
         public static void comboBoxSmallDraw(Form thisForm, ref ComboBox comboBox, string text, List<string> items, EventHandler eventHandler = null, Place placeh = Place.Center, Place placev = Place.Center)
@@ -356,7 +359,7 @@ namespace WinAMBurner
             progressBar.Visible = false;
         }
 
-        private static void richTextBoxEnter_Click(object sender, EventArgs e)
+        private static void controlEnter_Click(object sender, EventArgs e)
         {
             Control control = sender as Control;
             if (control.Name == DefaultText)
@@ -367,7 +370,7 @@ namespace WinAMBurner
             }
         }
 
-        private static void richTextBoxLeave_Click(object sender, EventArgs e)
+        private static void controlLeave_Click(object sender, EventArgs e)
         {
             Control control = sender as Control;
             if (control.Text == string.Empty)
