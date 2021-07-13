@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
-using System.Text.Json;
 using System.Windows.Forms;
 
 namespace WinAMBurner
@@ -165,149 +163,149 @@ namespace WinAMBurner
             return location;
         }
 
-        public static void labelDraw(Form thisForm, ref Label label, string text, bool autoSize = true, Font font = null,
-            Color color = new System.Drawing.Color(), Place placeh = Place.Center, Place placev = Place.Center)
-        {
-            label = new System.Windows.Forms.Label();
-            thisForm.Controls.Add(label);
-            label.AutoSize = autoSize;
-            label.Anchor = ((System.Windows.Forms.AnchorStyles.Top) | (System.Windows.Forms.AnchorStyles.Left));//((System.Windows.Forms.AnchorStyles.Right) | (System.Windows.Forms.AnchorStyles.Top) | (System.Windows.Forms.AnchorStyles.Bottom));
-            if (font != null)
-                label.Font = font;
-            if (color != Color.Empty)
-                label.ForeColor = color;
-            label.Size = new System.Drawing.Size(DefaultWidth, DefaultHeight);
-            label.Scale(new SizeF(ScaleFactor, ScaleFactor));
-            label.TabIndex = 20;
-            label.Text = text;
-            label.Font = new System.Drawing.Font("Segoe UI", DefaultFont, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            label.Location = placeCalc(thisForm, label, placeh: placeh, placev: placev);
-        }
+        //public static void labelDraw(Form thisForm, ref Label label, string text, bool autoSize = true, Font font = null,
+        //    Color color = new System.Drawing.Color(), Place placeh = Place.Center, Place placev = Place.Center)
+        //{
+        //    label = new System.Windows.Forms.Label();
+        //    thisForm.Controls.Add(label);
+        //    label.AutoSize = autoSize;
+        //    label.Anchor = ((System.Windows.Forms.AnchorStyles.Top) | (System.Windows.Forms.AnchorStyles.Left));//((System.Windows.Forms.AnchorStyles.Right) | (System.Windows.Forms.AnchorStyles.Top) | (System.Windows.Forms.AnchorStyles.Bottom));
+        //    if (font != null)
+        //        label.Font = font;
+        //    if (color != Color.Empty)
+        //        label.ForeColor = color;
+        //    label.Size = new System.Drawing.Size(DefaultWidth, DefaultHeight);
+        //    label.Scale(new SizeF(ScaleFactor, ScaleFactor));
+        //    label.TabIndex = 20;
+        //    label.Text = text;
+        //    label.Font = new System.Drawing.Font("Segoe UI", DefaultFont, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+        //    label.Location = placeCalc(thisForm, label, placeh: placeh, placev: placev);
+        //}
 
-        public static void buttonDraw(Form thisForm, ref Button button, string text, EventHandler eventHandler, Place placeh = Place.Center, Place placev = Place.Center)
-        {
-            button = new System.Windows.Forms.Button();
-            thisForm.Controls.Add(button);
-            //button.AutoSize = true;
-            button.Anchor = ((System.Windows.Forms.AnchorStyles.Top) | (System.Windows.Forms.AnchorStyles.Left));//((System.Windows.Forms.AnchorStyles.Right) | (System.Windows.Forms.AnchorStyles.Top) | (System.Windows.Forms.AnchorStyles.Bottom));
-            button.Margin = new System.Windows.Forms.Padding(4);
-            button.Size = new System.Drawing.Size(DefaultWidth, DefaultHeight);
-            button.Scale(new SizeF(ScaleFactor, ScaleFactor));
-            button.TabIndex = 3;
-            button.Text = text;
-            button.Font = new System.Drawing.Font("Segoe UI", DefaultFont, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            button.Location = placeCalc(thisForm, button, placeh: placeh, placev: placev);
-            button.UseVisualStyleBackColor = true;
-            button.Click += eventHandler;
-        }
+        //public static void buttonDraw(Form thisForm, ref Button button, string text, EventHandler eventHandler, Place placeh = Place.Center, Place placev = Place.Center)
+        //{
+        //    button = new System.Windows.Forms.Button();
+        //    thisForm.Controls.Add(button);
+        //    //button.AutoSize = true;
+        //    button.Anchor = ((System.Windows.Forms.AnchorStyles.Top) | (System.Windows.Forms.AnchorStyles.Left));//((System.Windows.Forms.AnchorStyles.Right) | (System.Windows.Forms.AnchorStyles.Top) | (System.Windows.Forms.AnchorStyles.Bottom));
+        //    button.Margin = new System.Windows.Forms.Padding(4);
+        //    button.Size = new System.Drawing.Size(DefaultWidth, DefaultHeight);
+        //    button.Scale(new SizeF(ScaleFactor, ScaleFactor));
+        //    button.TabIndex = 3;
+        //    button.Text = text;
+        //    button.Font = new System.Drawing.Font("Segoe UI", DefaultFont, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+        //    button.Location = placeCalc(thisForm, button, placeh: placeh, placev: placev);
+        //    button.UseVisualStyleBackColor = true;
+        //    button.Click += eventHandler;
+        //}
 
-        public static void linkLabelDraw(Form thisForm, ref LinkLabel linkLabel, string text, LinkLabelLinkClickedEventHandler eventHandler,
-            Place placeh = Place.Center, Place placev = Place.Center)
-        {
-            linkLabel = new System.Windows.Forms.LinkLabel();
-            thisForm.Controls.Add(linkLabel);
-            linkLabel.AutoSize = true;
-            linkLabel.Anchor = ((System.Windows.Forms.AnchorStyles.Top) | (System.Windows.Forms.AnchorStyles.Left));//((System.Windows.Forms.AnchorStyles.Right) | (System.Windows.Forms.AnchorStyles.Top) | (System.Windows.Forms.AnchorStyles.Bottom));
-            linkLabel.Size = new System.Drawing.Size(DefaultWidth, DefaultHeight);
-            linkLabel.Scale(new SizeF(ScaleFactor, ScaleFactor));
-            linkLabel.TabIndex = 1;
-            linkLabel.TabStop = true;
-            linkLabel.Text = text;
-            linkLabel.Font = new System.Drawing.Font("Segoe UI", DefaultFont, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            linkLabel.Location = placeCalc(thisForm, linkLabel, placeh: placeh, placev: placev);
-            linkLabel.LinkClicked += eventHandler;
-        }
+        //public static void linkLabelDraw(Form thisForm, ref LinkLabel linkLabel, string text, LinkLabelLinkClickedEventHandler eventHandler,
+        //    Place placeh = Place.Center, Place placev = Place.Center)
+        //{
+        //    linkLabel = new System.Windows.Forms.LinkLabel();
+        //    thisForm.Controls.Add(linkLabel);
+        //    linkLabel.AutoSize = true;
+        //    linkLabel.Anchor = ((System.Windows.Forms.AnchorStyles.Top) | (System.Windows.Forms.AnchorStyles.Left));//((System.Windows.Forms.AnchorStyles.Right) | (System.Windows.Forms.AnchorStyles.Top) | (System.Windows.Forms.AnchorStyles.Bottom));
+        //    linkLabel.Size = new System.Drawing.Size(DefaultWidth, DefaultHeight);
+        //    linkLabel.Scale(new SizeF(ScaleFactor, ScaleFactor));
+        //    linkLabel.TabIndex = 1;
+        //    linkLabel.TabStop = true;
+        //    linkLabel.Text = text;
+        //    linkLabel.Font = new System.Drawing.Font("Segoe UI", DefaultFont, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+        //    linkLabel.Location = placeCalc(thisForm, linkLabel, placeh: placeh, placev: placev);
+        //    linkLabel.LinkClicked += eventHandler;
+        //}
 
-        public static void textBoxDraw(Form thisForm, ref RichTextBox textBox, string text, Place placeh = Place.Center, Place placev = Place.Center)
-        {
-            textBox = new System.Windows.Forms.RichTextBox();
-            thisForm.Controls.Add(textBox);
-            //textBox.AutoSize = true;
-            textBox.Anchor = ((System.Windows.Forms.AnchorStyles.Top) | (System.Windows.Forms.AnchorStyles.Left));//((System.Windows.Forms.AnchorStyles.Right) | (System.Windows.Forms.AnchorStyles.Top) | (System.Windows.Forms.AnchorStyles.Bottom));
-            textBox.Margin = new System.Windows.Forms.Padding(4);
-            textBox.Size = new System.Drawing.Size(DefaultWidthLarge, DefaultHeight);
-            textBox.Scale(new SizeF(ScaleFactor, ScaleFactor));
-            textBox.TabIndex = 1;
-            textBox.Text = text;
-            textBox.Name = text;
-            textBox.Font = new System.Drawing.Font("Segoe UI", DefaultFont, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            textBox.ForeColor = Color.Silver;
-            textBox.Location = placeCalc(thisForm, textBox, placeh: placeh, placev: placev);
-            textBox.Enter += new System.EventHandler(controlEnter_Click);
-            textBox.Leave += new System.EventHandler(controlLeave_Click);
-        }
+        //public static void textBoxDraw(Form thisForm, ref RichTextBox textBox, string text, Place placeh = Place.Center, Place placev = Place.Center)
+        //{
+        //    textBox = new System.Windows.Forms.RichTextBox();
+        //    thisForm.Controls.Add(textBox);
+        //    //textBox.AutoSize = true;
+        //    textBox.Anchor = ((System.Windows.Forms.AnchorStyles.Top) | (System.Windows.Forms.AnchorStyles.Left));//((System.Windows.Forms.AnchorStyles.Right) | (System.Windows.Forms.AnchorStyles.Top) | (System.Windows.Forms.AnchorStyles.Bottom));
+        //    textBox.Margin = new System.Windows.Forms.Padding(4);
+        //    textBox.Size = new System.Drawing.Size(DefaultWidthLarge, DefaultHeight);
+        //    textBox.Scale(new SizeF(ScaleFactor, ScaleFactor));
+        //    textBox.TabIndex = 1;
+        //    textBox.Text = text;
+        //    textBox.Name = text;
+        //    textBox.Font = new System.Drawing.Font("Segoe UI", DefaultFont, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+        //    textBox.ForeColor = Color.Silver;
+        //    textBox.Location = placeCalc(thisForm, textBox, placeh: placeh, placev: placev);
+        //    textBox.Enter += new System.EventHandler(controlEnter_Click);
+        //    textBox.Leave += new System.EventHandler(controlLeave_Click);
+        //}
 
-        public static void textBoxSmallDraw(Form thisForm, ref RichTextBox textBox, string text, string name, Place placeh = Place.Center, Place placev = Place.Center)
-        {
-            textBox = new System.Windows.Forms.RichTextBox();
-            thisForm.Controls.Add(textBox);
-            //textBox.AutoSize = true;
-            textBox.Anchor = ((System.Windows.Forms.AnchorStyles.Top) | (System.Windows.Forms.AnchorStyles.Left));//((System.Windows.Forms.AnchorStyles.Right) | (System.Windows.Forms.AnchorStyles.Top) | (System.Windows.Forms.AnchorStyles.Bottom));
-            textBox.Margin = new System.Windows.Forms.Padding(4);
-            textBox.Size = new System.Drawing.Size(DefaultWidth, DefaultHeight);
-            textBox.Scale(new SizeF(ScaleFactor, ScaleFactor));
-            textBox.TabIndex = 1;
-            textBox.Text = text;
-            textBox.Name = name;
-            textBox.Font = new System.Drawing.Font("Segoe UI", DefaultFont, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            if (name == text)
-                textBox.ForeColor = Color.Silver;
-            textBox.Location = placeCalc(thisForm, textBox, placeh: placeh, placev: placev);
-            textBox.Enter += new System.EventHandler(controlEnter_Click);
-            textBox.Leave += new System.EventHandler(controlLeave_Click);
-        }
+        //public static void textBoxSmallDraw(Form thisForm, ref RichTextBox textBox, string text, string name, Place placeh = Place.Center, Place placev = Place.Center)
+        //{
+        //    textBox = new System.Windows.Forms.RichTextBox();
+        //    thisForm.Controls.Add(textBox);
+        //    //textBox.AutoSize = true;
+        //    textBox.Anchor = ((System.Windows.Forms.AnchorStyles.Top) | (System.Windows.Forms.AnchorStyles.Left));//((System.Windows.Forms.AnchorStyles.Right) | (System.Windows.Forms.AnchorStyles.Top) | (System.Windows.Forms.AnchorStyles.Bottom));
+        //    textBox.Margin = new System.Windows.Forms.Padding(4);
+        //    textBox.Size = new System.Drawing.Size(DefaultWidth, DefaultHeight);
+        //    textBox.Scale(new SizeF(ScaleFactor, ScaleFactor));
+        //    textBox.TabIndex = 1;
+        //    textBox.Text = text;
+        //    textBox.Name = name;
+        //    textBox.Font = new System.Drawing.Font("Segoe UI", DefaultFont, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+        //    if (name == text)
+        //        textBox.ForeColor = Color.Silver;
+        //    textBox.Location = placeCalc(thisForm, textBox, placeh: placeh, placev: placev);
+        //    textBox.Enter += new System.EventHandler(controlEnter_Click);
+        //    textBox.Leave += new System.EventHandler(controlLeave_Click);
+        //}
 
-        public static void comboBoxSmallDraw(Form thisForm, ref ComboBox comboBox, string text, List<string> items, EventHandler eventHandler = null, Place placeh = Place.Center, Place placev = Place.Center)
-        {
-            comboBox = new System.Windows.Forms.ComboBox();
-            thisForm.Controls.Add(comboBox);
-            //comboBox.AutoSize = true;
-            comboBox.Anchor = ((System.Windows.Forms.AnchorStyles.Top) | (System.Windows.Forms.AnchorStyles.Left));//((System.Windows.Forms.AnchorStyles.Right) | (System.Windows.Forms.AnchorStyles.Top) | (System.Windows.Forms.AnchorStyles.Bottom));
-            comboBox.FormattingEnabled = true;
-            comboBox.Margin = new System.Windows.Forms.Padding(4);
-            comboBox.Size = new System.Drawing.Size(DefaultWidth, DefaultHeight);
-            comboBox.Scale(new SizeF(ScaleFactor, ScaleFactor));
-            comboBox.Font = new System.Drawing.Font("Segoe UI", DefaultFont, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            comboBox.Location = placeCalc(thisForm, comboBox, placeh: placeh, placev: placev);
-            comboBox.TabIndex = 17;
-            comboBox.SelectedIndexChanged += eventHandler;
-            comboBox.Items.AddRange(items.ToArray());
-            comboBox.Text = text;
-        }
+        //public static void comboBoxSmallDraw(Form thisForm, ref ComboBox comboBox, string text, List<string> items, EventHandler eventHandler = null, Place placeh = Place.Center, Place placev = Place.Center)
+        //{
+        //    comboBox = new System.Windows.Forms.ComboBox();
+        //    thisForm.Controls.Add(comboBox);
+        //    //comboBox.AutoSize = true;
+        //    comboBox.Anchor = ((System.Windows.Forms.AnchorStyles.Top) | (System.Windows.Forms.AnchorStyles.Left));//((System.Windows.Forms.AnchorStyles.Right) | (System.Windows.Forms.AnchorStyles.Top) | (System.Windows.Forms.AnchorStyles.Bottom));
+        //    comboBox.FormattingEnabled = true;
+        //    comboBox.Margin = new System.Windows.Forms.Padding(4);
+        //    comboBox.Size = new System.Drawing.Size(DefaultWidth, DefaultHeight);
+        //    comboBox.Scale(new SizeF(ScaleFactor, ScaleFactor));
+        //    comboBox.Font = new System.Drawing.Font("Segoe UI", DefaultFont, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+        //    comboBox.Location = placeCalc(thisForm, comboBox, placeh: placeh, placev: placev);
+        //    comboBox.TabIndex = 17;
+        //    comboBox.SelectedIndexChanged += eventHandler;
+        //    comboBox.Items.AddRange(items.ToArray());
+        //    comboBox.Text = text;
+        //}
 
-        public static void comboBoxSmallDraw1(Form thisForm, ref ComboBox comboBox, string text, List<JsonElement> items, EventHandler eventHandler, Place placeh = Place.Center, Place placev = Place.Center)
-        {
-            comboBox = new System.Windows.Forms.ComboBox();
-            thisForm.Controls.Add(comboBox);
-            //comboBox.AutoSize = true;
-            comboBox.Anchor = ((System.Windows.Forms.AnchorStyles.Top) | (System.Windows.Forms.AnchorStyles.Left));//((System.Windows.Forms.AnchorStyles.Right) | (System.Windows.Forms.AnchorStyles.Top) | (System.Windows.Forms.AnchorStyles.Bottom));
-            comboBox.FormattingEnabled = true;
-            comboBox.Margin = new System.Windows.Forms.Padding(4);
-            comboBox.Size = new System.Drawing.Size(DefaultWidth, DefaultHeight);
-            comboBox.Scale(new SizeF(ScaleFactor, ScaleFactor));
-            comboBox.Font = new System.Drawing.Font("Segoe UI", DefaultFont, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            comboBox.Location = placeCalc(thisForm, comboBox, placeh: placeh, placev: placev);
-            comboBox.TabIndex = 17;
-            comboBox.SelectedIndexChanged += eventHandler;
-            comboBox.Items.AddRange(items.Select(i => i.ToString()).ToArray());
-            comboBox.Text = text;
-        }
+        //public static void comboBoxSmallDraw1(Form thisForm, ref ComboBox comboBox, string text, List<JsonElement> items, EventHandler eventHandler, Place placeh = Place.Center, Place placev = Place.Center)
+        //{
+        //    comboBox = new System.Windows.Forms.ComboBox();
+        //    thisForm.Controls.Add(comboBox);
+        //    //comboBox.AutoSize = true;
+        //    comboBox.Anchor = ((System.Windows.Forms.AnchorStyles.Top) | (System.Windows.Forms.AnchorStyles.Left));//((System.Windows.Forms.AnchorStyles.Right) | (System.Windows.Forms.AnchorStyles.Top) | (System.Windows.Forms.AnchorStyles.Bottom));
+        //    comboBox.FormattingEnabled = true;
+        //    comboBox.Margin = new System.Windows.Forms.Padding(4);
+        //    comboBox.Size = new System.Drawing.Size(DefaultWidth, DefaultHeight);
+        //    comboBox.Scale(new SizeF(ScaleFactor, ScaleFactor));
+        //    comboBox.Font = new System.Drawing.Font("Segoe UI", DefaultFont, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+        //    comboBox.Location = placeCalc(thisForm, comboBox, placeh: placeh, placev: placev);
+        //    comboBox.TabIndex = 17;
+        //    comboBox.SelectedIndexChanged += eventHandler;
+        //    comboBox.Items.AddRange(items.Select(i => i.ToString()).ToArray());
+        //    comboBox.Text = text;
+        //}
 
-        public static void comboBoxDraw(Form thisForm, ref ComboBox comboBox, EventHandler eventHandler, Place placeh = Place.Center, Place placev = Place.Center)
-        {
-            comboBox = new System.Windows.Forms.ComboBox();
-            thisForm.Controls.Add(comboBox);
-            //comboBox.AutoSize = true;
-            comboBox.Anchor = ((System.Windows.Forms.AnchorStyles.Top) | (System.Windows.Forms.AnchorStyles.Left));//((System.Windows.Forms.AnchorStyles.Right) | (System.Windows.Forms.AnchorStyles.Top) | (System.Windows.Forms.AnchorStyles.Bottom));
-            comboBox.FormattingEnabled = true;
-            comboBox.Margin = new System.Windows.Forms.Padding(4);
-            comboBox.Size = new System.Drawing.Size(DefaultWidthLarge, DefaultHeightLarge);
-            comboBox.Scale(new SizeF(ScaleFactor, ScaleFactor));
-            comboBox.Font = new System.Drawing.Font("Segoe UI", DefaultFont, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            comboBox.Location = placeCalc(thisForm, comboBox, placeh: placeh, placev: placev);
-            comboBox.TabIndex = 17;
-            comboBox.SelectedIndexChanged += eventHandler;
-        }
+        //public static void comboBoxDraw(Form thisForm, ref ComboBox comboBox, EventHandler eventHandler, Place placeh = Place.Center, Place placev = Place.Center)
+        //{
+        //    comboBox = new System.Windows.Forms.ComboBox();
+        //    thisForm.Controls.Add(comboBox);
+        //    //comboBox.AutoSize = true;
+        //    comboBox.Anchor = ((System.Windows.Forms.AnchorStyles.Top) | (System.Windows.Forms.AnchorStyles.Left));//((System.Windows.Forms.AnchorStyles.Right) | (System.Windows.Forms.AnchorStyles.Top) | (System.Windows.Forms.AnchorStyles.Bottom));
+        //    comboBox.FormattingEnabled = true;
+        //    comboBox.Margin = new System.Windows.Forms.Padding(4);
+        //    comboBox.Size = new System.Drawing.Size(DefaultWidthLarge, DefaultHeightLarge);
+        //    comboBox.Scale(new SizeF(ScaleFactor, ScaleFactor));
+        //    comboBox.Font = new System.Drawing.Font("Segoe UI", DefaultFont, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+        //    comboBox.Location = placeCalc(thisForm, comboBox, placeh: placeh, placev: placev);
+        //    comboBox.TabIndex = 17;
+        //    comboBox.SelectedIndexChanged += eventHandler;
+        //}
 
         public static void dataGridDraw(Form thisForm, ref DataGridView dataGridView, Place placeh = Place.Center, Place placev = Place.Center)
         {
@@ -336,28 +334,28 @@ namespace WinAMBurner
             //dataGridView.DataSource = this.bindingSource1;
         }
 
-        public static void labelDraw(Form thisForm, Label label, Point location, string text, Color color, Place placeh, Place placev)
-        {
-            label.ForeColor = color;
-            label.Text = text;
-            label.Font = new System.Drawing.Font("Segoe UI", DefaultFont, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            label.Location = placeCalc(thisForm, label, location: location, placeh: placeh, placev: placev);
-        }
+        //public static void labelDraw(Form thisForm, Label label, Point location, string text, Color color, Place placeh, Place placev)
+        //{
+        //    label.ForeColor = color;
+        //    label.Text = text;
+        //    label.Font = new System.Drawing.Font("Segoe UI", DefaultFont, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+        //    label.Location = placeCalc(thisForm, label, location: location, placeh: placeh, placev: placev);
+        //}
 
-        public static void progressBarDraw(Form thisForm, ref ProgressBar progressBar, Place placeh = Place.Center, Place placev = Place.Center)
-        {
-            progressBar = new System.Windows.Forms.ProgressBar();
-            thisForm.Controls.Add(progressBar);
-            //progressBar.AutoSize = true;
-            progressBar.Anchor = ((System.Windows.Forms.AnchorStyles.Top) | (System.Windows.Forms.AnchorStyles.Left));//((System.Windows.Forms.AnchorStyles.Right) | (System.Windows.Forms.AnchorStyles.Top) | (System.Windows.Forms.AnchorStyles.Bottom));
-            progressBar.Margin = new System.Windows.Forms.Padding(4);
-            progressBar.Size = new System.Drawing.Size(DefaultWidthLarge, 24);
-            progressBar.Scale(new SizeF(ScaleFactor, ScaleFactor));
-            progressBar.Location = placeCalc(thisForm, progressBar, placev: placev);
-            progressBar.Style = System.Windows.Forms.ProgressBarStyle.Continuous;
-            progressBar.TabIndex = 18;
-            progressBar.Visible = false;
-        }
+        //public static void progressBarDraw(Form thisForm, ref ProgressBar progressBar, Place placeh = Place.Center, Place placev = Place.Center)
+        //{
+        //    progressBar = new System.Windows.Forms.ProgressBar();
+        //    thisForm.Controls.Add(progressBar);
+        //    //progressBar.AutoSize = true;
+        //    progressBar.Anchor = ((System.Windows.Forms.AnchorStyles.Top) | (System.Windows.Forms.AnchorStyles.Left));//((System.Windows.Forms.AnchorStyles.Right) | (System.Windows.Forms.AnchorStyles.Top) | (System.Windows.Forms.AnchorStyles.Bottom));
+        //    progressBar.Margin = new System.Windows.Forms.Padding(4);
+        //    progressBar.Size = new System.Drawing.Size(DefaultWidthLarge, 24);
+        //    progressBar.Scale(new SizeF(ScaleFactor, ScaleFactor));
+        //    progressBar.Location = placeCalc(thisForm, progressBar, placev: placev);
+        //    progressBar.Style = System.Windows.Forms.ProgressBarStyle.Continuous;
+        //    progressBar.TabIndex = 18;
+        //    progressBar.Visible = false;
+        //}
 
         private static void controlEnter_Click(object sender, EventArgs e)
         {

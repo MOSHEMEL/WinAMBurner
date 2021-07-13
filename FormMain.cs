@@ -13,6 +13,8 @@ namespace WinAMBurner
 {
     public partial class FormMain : Form
     {
+        private RichTextBox richTextBox1;
+        private RichTextBox richTextBox2;
         private Label label1;
         private Button button1;
         private Button button2;
@@ -87,8 +89,8 @@ namespace WinAMBurner
                 linkLabelLinkClickedEventHandler: new LinkLabelLinkClickedEventHandler(this.linkLabel1_LinkClicked), 
                 placev: Gui.Place.Six);
             Gui.draw(this, typeof(Button), text: "Login", eventHandler: new EventHandler(buttonLogin_Click), placev: Gui.Place.End);
-            Gui.draw(this, typeof(RichTextBox), text: "Username", width: Gui.DefaultWidthLarge, placev: Gui.Place.Two);
-            Gui.draw(this, typeof(RichTextBox), text: "Password", width: Gui.DefaultWidthLarge, placev: Gui.Place.Four);
+            richTextBox1 = Gui.draw(this, typeof(RichTextBox), text: "Username", width: Gui.DefaultWidthLarge, placev: Gui.Place.Two) as RichTextBox;
+            richTextBox2 = Gui.draw(this, typeof(RichTextBox), text: "Password", width: Gui.DefaultWidthLarge, placev: Gui.Place.Four) as RichTextBox;
         }
 
         private async void buttonLogin_Click(object sender, EventArgs e)
@@ -106,14 +108,32 @@ namespace WinAMBurner
             {
                 // if ok
                 user = loginResponse.user;
-                Gui.hide(this);
-                screenActionShow();
                 await web.farmOptions();
                 farms = await web.entityGet<List<Farm>>("api/p/farms/");
                 farms = farms.Where(f => f.is_active).ToList();
                 services = await web.entityGet<List<Service>>("api/p/service_providers/");
                 treatmentPackages = await web.entityGet<List<TreatmentPackage>>("api/p/treatment_package/");
                 settings = await web.entityGet<SettingsJson>("api/p/settings/");
+
+                if ((user != null) && (farms != null) && (services != null) && (treatmentPackages != null) && (settings != null) &&
+                    (Cnst.DCOUNTRY != null) && (Cnst.COUNTRY != null) && (Cnst.DSTATE != null) && (Cnst.STATE != null) && 
+                    (Farm.FARM_TYPE != null) && (Farm.BREED_TYPE != null) && (Farm.MILKING_SETUP_TYPE != null) && 
+                    (Farm.LOCATION_OF_TREATMENT_TYPE != null) && (Cnst.CONTRACT_TYPE != null))
+                {
+                    Gui.hide(this);
+                    screenActionShow();
+                }
+                else
+                {
+                    // if failed
+                    FormNotify formNotify = new FormNotify(new List<string>() {
+                    "Login failed Check your username and password,",
+                    "make sure your tablet is connected to the internet"},
+                        NotifyButtons.OK, caption: "Login Failed");
+                    formNotify.ShowDialog();
+                    formNotify.Dispose();
+                    allControlsEnable();
+                }
             }
             else
             {
@@ -166,7 +186,8 @@ namespace WinAMBurner
         {
             allControlsDisable();
             Gui.hide(this);
-            await FarmTableGet();
+            //FarmTableGet();
+            farmTable = entityTableGet(farms);
             screenFarmShow();
         }
 
@@ -174,7 +195,8 @@ namespace WinAMBurner
         {
             allControlsDisable();
             Gui.hide(this);
-            await serviceTableGet();
+            //serviceTableGet();
+            serviceTable = entityTableGet(services);
             screenServiceShow();
         }
 
@@ -190,46 +212,78 @@ namespace WinAMBurner
                 control.Enabled = true;
         }
 
-        private async Task FarmTableGet()
+        private DataTable entityTableGet<T>(List<T> entities)
         {
             //farms = await web.farmsGet();
-            if (farms != null)
-            {
-                farmTable = new DataTable();
-                farmTable.Columns.AddRange(new List<DataColumn>(){new DataColumn("Farm Name"),
+            //if (entities != null)
+            //{
+            DataTable entityTable = new DataTable();
+            entityTable.Columns.AddRange(new List<DataColumn>(){new DataColumn("Name"),
                                     new DataColumn("Country / State"),
                                     new DataColumn("City"),
                                     new DataColumn("Address")}.ToArray());
-                //foreach (var f in farms.Select(f => new { f.name, f.country, f.city, f.address }).ToArray())
-                foreach (var farm in farms.Select(f => entityToRow(f)))
-                    farmTable.Rows.Add(farm.ToArray<string>());
-            }
+            foreach (var entity in entities.Select(e => entityToRow(e)))
+                entityTable.Rows.Add(entity.ToArray<string>());
+            //}
+            return entityTable;
         }
 
-        private async Task serviceTableGet()
+        //private void FarmTableGet()
+        //{
+        //    //farms = await web.farmsGet();
+        //    if (farms != null)
+        //    {
+        //        farmTable = new DataTable();
+        //        farmTable.Columns.AddRange(new List<DataColumn>(){new DataColumn("Farm Name"),
+        //                            new DataColumn("Country / State"),
+        //                            new DataColumn("City"),
+        //                            new DataColumn("Address")}.ToArray());
+        //        //foreach (var f in farms.Select(f => new { f.name, f.country, f.city, f.address }).ToArray())
+        //        foreach (var farm in farms.Select(f => entityToRow(f)))
+        //            farmTable.Rows.Add(farm.ToArray<string>());
+        //    }
+        //}
+
+        //private void serviceTableGet()
+        //{
+        //    //services = await web.servicesGet();
+        //    if (services != null)
+        //    {
+        //        serviceTable = new DataTable();
+        //        serviceTable.Columns.AddRange(new List<DataColumn>(){new DataColumn("Name"),
+        //                            new DataColumn("Country / State"),
+        //                            new DataColumn("City"),
+        //                            new DataColumn("Address")}.ToArray());
+        //        foreach (var service in services.Select(s => entityToRow(s)))
+        //            serviceTable.Rows.Add(service.ToArray<string>());
+        //    }
+        //}
+
+        private List<string> entityToRow<T>(T entity)
         {
-            //services = await web.servicesGet();
-            if (services != null)
+            List<string> l = null;
+            if(typeof(T) == typeof(Farm))
             {
-                serviceTable = new DataTable();
-                serviceTable.Columns.AddRange(new List<DataColumn>(){new DataColumn("Name"),
-                                    new DataColumn("Country / State"),
-                                    new DataColumn("City"),
-                                    new DataColumn("Address")}.ToArray());
-                foreach (var s in services.Select(s => entityToRow(s)))
-                    serviceTable.Rows.Add(s.ToArray<string>());
+                Farm e = entity as Farm;
+                l = new List<string> { e.Name.val, e.Country.val + ((e.State.val == null) ? string.Empty : " / ") + e.State.val, e.City.val, e.Address.val };
             }
+            if (typeof(T) == typeof(Service))
+            {
+                Service e = entity as Service;
+                l = new List<string> { e.Name.val, e.Country.val + ((e.State.val == null) ? string.Empty : " / ") + e.State.val, e.City.val, e.Address.val };
+            }
+            return l;
         }
 
-        private List<string> entityToRow(Farm farm)
-        {
-            return new List<string> { farm.Name.val, farm.Country.val + ((farm.State.val == null) ? string.Empty : " / ") + farm.State.val, farm.City.val, farm.Address.val };
-        }
+        //private List<string> entityToRow(Farm farm)
+        //{
+        //    return new List<string> { farm.Name.val, farm.Country.val + ((farm.State.val == null) ? string.Empty : " / ") + farm.State.val, farm.City.val, farm.Address.val };
+        //}
 
-        private List<string> entityToRow(Service service)
-        {
-            return new List<string> { service.Name.val, service.Country.val + ((service.State.val == null) ? string.Empty : " / ") + service.State.val, service.City.val, service.Address.val };
-        }
+        //private List<string> entityToRow(Service service)
+        //{
+        //    return new List<string> { service.Name.val, service.Country.val + ((service.State.val == null) ? string.Empty : " / ") + service.State.val, service.City.val, service.Address.val };
+        //}
 
         private void screenConnectShow()
         {
@@ -310,9 +364,9 @@ namespace WinAMBurner
             //amData.SNum = 0x123;
             Gui.draw(this, typeof(PictureBox), placev: Gui.Place.One);
             Gui.draw(this, typeof(Label), text: "Welcome distributor", font: Gui.DefaultFontLarge, placev: Gui.Place.Two);
-            Gui.draw(this, typeof(Label), text: "AM information, pulses per treatment : " + 1500, placev: Gui.Place.Four);
+            Gui.draw(this, typeof(Label), text: "AM information, pulses per treatment : " + settings.number_of_pulses_per_treatment, placev: Gui.Place.Four);
             Gui.draw(this, typeof(Label), text: "AM identified with SN: " + amData.SNum, placev: Gui.Place.Six);
-            Gui.draw(this, typeof(Label), text: "Current available treatments: " + amData.Maxi, placev: Gui.Place.Eight);
+            Gui.draw(this, typeof(Label), text: "Current available treatments: " + amData.Maxi / settings.number_of_pulses_per_treatment, placev: Gui.Place.Eight);
             Gui.draw(this, typeof(Button), text: "Back", eventHandler: new EventHandler(buttonInfoBack_Click), placeh: Gui.Place.Left, placev: Gui.Place.End);
             Gui.draw(this, typeof(Button), text: "Continue", eventHandler: new EventHandler(buttonInfoContinue_Click), placeh: Gui.Place.Right, placev: Gui.Place.End);
         }
@@ -376,48 +430,41 @@ namespace WinAMBurner
             amData.serialPortProgressEvent += new EventHandler(progressBar1_Callback);
             progressBar1.Maximum = 160;
 
+            ErrCode errcode = ErrCode.ERROR;
             Farm farm = farms.FirstOrDefault(f => f.Name.val == comboBox1.Text);
             //int.TryParse(comboBox1.Text, out amData.MaxiSet);
             TreatmentPackage treatmentPackage = treatmentPackages.FirstOrDefault(t => t.PartNumber == comboBox2.Text);
-            amData.MaxiSet = treatmentPackage.amount_of_treatments * settings.number_of_pulses_per_treatment;
+            if ((farm == null) || (treatmentPackage == null))
+                errcode = ErrCode.EPARAM;
+            else
+                errcode = ErrCode.OK;
 
-            ErrCode errcode = await amData.AMDataWrite();
-            if (errcode >= ErrCode.OK)
+            if (errcode == ErrCode.OK)
             {
-                errcode = await amData.AMDataRead();
+                amData.MaxiSet = treatmentPackage.amount_of_treatments * settings.number_of_pulses_per_treatment;
+
+                errcode = await amData.AMDataWrite();
+                if (errcode >= ErrCode.OK)
+                {
+                    errcode = await amData.AMDataRead();
+                }
+
+                progressBar1.Value = progressBar1.Minimum;
+                progressBar1.Visible = false;
             }
-            
-            progressBar1.Value = progressBar1.Minimum;
-            progressBar1.Visible = false;
-            
+
             if (errcode == ErrCode.OK)
             {
                 //treatmentPackage.amount_of_treatments = amData.Maxi / settings.number_of_pulses_per_treatment;
                 ActionJson action = new ActionJson()
                 {
-                    aptx_id = "111",
+                    aptx_id = string.Format("0x{0:x} 0x{1:x} 0x{2:x}", amData.AptxId[0], amData.AptxId[1], amData.AptxId[2]),
                     am_id = amData.SNum.ToString(),
-                    part_number = treatmentPackage.part_number,
+                    part_number = Gui.stringToInt(treatmentPackage.part_number),
                     tablet = TabletNo,
                     farm = farm.id,
                     service_provider = null
                 };
-    //"tablet": 2,
-    //"service_provider": null,
-    //"farm": 2,
-    //"aptx_id": "some id",
-    //"am_id": "some new id",
-    //"part_number": 40
-//public int id { get; set; }
-//public string date { get; set; }
-//public string aptx_id { get; set; }
-//public string am_id { get; set; }
-//public int part_number { get; set; }
-//public int contact { get; set; }
-//public string tablet { get; set; }
-//public int farm { get; set; }
-//public int service_provider { get; set; }
-//public int distributor { get; set; }
 
                 JsonDocument jsonDocument = await web.entityAdd<ActionJson>(action, "api/p/actions/");
                 
@@ -613,7 +660,7 @@ namespace WinAMBurner
         {
             screenUpdateShow(farm, true, buttonFarmCancel_Click);
             Gui.draw(this, typeof(Label), text: "Edit Farm", font: Gui.DefaultFontLarge, placev: Gui.Place.Two);
-            Gui.draw(this, typeof(Button), text: "Submit", eventHandler: new System.EventHandler(buttonFarmEditSubmit_Click), 
+            Gui.draw(this, typeof(Button), text: "Submit", eventHandler: new EventHandler(buttonFarmEditSubmit_Click), 
                 placeh: Gui.Place.RightTwo, placev: Gui.Place.Eleven);
         }
 
@@ -621,7 +668,7 @@ namespace WinAMBurner
         {
             screenUpdateShow(service, true, buttonServiceCancel_Click);
             Gui.draw(this, typeof(Label), text: "Edit Service provider", font: Gui.DefaultFontLarge, placev: Gui.Place.Two);
-            Gui.draw(this, typeof(Button), text: "Submit", eventHandler: new System.EventHandler(buttonFarmEditSubmit_Click),
+            Gui.draw(this, typeof(Button), text: "Submit", eventHandler: new EventHandler(buttonServiceEditSubmit_Click),
                 placeh: Gui.Place.RightTwo, placev: Gui.Place.Eleven);
         }
 
@@ -738,8 +785,9 @@ namespace WinAMBurner
                 //farms.Remove(farm);
                 //farms.Add(farm);
                 //farmTable.Rows.Add((new List<string>() { farm.name, farm.country, farm.city, farm.address }).ToArray<string>());
-                farmTable.Rows.Remove(farmRow);
-                farmTable.Rows.Add(entityToRow(farm).ToArray<string>());
+                //farmTable.Rows.Remove(farmRow);
+                //farmTable.Rows.Add(entityToRow(farm).ToArray<string>());
+                farmRow.ItemArray = entityToRow(farm).ToArray<string>();
 
                 Gui.hide(this);
                 screenFarmShow();
@@ -755,8 +803,9 @@ namespace WinAMBurner
             JsonDocument jsonDocument = await web.entityEdit<ServiceJson>(service as ServiceJson, "api/p/service_providers/" + service.Id + "/");
             if (responseParse<Service>(jsonDocument) == ErrCode.OK)
             {
-                serviceTable.Rows.Remove(serviceRow);
-                serviceTable.Rows.Add(entityToRow(service).ToArray<string>());
+                //serviceTable.Rows.Remove(serviceRow);
+                //serviceTable.Rows.Add(entityToRow(service).ToArray<string>());
+                serviceRow.ItemArray = entityToRow(service).ToArray<string>();
 
                 Gui.hide(this);
                 screenServiceShow();

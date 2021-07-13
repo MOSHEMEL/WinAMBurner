@@ -106,7 +106,7 @@ namespace WinAMBurner
     {
         public int id { get; set; }
         public bool is_active { get; set; }
-        public int part_number { get; set; }
+        public string part_number { get; set; }
         public int amount_of_treatments { get; set; }
         public string description { get; set; }
         public string contract_type { get; set; }
@@ -122,7 +122,7 @@ namespace WinAMBurner
         public int part_number { get; set; }
         //public int contact { get; set; }
         public string tablet { get; set; }
-        public int farm { get; set; }
+        public int? farm { get; set; }
         public int? service_provider { get; set; }
         //public int distributor { get; set; }
     }
@@ -298,21 +298,21 @@ namespace WinAMBurner
         public Farm()
         {
             Id = ID;
-            Mobile = new Field(MOBILE, null, typeof(RichTextBox), "Mobile:", Gui.Place.LeftOne, Gui.Place.LeftTwo, Gui.Place.Nine);
-            Address = new Field(ADDRESS, null, typeof(RichTextBox), "Address:", Gui.Place.LeftOne, Gui.Place.LeftTwo, Gui.Place.Four);
-            Country = new Field(Cnst.COUNTRY.FirstOrDefault(), Cnst.COUNTRY, typeof(ComboBox), "Country:", Gui.Place.LeftOne, Gui.Place.LeftTwo, Gui.Place.Five);
-            City = new Field(CITY, null, typeof(RichTextBox), "City:", Gui.Place.LeftOne, Gui.Place.LeftTwo, Gui.Place.Seven);
-            State = new Field(Cnst.STATE.FirstOrDefault(), Cnst.STATE, typeof(ComboBox), "State:", Gui.Place.LeftOne, Gui.Place.LeftTwo, Gui.Place.Six);
+            Mobile = new Field(MOBILE, null, typeof(RichTextBox), "Mobile:", placeh: Gui.Place.LeftOne, lplaceh: Gui.Place.LeftTwo, placev: Gui.Place.Nine);
+            Address = new Field(ADDRESS, null, typeof(RichTextBox), "Address:", placeh: Gui.Place.LeftOne, lplaceh: Gui.Place.LeftTwo, placev: Gui.Place.Four);
+            Country = new Field(Cnst.COUNTRY.FirstOrDefault(), Cnst.COUNTRY, typeof(ComboBox), "Country:", placeh: Gui.Place.LeftOne, lplaceh: Gui.Place.LeftTwo, placev: Gui.Place.Five);
+            City = new Field(CITY, null, typeof(RichTextBox), "City:", placeh: Gui.Place.LeftOne, lplaceh: Gui.Place.LeftTwo, placev: Gui.Place.Seven);
+            State = new Field(Cnst.STATE.FirstOrDefault(), Cnst.STATE, typeof(ComboBox), "State:", placeh: Gui.Place.LeftOne, lplaceh: Gui.Place.LeftTwo, placev: Gui.Place.Six);
             IsActive = Cnst.IS_ACTIVE;
-            Email = new Field(EMAIL, null, typeof(RichTextBox), "Email Address:", Gui.Place.LeftOne, Gui.Place.LeftTwo, Gui.Place.Ten);
-            Name = new Field(NAME, null, typeof(RichTextBox), "Name:", Gui.Place.LeftOne, Gui.Place.LeftTwo, Gui.Place.Three);
-            FarmType = new Field(FARM_TYPE.FirstOrDefault(), FARM_TYPE, typeof(ComboBox), "Farm Type:", Gui.Place.RightTwo, Gui.Place.RightOne, Gui.Place.Three);
-            BreedType = new Field(BREED_TYPE.FirstOrDefault(), BREED_TYPE, typeof(ComboBox), "Breed Type:", Gui.Place.RightTwo, Gui.Place.RightOne, Gui.Place.Four);
-            MilkingSetupType = new Field(MILKING_SETUP_TYPE.FirstOrDefault(), MILKING_SETUP_TYPE, typeof(ComboBox), "Milking Setup:", Gui.Place.RightTwo, Gui.Place.RightOne, Gui.Place.Seven);
-            LocationOfTreatmentType = new Field(LOCATION_OF_TREATMENT_TYPE.FirstOrDefault(), LOCATION_OF_TREATMENT_TYPE, typeof(ComboBox), "Location of Treatment:", Gui.Place.RightTwo, Gui.Place.RightOne, Gui.Place.Eight);
-            ContractType = new Field(Cnst.CONTRACT_TYPE.FirstOrDefault(), Cnst.CONTRACT_TYPE, typeof(ComboBox), "Contract Type:", Gui.Place.RightTwo, Gui.Place.RightOne, Gui.Place.Nine);
-            NumberOfLactatingCows = new Field(NUMBER_OF_LACTATING_COWS, null, typeof(RichTextBox), "# of Lactating Cows:", Gui.Place.RightTwo, Gui.Place.RightOne, Gui.Place.Five);
-            DhiTest = new Field(DHI_TEST.FirstOrDefault(), DHI_TEST, typeof(ComboBox), "Monthly DHI test:", Gui.Place.RightTwo, Gui.Place.RightOne, Gui.Place.Six);
+            Email = new Field(EMAIL, null, typeof(RichTextBox), "Email Address:", placeh: Gui.Place.LeftOne, lplaceh: Gui.Place.LeftTwo, placev: Gui.Place.Ten);
+            Name = new Field(NAME, null, typeof(RichTextBox), "Name:", placeh: Gui.Place.LeftOne, lplaceh: Gui.Place.LeftTwo, placev: Gui.Place.Three);
+            FarmType = new Field(FARM_TYPE.FirstOrDefault(), FARM_TYPE, typeof(ComboBox), "Farm Type:", placeh: Gui.Place.RightTwo, lplaceh: Gui.Place.RightOne, placev: Gui.Place.Three);
+            BreedType = new Field(BREED_TYPE.FirstOrDefault(), BREED_TYPE, typeof(ComboBox), "Breed Type:", placeh: Gui.Place.RightTwo, lplaceh: Gui.Place.RightOne, placev: Gui.Place.Four);
+            MilkingSetupType = new Field(MILKING_SETUP_TYPE.FirstOrDefault(), MILKING_SETUP_TYPE, typeof(ComboBox), "Milking Setup:", placeh: Gui.Place.RightTwo, lplaceh: Gui.Place.RightOne, placev: Gui.Place.Seven);
+            LocationOfTreatmentType = new Field(LOCATION_OF_TREATMENT_TYPE.FirstOrDefault(), LOCATION_OF_TREATMENT_TYPE, typeof(ComboBox), "Location of Treatment:", placeh: Gui.Place.RightTwo, lplaceh: Gui.Place.RightOne, placev: Gui.Place.Eight);
+            ContractType = new Field(Cnst.CONTRACT_TYPE.FirstOrDefault(), Cnst.CONTRACT_TYPE, typeof(ComboBox), "Contract Type:", placeh: Gui.Place.RightTwo, lplaceh: Gui.Place.RightOne, placev: Gui.Place.Nine);
+            NumberOfLactatingCows = new Field(NUMBER_OF_LACTATING_COWS, null, typeof(RichTextBox), "# of Lactating Cows:", placeh: Gui.Place.RightTwo, lplaceh: Gui.Place.RightOne, placev: Gui.Place.Five);
+            DhiTest = new Field(DHI_TEST.FirstOrDefault(), DHI_TEST, typeof(ComboBox), "Monthly DHI test:", placeh: Gui.Place.RightTwo, lplaceh: Gui.Place.RightOne, placev: Gui.Place.Six);
             //ContactName = new Field(CONTACT_NAME, null, typeof(RichTextBox), "Contact Name:", Gui.Place.LeftOne, Gui.Place.LeftTwo, Gui.Place.Eight);
             //Contact = new Field(CONTACT, null, typeof(RichTextBox), "Contact Name:", Gui.Place.LeftOne, Gui.Place.LeftTwo, Gui.Place.Eight); //CONTACT;
             //Distributor = DISTRIBUTOR;
@@ -373,8 +373,9 @@ namespace WinAMBurner
         {
             get
             {
-                string value;
-                Cnst.DSTATE.TryGetValue(state, out value);
+                string value = string.Empty;
+                if (state != null)
+                    Cnst.DSTATE.TryGetValue(state, out value);
                 return value;
             }
             set
@@ -452,16 +453,16 @@ namespace WinAMBurner
         public Service()
         {
             Id = ID;
-            Mobile = new Field(MOBILE, null, typeof(RichTextBox), "Mobile:", Gui.Place.RightTwo, Gui.Place.RightOne, Gui.Place.Five);
-            Address = new Field(ADDRESS, null, typeof(RichTextBox), "Address:", Gui.Place.LeftOne, Gui.Place.LeftTwo, Gui.Place.Five);
-            Country = new Field(Cnst.COUNTRY.FirstOrDefault(), Cnst.COUNTRY, typeof(ComboBox), "Country:", Gui.Place.LeftOne, Gui.Place.LeftTwo, Gui.Place.Six);
-            City = new Field(CITY, null, typeof(RichTextBox), "City:", Gui.Place.RightTwo, Gui.Place.RightOne, Gui.Place.Three);
-            State = new Field(Cnst.STATE.FirstOrDefault(), Cnst.STATE, typeof(ComboBox), "State:", Gui.Place.LeftOne, Gui.Place.LeftTwo, Gui.Place.Seven);
-            Email = new Field(EMAIL, null, typeof(RichTextBox), "Email Address:", Gui.Place.RightTwo, Gui.Place.RightOne, Gui.Place.Six);
-            NumberOfDairyFarms = new Field(NUMBER_OF_DAIRY_FARMS, null, typeof(RichTextBox), "# of dairy farms:", Gui.Place.LeftOne, Gui.Place.LeftTwo, Gui.Place.Three);
-            NumberOfDairyCows = new Field(NUMBER_OF_DAIRY_COWS, null, typeof(RichTextBox), "# of dairy cows:", Gui.Place.LeftOne, Gui.Place.LeftTwo, Gui.Place.Four);
-            Name = new Field(NAME, null, typeof(RichTextBox), "Name of contact::", Gui.Place.RightTwo, Gui.Place.RightOne, Gui.Place.Four);
-            ContractType = new Field(Cnst.CONTRACT_TYPE.FirstOrDefault(), Cnst.CONTRACT_TYPE, typeof(ComboBox), "Contract Type:", Gui.Place.RightTwo, Gui.Place.RightOne, Gui.Place.Nine);
+            Mobile = new Field(MOBILE, null, typeof(RichTextBox), "Mobile:", placeh: Gui.Place.RightTwo, lplaceh: Gui.Place.RightOne, placev: Gui.Place.Five);
+            Address = new Field(ADDRESS, null, typeof(RichTextBox), "Address:", placeh: Gui.Place.LeftOne, lplaceh: Gui.Place.LeftTwo, placev: Gui.Place.Five);
+            Country = new Field(Cnst.COUNTRY.FirstOrDefault(), Cnst.COUNTRY, typeof(ComboBox), "Country:", placeh: Gui.Place.LeftOne, lplaceh: Gui.Place.LeftTwo, placev: Gui.Place.Six);
+            City = new Field(CITY, null, typeof(RichTextBox), "City:", placeh: Gui.Place.RightTwo, lplaceh: Gui.Place.RightOne, placev: Gui.Place.Three);
+            State = new Field(Cnst.STATE.FirstOrDefault(), Cnst.STATE, typeof(ComboBox), "State:", placeh: Gui.Place.LeftOne, lplaceh: Gui.Place.LeftTwo, placev: Gui.Place.Seven);
+            Email = new Field(EMAIL, null, typeof(RichTextBox), "Email Address:", placeh: Gui.Place.RightTwo, lplaceh: Gui.Place.RightOne, placev: Gui.Place.Six);
+            NumberOfDairyFarms = new Field(NUMBER_OF_DAIRY_FARMS, null, typeof(RichTextBox), "# of dairy farms:", placeh: Gui.Place.LeftOne, lplaceh: Gui.Place.LeftTwo, placev: Gui.Place.Three);
+            NumberOfDairyCows = new Field(NUMBER_OF_DAIRY_COWS, null, typeof(RichTextBox), "# of dairy cows:", placeh: Gui.Place.LeftOne, lplaceh: Gui.Place.LeftTwo, placev: Gui.Place.Four);
+            Name = new Field(NAME, null, typeof(RichTextBox), "Name of contact::", placeh: Gui.Place.RightTwo, lplaceh: Gui.Place.RightOne, placev: Gui.Place.Four);
+            ContractType = new Field(Cnst.CONTRACT_TYPE.FirstOrDefault(), Cnst.CONTRACT_TYPE, typeof(ComboBox), "Contract Type:", placeh: Gui.Place.RightTwo, lplaceh: Gui.Place.RightOne, placev: Gui.Place.Nine);
             //Contact = CONTACT;
             //Distributor = DISTRIBUTOR;
         }
@@ -474,17 +475,7 @@ namespace WinAMBurner
 
     class TreatmentPackage : TreatmentPackageJson
     {
-        public string PartNumber
-        {
-            get
-            {
-                return Gui.intToString(part_number);
-            }
-            set
-            {
-                part_number = Gui.stringToInt(value);
-            }
-        }
+        public string PartNumber { get { return part_number; } set { part_number = value; } }
         //    public static List<string> PART_NUMBER = new List<string>() { ""};
         //    
         //    public string pPartNumber

@@ -70,10 +70,35 @@ namespace WinAMBurner
         private int maxiSet = 0;
         private double date = 0;
         private int[] id = new int[3];
+        private int[] aptxId = new int[3];
 
         public int SNum { get => snum; set => snum = value; }
         public int Maxi { get => maxi; set => maxi = value; }
         public int MaxiSet { get => maxiSet; set => maxiSet = value; }
+        public int [] AptxId
+        {
+            get
+            {
+                int[] value = new int[3];
+                for (int i = 0; i < aptxId.Length; i++)
+                {
+                    byte[] bytes = BitConverter.GetBytes(aptxId[i]);
+                    Array.Reverse(bytes, 0, bytes.Length);
+                    value[i] = BitConverter.ToInt32(bytes, 0);
+                }
+                return value;
+            }
+            set
+            {
+                for (int i = 0; i < aptxId.Length; i++)
+                {
+                    byte[] bytes = BitConverter.GetBytes(value[i]);
+                    Array.Reverse(bytes, 0, bytes.Length);
+                    aptxId[i] = BitConverter.ToInt32(bytes, 0);
+                }
+            }
+        }
+ 
         public DateTime Date 
         { 
             get => epoch.AddSeconds(date); 
@@ -157,6 +182,9 @@ namespace WinAMBurner
                 return errcode;
             }
             List<string> cmd = new List<string>();
+            cmd.Add("rd,3,0x0001008#");
+            cmd.Add("rd,3,0x0001004#");
+            cmd.Add("rd,3,0x0001000#");
             cmd.Add("getid,3#");
             cmd.Add("rd,3,0x000FFFF6#");
             cmd.Add("Read SNUM 3#");
@@ -205,6 +233,9 @@ namespace WinAMBurner
             }
             List<string> cmd = new List<string>();
             cmd.Add("!!!WRITE COMPLETE!!!#");
+            cmd.Add(string.Format("wrt,3,0x0001008,00{0:x}#", aptxId[2]));
+            cmd.Add(string.Format("wrt,3,0x0001004,00{0:x}#", aptxId[1]));
+            cmd.Add(string.Format("wrt,3,0x0001000,00{0:x}#", aptxId[0]));
             cmd.Add(string.Format("snum,3,{0}#", snum));
             cmd.Add(string.Format("maxi,3,{0}#", maxi + maxiSet));
             Date = DateTime.Now;
@@ -259,7 +290,13 @@ namespace WinAMBurner
                 //date
                 (dataLineParse(dataRd, "0xFFFEE", ref idate) >= 0) &&
                 //snum
-                (dataLineParse(dataRd, "0xFFFF6", ref snum) >= 0))
+                (dataLineParse(dataRd, "0xFFFF6", ref snum) >= 0) &&
+                //aptx_id[0]
+                (dataLineParse(dataRd, "0x1000", ref aptxId[0]) >= 0) &&
+                //aptx_id[1]
+                (dataLineParse(dataRd, "0x1004", ref aptxId[1]) >= 0) &&
+                //aptx_id[2]
+                (dataLineParse(dataRd, "0x1008", ref aptxId[2]) >= 0))
             {
                 date = idate;
                 errcode = ErrCode.OK;
