@@ -43,8 +43,8 @@ namespace WinAMBurner
         public const float DefaultFontLarge = 24F * ScaleFactor;
         public const string DefaultText = "DefaultText";
 
-        public static Control draw(Form thisForm, Type type, string text = null, string name = DefaultText, 
-            float font = DefaultFont, Color color = new Color(), 
+        public static Control draw(Form thisForm, Type type, string text = null, string name = DefaultText,
+            float font = DefaultFont, Color color = new Color(),
             int width = DefaultWidth, int height = DefaultHeight, bool autoSize = true,
             List<string> items = null,
             //List<Farm> oitems = null,
@@ -92,6 +92,8 @@ namespace WinAMBurner
                 //(control as ComboBox).SelectedIndexChanged += eventHandler;
                 defaultText(name, control);
             }
+            if (type == typeof(CheckBox))
+                (control as CheckBox).CheckedChanged += eventHandler;
 
             control.Location = placeCalc(thisForm, control, placeh: placeh, placev: placev);
 

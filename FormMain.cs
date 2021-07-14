@@ -25,33 +25,33 @@ namespace WinAMBurner
         private DataGridView dataGridView1;
         private LinkLabel linkLabel1;
         private LinkLabel linkLabel2;
-
-        private AM amData = new AM();
-
+        private CheckBox checkBox1;
+        private CheckBox checkBox2;
         private bool AMConnected = false;
+        private AM am = new AM();
 
-        private readonly Web web = new Web();
+        private Web web = new Web();
 
-        private List<Farm> farms;
-        private Farm farm;
-        private DataRow farmRow;
-        private DataTable farmTable;
+        private List<Farm> farms = null;
+        private Farm farm = null;
+        private DataRow farmRow = null;
+        private DataTable farmTable = null;
 
-        private List<Service> services;
-        private Service service;
-        private DataRow serviceRow;
-        private DataTable serviceTable;
+        private List<Service> services = null;
+        private Service service = null;
+        private DataRow serviceRow = null;
+        private DataTable serviceTable = null;
 
         private string tabletNo = null;
 
         //private List<string> partNumbers;
-        private List<TreatmentPackage> treatmentPackages;
+        private List<TreatmentPackage> treatmentPackages = null;
         //private TreatmentPackage treatmentPackage;
         
-        private SettingsJson settings;
+        private SettingsJson settings = null;
 
-        private LoginJson login;
-        private UserJson user;
+        private LoginJson login = null;
+        private UserJson user = null;
 
         private string TabletNo
         {
@@ -74,12 +74,35 @@ namespace WinAMBurner
             screenLoginShow();
         }
 
-        private void formClear()
+        private void logout()
         {
             AMConnected = false;
-            amData.SNum = 0;
-            amData.Maxi = 0;
-            amData.MaxiSet = 0;
+            am = new AM();
+
+            web = new Web();
+
+            farms = null;
+            farm = null;
+            farmRow = null;
+            farmTable = null;
+
+            services = null;
+            service = null;
+            serviceRow = null;
+            serviceTable = null;
+
+            tabletNo = null;
+
+            treatmentPackages = null;
+
+            settings = null;
+
+            login = null;
+            user = null;
+
+            //amData.SNum = 0;
+            //amData.Maxi = 0;
+            //amData.MaxiSet = 0;
         }
 
         private void screenLoginShow()
@@ -108,7 +131,9 @@ namespace WinAMBurner
             {
                 // if ok
                 user = loginResponse.user;
-                await web.farmOptions();
+                JsonDocument jsonDocument = await web.getConstants();
+                if (jsonDocument != null)
+                    Cnst.parseConstants(jsonDocument);
                 farms = await web.entityGet<List<Farm>>("api/p/farms/");
                 farms = farms.Where(f => f.is_active).ToList();
                 services = await web.entityGet<List<Service>>("api/p/service_providers/");
@@ -117,8 +142,8 @@ namespace WinAMBurner
 
                 if ((user != null) && (farms != null) && (services != null) && (treatmentPackages != null) && (settings != null) &&
                     (Cnst.DCOUNTRY != null) && (Cnst.COUNTRY != null) && (Cnst.DSTATE != null) && (Cnst.STATE != null) && 
-                    (Farm.FARM_TYPE != null) && (Farm.BREED_TYPE != null) && (Farm.MILKING_SETUP_TYPE != null) && 
-                    (Farm.LOCATION_OF_TREATMENT_TYPE != null) && (Cnst.CONTRACT_TYPE != null))
+                    (Cnst.FARM_TYPE != null) && (Cnst.BREED_TYPE != null) && (Cnst.MILKING_SETUP_TYPE != null) && 
+                    (Cnst.LOCATION_OF_TREATMENT_TYPE != null) && (Cnst.CONTRACT_TYPE != null))
                 {
                     Gui.hide(this);
                     screenActionShow();
@@ -170,9 +195,17 @@ namespace WinAMBurner
             Gui.draw(this, typeof(Button), text: "Update AM", eventHandler: new EventHandler(buttonUpdateAM_Click), placev: Gui.Place.Five);
             Gui.draw(this, typeof(Button), text: "Manage Farms", eventHandler: new EventHandler(buttonFarm_Click), placev: Gui.Place.Six);
             Gui.draw(this, typeof(Button), text: "Manage Service provider", eventHandler: new EventHandler(buttonService_Click), placev: Gui.Place.Seven);
+            Gui.draw(this, typeof(Button), text: "Logout", eventHandler: new EventHandler(buttonLogout_Click), placev: Gui.Place.End);
             Gui.draw(this, typeof(LinkLabel), text: "Calculate your farm’s profits with APT", 
                 linkLabelLinkClickedEventHandler: new System.Windows.Forms.LinkLabelLinkClickedEventHandler(linkLabel2_LinkClicked), 
                 placev: Gui.Place.Nine);
+        }
+
+        private void buttonLogout_Click(object sender, EventArgs e)
+        {
+            logout();
+            Gui.hide(this);
+            screenLoginShow();
         }
 
         private void buttonUpdateAM_Click(object sender, EventArgs e)
@@ -310,11 +343,11 @@ namespace WinAMBurner
             button1.Enabled = false;
             button2.Enabled = false;
             progressBar1.Visible = true;
-            amData.serialPortProgressEvent += new EventHandler(progressBar1_Callback);
+            am.serialPortProgressEvent += new EventHandler(progressBar1_Callback);
             progressBar1.Maximum = 60;
-            ErrCode errcode = await amData.AMDataCheckConnect();
+            ErrCode errcode = await am.AMDataCheckConnect();
             if (errcode >= ErrCode.OK)
-                errcode = await amData.AMDataRead();
+                errcode = await am.AMDataRead();
             progressBar1.Value = progressBar1.Minimum;
             progressBar1.Visible = false;
             if (errcode == ErrCode.OK)
@@ -365,8 +398,8 @@ namespace WinAMBurner
             Gui.draw(this, typeof(PictureBox), placev: Gui.Place.One);
             Gui.draw(this, typeof(Label), text: "Welcome distributor", font: Gui.DefaultFontLarge, placev: Gui.Place.Two);
             Gui.draw(this, typeof(Label), text: "AM information, pulses per treatment : " + settings.number_of_pulses_per_treatment, placev: Gui.Place.Four);
-            Gui.draw(this, typeof(Label), text: "AM identified with SN: " + amData.SNum, placev: Gui.Place.Six);
-            Gui.draw(this, typeof(Label), text: "Current available treatments: " + amData.Maxi / settings.number_of_pulses_per_treatment, placev: Gui.Place.Eight);
+            Gui.draw(this, typeof(Label), text: "AM identified with SN: " + am.SNum, placev: Gui.Place.Six);
+            Gui.draw(this, typeof(Label), text: "Current available treatments: " + am.Maxi / settings.number_of_pulses_per_treatment, placev: Gui.Place.Eight);
             Gui.draw(this, typeof(Button), text: "Back", eventHandler: new EventHandler(buttonInfoBack_Click), placeh: Gui.Place.Left, placev: Gui.Place.End);
             Gui.draw(this, typeof(Button), text: "Continue", eventHandler: new EventHandler(buttonInfoContinue_Click), placeh: Gui.Place.Right, placev: Gui.Place.End);
         }
@@ -387,13 +420,40 @@ namespace WinAMBurner
         {
             Gui.draw(this, typeof(PictureBox), placev: Gui.Place.One);
             Gui.draw(this, typeof(Label), text: "Welcome distributor", font: Gui.DefaultFontLarge, placev: Gui.Place.Two);
+            checkBox1 = Gui.draw(this, typeof(CheckBox), text: "Farm", eventHandler: checkBox_CheckedChanged, placeh: Gui.Place.LeftTwo, placev: Gui.Place.Four) as CheckBox;
+            checkBox2 = Gui.draw(this, typeof(CheckBox), text: "Service provider", eventHandler: checkBox_CheckedChanged, placeh: Gui.Place.LeftTwo, placev: Gui.Place.Five) as CheckBox;
+            //Gui.draw(this, typeof(RadioButton), text: "Service provider", placeh: Gui.Place.LeftOne, placev: Gui.Place.Five);
             Gui.draw(this, typeof(Label), text: "Select Farm / Service provider", placev: Gui.Place.Four);
-            comboBox1 = Gui.draw(this, typeof(ComboBox), items: farms.Select(f => f.name).ToList(), placev: Gui.Place.Five) as ComboBox;
-            Gui.draw(this, typeof(Label), text: "Add treatments to AM – SN" + amData.SNum, placev: Gui.Place.Six);
+            //comboBox1 = Gui.draw(this, typeof(ComboBox), items: farms.Select(f => f.name).ToList(), placev: Gui.Place.Five) as ComboBox;
+            comboBox1 = Gui.draw(this, typeof(ComboBox), placev: Gui.Place.Five) as ComboBox;
+            Gui.draw(this, typeof(Label), text: "Add treatments to AM – SN" + am.SNum, placev: Gui.Place.Six);
             comboBox2 = Gui.draw(this, typeof(ComboBox), items: treatmentPackages.Select(t => t.PartNumber).ToList(), placev: Gui.Place.Seven) as ComboBox;
             progressBar1 = Gui.draw(this, typeof(ProgressBar), width: Gui.DefaultWidthLarge, placev: Gui.Place.Eight) as ProgressBar;
             Gui.draw(this, typeof(Button), text: "Cancel", eventHandler: new EventHandler(buttonTreatCansel_Click), placeh: Gui.Place.Left, placev: Gui.Place.End);
             Gui.draw(this, typeof(Button), text: "Approve", eventHandler: new EventHandler(buttonTreatApprove_Click), placeh: Gui.Place.Right, placev: Gui.Place.End);
+        }
+
+        private void checkBox_CheckedChanged(object sender, EventArgs e)
+        {
+            CheckBox checkBox = sender as CheckBox;
+            if (checkBox.Checked)
+            {
+                if (checkBox == checkBox1)
+                {
+                    checkBox2.Checked = false;
+                    comboBox1.Items.AddRange(farms.ToArray());
+                }
+                if (checkBox == checkBox2)
+                {
+                    checkBox1.Checked = false;
+                    comboBox1.Items.AddRange(services.ToArray());
+                }
+            }
+            else
+            {
+                while (comboBox1.Items.Count > 0)
+                    comboBox1.Items.RemoveAt(0);
+            }
         }
 
         private void progressBar1_Callback(object sender, EventArgs e)
@@ -413,99 +473,103 @@ namespace WinAMBurner
             formNotify.ShowDialog();
             if (formNotify.DialogResult == DialogResult.Yes)
             {
+                logout();
                 Gui.hide(this);
                 screenLoginShow();
-                formClear();
             }
             formNotify.Dispose();
         }
 
         private async void buttonTreatApprove_Click(object sender, EventArgs e)
         {
+            ErrCode errcode = ErrCode.ERROR;
+
             allControlsDisable();
-            //comboBox1.Enabled = false;
-            //button1.Enabled = false;
-            //button2.Enabled = false;
+
             progressBar1.Visible = true;
-            amData.serialPortProgressEvent += new EventHandler(progressBar1_Callback);
+            am.serialPortProgressEvent += new EventHandler(progressBar1_Callback);
             progressBar1.Maximum = 160;
 
-            ErrCode errcode = ErrCode.ERROR;
-            Farm farm = farms.FirstOrDefault(f => f.Name.val == comboBox1.Text);
-            //int.TryParse(comboBox1.Text, out amData.MaxiSet);
+            Farm farm = null;
+            int? farmId = null;
+            Service service = null;
+            int? serviceId = null;
+            if (checkBox1.Checked)
+            {
+                //farm = farms.FirstOrDefault(f => f.Name.val == comboBox1.Text);
+                farm = comboBox1.SelectedItem as Farm;
+                if (farm != null)
+                    farmId = farm.Id;
+            }
+            else if (checkBox2.Checked)
+            {
+                //service = services.FirstOrDefault(s => s.Name.val == comboBox1.Text);
+                service = comboBox1.SelectedItem as Service;
+                if (service != null)
+                    serviceId = service.Id;
+            }
             TreatmentPackage treatmentPackage = treatmentPackages.FirstOrDefault(t => t.PartNumber == comboBox2.Text);
-            if ((farm == null) || (treatmentPackage == null))
-                errcode = ErrCode.EPARAM;
-            else
-                errcode = ErrCode.OK;
 
-            if (errcode == ErrCode.OK)
+            if ((farm != null) || (service != null) && (treatmentPackage != null))
             {
-                amData.MaxiSet = treatmentPackage.amount_of_treatments * settings.number_of_pulses_per_treatment;
-
-                errcode = await amData.AMDataWrite();
-                if (errcode >= ErrCode.OK)
+                am.MaxiSet = treatmentPackage.amount_of_treatments * settings.number_of_pulses_per_treatment;
+                if ((errcode = await am.AMDataWrite()) == ErrCode.OK)
                 {
-                    errcode = await amData.AMDataRead();
+                    if ((errcode = await am.AMDataRead()) == ErrCode.OK)
+                    {
+                        ActionJson action = new ActionJson()
+                        {
+                            aptx_id = string.Format("0x{0:x} 0x{1:x} 0x{2:x}", am.AptxId[0], am.AptxId[1], am.AptxId[2]),
+                            am_id = am.SNum.ToString(),
+                            part_number = Gui.stringToInt(treatmentPackage.part_number),
+                            tablet = TabletNo,
+                            farm = farmId,
+                            service_provider = serviceId
+                        };
+
+                        JsonDocument actionResponse = await web.entityAdd<ActionJson>(action, "api/p/actions/");
+                        if ((errcode = responseParse<FarmJson>(actionResponse)) == ErrCode.OK)
+                        {
+                            FormNotify formNotify = new FormNotify(new List<string>() {
+                                    string.Format("{0} treatments updated,",am.MaxiSet / settings.number_of_pulses_per_treatment),
+                                    string.Format("{0} treatments available on AM - SN {1},", am.Maxi / settings.number_of_pulses_per_treatment, am.SNum),
+                                    "please disconnect the AM"},
+                                NotifyButtons.OK, caption: "Success");
+                            formNotify.ShowDialog();
+                            formNotify.Dispose();
+
+                            Gui.hide(this);
+                            screenActionShow();
+                        }
+                        //else
+                            //
+                            // erase am needed
+                            //
+                    }
                 }
-
-                progressBar1.Value = progressBar1.Minimum;
-                progressBar1.Visible = false;
-            }
-
-            if (errcode == ErrCode.OK)
-            {
-                //treatmentPackage.amount_of_treatments = amData.Maxi / settings.number_of_pulses_per_treatment;
-                ActionJson action = new ActionJson()
-                {
-                    aptx_id = string.Format("0x{0:x} 0x{1:x} 0x{2:x}", amData.AptxId[0], amData.AptxId[1], amData.AptxId[2]),
-                    am_id = amData.SNum.ToString(),
-                    part_number = Gui.stringToInt(treatmentPackage.part_number),
-                    tablet = TabletNo,
-                    farm = farm.id,
-                    service_provider = null
-                };
-
-                JsonDocument jsonDocument = await web.entityAdd<ActionJson>(action, "api/p/actions/");
-                
-                FormNotify formNotify = new FormNotify(new List<string>() {
-                    string.Format("{0} treatments updated,",amData.MaxiSet / settings.number_of_pulses_per_treatment),
-                    string.Format("{0} treatments available on AM - SN {1},", amData.Maxi / settings.number_of_pulses_per_treatment, amData.SNum),
-                    "please disconnect the AM"},
-                    NotifyButtons.OK, caption: "Success");
-                formNotify.ShowDialog();
-                formNotify.Dispose();
-            }
-            else if (errcode == ErrCode.EPARAM)
-            {
-                // wrong parameters
-                FormNotify formNotify = new FormNotify(new List<string>() {
-                    "Wrong parameters,",
-                    "please choose the number of treatments"},
-                    NotifyButtons.OK, caption: "Fail");
-                formNotify.ShowDialog();
-                formNotify.Dispose();
             }
             else
-            {
-                // if fail
-                AMConnected = false;
-                FormNotify formNotify = new FormNotify(new List<string>() {
-                    "The operation failed, the treatments were not added"},
-                    NotifyButtons.OK, caption: "Fail");
-                formNotify.ShowDialog();
-                formNotify.Dispose();
-            }
-            //comboBox1.Enabled = true;
-            //button1.Enabled = true;
-            //button2.Enabled = true;
+                errcode = ErrCode.EPARAM;
+
+            if (errcode == ErrCode.EPARAM)
+                screenTreatError(new List<string>() {
+                    "Wrong parameters,",
+                    "please choose the Farm / Service provider and the number of treatments" });
+            else if (errcode == ErrCode.ERROR)
+                screenTreatError(new List<string>() { "The operation failed, the treatments were not added" });
+        }
+
+        private void screenTreatError(List<string> error)
+        {
+            FormNotify formNotify = new FormNotify(error,
+                        NotifyButtons.OK, caption: "Fail");
+            formNotify.ShowDialog();
+            formNotify.Dispose();
+
+            progressBar1.Value = progressBar1.Minimum;
+            progressBar1.Visible = false;
+
             allControlsEnable();
-            if (errcode != ErrCode.EPARAM)
-            {
-                formClear();
-                Gui.hide(this);
-                screenLoginShow();
-            }
         }
 
         //
@@ -722,14 +786,10 @@ namespace WinAMBurner
 
         private ErrCode responseParse<T>(JsonDocument jsonDocument)
         {
-            ErrCode errCode = ErrCode.ERROR;
+            ErrCode errCode = ErrCode.EPARAM;
             List<string> texts = new List<string>();
 
-            if (jsonDocument == null)
-            { 
-                 texts.Add("Error");
-            }
-            else
+            if (jsonDocument != null)
             {
                 foreach (PropertyInfo prop in typeof(T).GetProperties())
                 {
@@ -740,16 +800,15 @@ namespace WinAMBurner
                     if (text != "")
                         texts.Add(text);
                 }
+                if (texts.Count > 0)
+                {
+                    FormNotify formNotify = new FormNotify(texts, NotifyButtons.OK);
+                    formNotify.ShowDialog();
+                    formNotify.Dispose();
+                    return errCode;
+                }
+                errCode = ErrCode.OK;
             }
-            if(texts.Count > 0)
-            {
-                FormNotify formNotify = new FormNotify(texts, NotifyButtons.OK);
-                formNotify.ShowDialog();
-                formNotify.Dispose();
-                return errCode;
-            }
-
-            errCode = ErrCode.OK;
             return errCode;
         }
 

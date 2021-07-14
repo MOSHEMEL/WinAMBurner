@@ -140,10 +140,10 @@ namespace WinAMBurner
         //public static List<string> STATE;
         //public static string IS_ACTIVE = "Yes";
         public static string NAME = "Name";
-        public static List<string> FARM_TYPE;
-        public static List<string> BREED_TYPE;
-        public static List<string> MILKING_SETUP_TYPE;
-        public static List<string> LOCATION_OF_TREATMENT_TYPE;
+        //public static List<string> FARM_TYPE;
+        //public static List<string> BREED_TYPE;
+        //public static List<string> MILKING_SETUP_TYPE;
+        //public static List<string> LOCATION_OF_TREATMENT_TYPE;
         //public static List<string> CONTRACT_TYPE;
         public static string NUMBER_OF_LACTATING_COWS = "0";
         public static List<string> DHI_TEST = new List<string>() { "No", "Yes" };
@@ -165,9 +165,10 @@ namespace WinAMBurner
         {
             get
             {
-                string value;
-                Cnst.DCOUNTRY.TryGetValue(country, out value);
-                return value;
+                //string value;
+                //Cnst.DCOUNTRY.TryGetValue(country, out value);
+                //return value;
+                return Cnst.getDictionary(Cnst.DCOUNTRY, country);
             }
             set
             {
@@ -185,9 +186,10 @@ namespace WinAMBurner
         {
             get
             {
-                string value;
-                Cnst.DSTATE.TryGetValue(state, out value);
-                return value;
+                //string value;
+                //Cnst.DSTATE.TryGetValue(state, out value);
+                //return value;
+                return Cnst.getDictionary(Cnst.DSTATE, state);
             }
             set
             {
@@ -306,10 +308,10 @@ namespace WinAMBurner
             IsActive = Cnst.IS_ACTIVE;
             Email = new Field(EMAIL, null, typeof(RichTextBox), "Email Address:", placeh: Gui.Place.LeftOne, lplaceh: Gui.Place.LeftTwo, placev: Gui.Place.Ten);
             Name = new Field(NAME, null, typeof(RichTextBox), "Name:", placeh: Gui.Place.LeftOne, lplaceh: Gui.Place.LeftTwo, placev: Gui.Place.Three);
-            FarmType = new Field(FARM_TYPE.FirstOrDefault(), FARM_TYPE, typeof(ComboBox), "Farm Type:", placeh: Gui.Place.RightTwo, lplaceh: Gui.Place.RightOne, placev: Gui.Place.Three);
-            BreedType = new Field(BREED_TYPE.FirstOrDefault(), BREED_TYPE, typeof(ComboBox), "Breed Type:", placeh: Gui.Place.RightTwo, lplaceh: Gui.Place.RightOne, placev: Gui.Place.Four);
-            MilkingSetupType = new Field(MILKING_SETUP_TYPE.FirstOrDefault(), MILKING_SETUP_TYPE, typeof(ComboBox), "Milking Setup:", placeh: Gui.Place.RightTwo, lplaceh: Gui.Place.RightOne, placev: Gui.Place.Seven);
-            LocationOfTreatmentType = new Field(LOCATION_OF_TREATMENT_TYPE.FirstOrDefault(), LOCATION_OF_TREATMENT_TYPE, typeof(ComboBox), "Location of Treatment:", placeh: Gui.Place.RightTwo, lplaceh: Gui.Place.RightOne, placev: Gui.Place.Eight);
+            FarmType = new Field(Cnst.FARM_TYPE.FirstOrDefault(), Cnst.FARM_TYPE, typeof(ComboBox), "Farm Type:", placeh: Gui.Place.RightTwo, lplaceh: Gui.Place.RightOne, placev: Gui.Place.Three);
+            BreedType = new Field(Cnst.BREED_TYPE.FirstOrDefault(), Cnst.BREED_TYPE, typeof(ComboBox), "Breed Type:", placeh: Gui.Place.RightTwo, lplaceh: Gui.Place.RightOne, placev: Gui.Place.Four);
+            MilkingSetupType = new Field(Cnst.MILKING_SETUP_TYPE.FirstOrDefault(), Cnst.MILKING_SETUP_TYPE, typeof(ComboBox), "Milking Setup:", placeh: Gui.Place.RightTwo, lplaceh: Gui.Place.RightOne, placev: Gui.Place.Seven);
+            LocationOfTreatmentType = new Field(Cnst.LOCATION_OF_TREATMENT_TYPE.FirstOrDefault(), Cnst.LOCATION_OF_TREATMENT_TYPE, typeof(ComboBox), "Location of Treatment:", placeh: Gui.Place.RightTwo, lplaceh: Gui.Place.RightOne, placev: Gui.Place.Eight);
             ContractType = new Field(Cnst.CONTRACT_TYPE.FirstOrDefault(), Cnst.CONTRACT_TYPE, typeof(ComboBox), "Contract Type:", placeh: Gui.Place.RightTwo, lplaceh: Gui.Place.RightOne, placev: Gui.Place.Nine);
             NumberOfLactatingCows = new Field(NUMBER_OF_LACTATING_COWS, null, typeof(RichTextBox), "# of Lactating Cows:", placeh: Gui.Place.RightTwo, lplaceh: Gui.Place.RightOne, placev: Gui.Place.Five);
             DhiTest = new Field(DHI_TEST.FirstOrDefault(), DHI_TEST, typeof(ComboBox), "Monthly DHI test:", placeh: Gui.Place.RightTwo, lplaceh: Gui.Place.RightOne, placev: Gui.Place.Six);
@@ -318,10 +320,10 @@ namespace WinAMBurner
             //Distributor = DISTRIBUTOR;
         }
 
-        //public override string? ToString()
-        //{
-        //    return this.Name.val;
-        //}
+        public override string? ToString()
+        {
+            return this.Name.val;
+        }
     }
 
     class Service : ServiceJson
@@ -353,9 +355,10 @@ namespace WinAMBurner
         {
             get
             {
-                string value;
-                Cnst.DCOUNTRY.TryGetValue(country, out value);
-                return value;
+                //string value;
+                //Cnst.DCOUNTRY.TryGetValue(country, out value);
+                //return value;
+                return Cnst.getDictionary(Cnst.DCOUNTRY, country);
             }
             set
             {
@@ -373,16 +376,14 @@ namespace WinAMBurner
         {
             get
             {
-                string value = string.Empty;
-                if (state != null)
-                    Cnst.DSTATE.TryGetValue(state, out value);
-                return value;
+                return Cnst.getDictionary(Cnst.DSTATE, state);
             }
             set
             {
                 state = Cnst.DSTATE.FirstOrDefault(c => (c.Value == value)).Key;
             }
         }
+
         public Field fState;
         public Field State { get { fState.val = pState; return fState; } set { fState = value; pState = fState.val; } }
 
@@ -467,10 +468,10 @@ namespace WinAMBurner
             //Distributor = DISTRIBUTOR;
         }
 
-        //public override string? ToString()
-        //{
-        //    return this.Name.val;
-        //}
+        public override string? ToString()
+        {
+            return this.Name.val;
+        }
     }
 
     class TreatmentPackage : TreatmentPackageJson
