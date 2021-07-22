@@ -19,16 +19,16 @@ namespace WinAMBurner
         public FormNotify()
         {
             InitializeComponent();
-            this.Scale(new SizeF(Gui.ScaleFactor, Gui.ScaleFactor));
-            this.Font = new Font("Segoe UI", Gui.DefaultFont, FontStyle.Regular, GraphicsUnit.Point);
+            Scale(new SizeF(Gui.ScaleFactor, Gui.ScaleFactor));
+            Font = new Font("Segoe UI", Gui.DefaultFont, FontStyle.Regular, GraphicsUnit.Point);
         }
 
         //public FormNotify(string[] text, NotifyButtons notifyButtons, string caption = "Error")
         public FormNotify(List<string> text, NotifyButtons notifyButtons, string caption = "Error")
         {
             InitializeComponent();
-            this.Scale(new SizeF(Gui.ScaleFactor, Gui.ScaleFactor));
-            this.Font = new Font("Segoe UI", Gui.DefaultFont, FontStyle.Regular, GraphicsUnit.Point);
+            Scale(new SizeF(Gui.ScaleFactor, Gui.ScaleFactor));
+            Font = new Font("Segoe UI", Gui.DefaultFont, FontStyle.Regular, GraphicsUnit.Point);
             Name = caption;
 
             //Gui.labelDraw(this, ref label1, text[0], placev: Gui.Place.Two);
@@ -50,9 +50,9 @@ namespace WinAMBurner
 
             buttonOK = Gui.draw(this, typeof(Button), text: "OK", eventHandler: new EventHandler(this.buttonOK_Click), placev: Gui.Place.Seven) as Button;
             //Gui.buttonDraw(this, ref buttonYes, "Yes", new System.EventHandler(this.buttonOK_Click), placev: Gui.Place.Seven, placeh: Gui.Place.Right);
-            buttonYes = Gui.draw(this, typeof(Button), text: "Yes", eventHandler: new EventHandler(this.buttonOK_Click), placev: Gui.Place.Seven, placeh: Gui.Place.Right) as Button;
+            buttonYes = Gui.draw(this, typeof(Button), text: "Yes", eventHandler: new EventHandler(this.buttonYes_Click), placeh: Gui.Place.One, placev: Gui.Place.Seven) as Button;
             //Gui.buttonDraw(this, ref buttonNo, "No", new System.EventHandler(this.buttonOK_Click), placev: Gui.Place.Seven, placeh: Gui.Place.Left);
-            buttonNo = Gui.draw(this, typeof(Button), text: "No", eventHandler: new EventHandler(this.buttonOK_Click), placev: Gui.Place.Seven, placeh: Gui.Place.Left) as Button;
+            buttonNo = Gui.draw(this, typeof(Button), text: "No", eventHandler: new EventHandler(this.buttonNo_Click), placeh: Gui.Place.Six, placev: Gui.Place.Seven) as Button;
 
             switch (notifyButtons)
             {

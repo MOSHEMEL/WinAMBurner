@@ -6,7 +6,6 @@ using System.Linq;
 using System.Management;
 using System.Reflection;
 using System.Text.Json;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace WinAMBurner
@@ -23,10 +22,11 @@ namespace WinAMBurner
         private ProgressBar progressBar1;
         //private System.Windows.Forms.BindingSource bindingSource1;
         private DataGridView dataGridView1;
-        private LinkLabel linkLabel1;
-        private LinkLabel linkLabel2;
-        private CheckBox checkBox1;
-        private CheckBox checkBox2;
+        //private CheckBox checkBox1;
+        //private CheckBox checkBox2;
+        private RadioButton radioButton1;
+        private RadioButton radioButton2;
+
         private bool AMConnected = false;
         private AM am = new AM();
 
@@ -47,7 +47,7 @@ namespace WinAMBurner
         //private List<string> partNumbers;
         private List<TreatmentPackage> treatmentPackages = null;
         //private TreatmentPackage treatmentPackage;
-        
+
         private SettingsJson settings = null;
 
         private LoginJson login = null;
@@ -63,10 +63,12 @@ namespace WinAMBurner
             }
         }
 
+        //private int cmdCount;
+
         public FormMain()
         {
             InitializeComponent();
-            this.Size = new Size(2400, 1600);
+            this.Size = new Size(2400, 2400);// 1600);
             this.Scale(new SizeF(Gui.ScaleFactor, Gui.ScaleFactor));
             this.Font = new Font("Segoe UI", Gui.DefaultFont, FontStyle.Regular, GraphicsUnit.Point);
             //pictureBoxTitle.Scale(new SizeF(Misc.ScaleFactor, Misc.ScaleFactor));
@@ -76,8 +78,7 @@ namespace WinAMBurner
 
         private void logout()
         {
-            AMConnected = false;
-            am = new AM();
+            clearAM();
 
             web = new Web();
 
@@ -105,45 +106,56 @@ namespace WinAMBurner
             //amData.MaxiSet = 0;
         }
 
+        private void clearAM()
+        {
+            AMConnected = false;
+            am = new AM();
+        }
+
         private void screenLoginShow()
         {
             Gui.draw(this, typeof(PictureBox), placev: Gui.Place.One);
             Gui.draw(this, typeof(LinkLabel), text: "Forgot password",
-                linkLabelLinkClickedEventHandler: new LinkLabelLinkClickedEventHandler(this.linkLabel1_LinkClicked), 
-                placev: Gui.Place.Six);
+                linkLabelLinkClickedEventHandler: new LinkLabelLinkClickedEventHandler(linkLabel1_LinkClicked),
+                placev: Gui.Place.Seven);
             Gui.draw(this, typeof(Button), text: "Login", eventHandler: new EventHandler(buttonLogin_Click), placev: Gui.Place.End);
-            richTextBox1 = Gui.draw(this, typeof(RichTextBox), text: "Username", width: Gui.DefaultWidthLarge, placev: Gui.Place.Two) as RichTextBox;
-            richTextBox2 = Gui.draw(this, typeof(RichTextBox), text: "Password", width: Gui.DefaultWidthLarge, placev: Gui.Place.Four) as RichTextBox;
+            richTextBox1 = Gui.draw(this, typeof(RichTextBox), text: "Username", width: Gui.DefaultWidthLarge, placev: Gui.Place.Three) as RichTextBox;
+            richTextBox2 = Gui.draw(this, typeof(RichTextBox), text: "Password", width: Gui.DefaultWidthLarge, placev: Gui.Place.Five) as RichTextBox;
         }
 
         private async void buttonLogin_Click(object sender, EventArgs e)
         {
             allControlsDisable();
             login = new LoginJson()
-            { 
-                email = "yael@gmail.com",//richTextBox1.Text,
-                password = "yael123",//richTextBox2.Text,
+            {
+                email = //richTextBox1.Text.Trim(),
+                "yael@gmail.com",
+                password = //richTextBox2.Text.Trim(),
+                "yael123",
                 tablet = TabletNo
             };
-            
-            LoginResponseJson loginResponse= await web.loginPost(login);
+
+            LoginResponseJson loginResponse = await web.login(login);
             if ((loginResponse != null) && (loginResponse.token != null))
             {
                 // if ok
                 user = loginResponse.user;
                 JsonDocument jsonDocument = await web.getConstants();
                 if (jsonDocument != null)
-                    Cnst.parseConstants(jsonDocument);
+                    Const.parseConstants(jsonDocument);
                 farms = await web.entityGet<List<Farm>>("api/p/farms/");
-                farms = farms.Where(f => f.is_active).ToList();
+                if (farms != null)
+                    farms = farms.Where(f => f.is_active).ToList();
                 services = await web.entityGet<List<Service>>("api/p/service_providers/");
                 treatmentPackages = await web.entityGet<List<TreatmentPackage>>("api/p/treatment_package/");
+                if(treatmentPackages != null)
+                    treatmentPackages = treatmentPackages.Where(t => t.is_active).ToList();
                 settings = await web.entityGet<SettingsJson>("api/p/settings/");
 
                 if ((user != null) && (farms != null) && (services != null) && (treatmentPackages != null) && (settings != null) &&
-                    (Cnst.DCOUNTRY != null) && (Cnst.COUNTRY != null) && (Cnst.DSTATE != null) && (Cnst.STATE != null) && 
-                    (Cnst.FARM_TYPE != null) && (Cnst.BREED_TYPE != null) && (Cnst.MILKING_SETUP_TYPE != null) && 
-                    (Cnst.LOCATION_OF_TREATMENT_TYPE != null) && (Cnst.CONTRACT_TYPE != null))
+                    (Const.DCOUNTRY != null) && (Const.COUNTRY != null) && (Const.DSTATE != null) && (Const.STATE != null) &&
+                    (Const.FARM_TYPE != null) && (Const.BREED_TYPE != null) && (Const.MILKING_SETUP_TYPE != null) &&
+                    (Const.LOCATION_OF_TREATMENT_TYPE != null) && (Const.CONTRACT_TYPE != null))
                 {
                     Gui.hide(this);
                     screenActionShow();
@@ -195,9 +207,10 @@ namespace WinAMBurner
             Gui.draw(this, typeof(Button), text: "Update AM", eventHandler: new EventHandler(buttonUpdateAM_Click), placev: Gui.Place.Five);
             Gui.draw(this, typeof(Button), text: "Manage Farms", eventHandler: new EventHandler(buttonFarm_Click), placev: Gui.Place.Six);
             Gui.draw(this, typeof(Button), text: "Manage Service provider", eventHandler: new EventHandler(buttonService_Click), placev: Gui.Place.Seven);
+            //Gui.draw(this, typeof(Button), text: "Logout", eventHandler: new EventHandler(buttonLogout_Click), placeh: Gui.Place.Five, placev: Gui.Place.End);
             Gui.draw(this, typeof(Button), text: "Logout", eventHandler: new EventHandler(buttonLogout_Click), placev: Gui.Place.End);
-            Gui.draw(this, typeof(LinkLabel), text: "Calculate your farm’s profits with APT", 
-                linkLabelLinkClickedEventHandler: new System.Windows.Forms.LinkLabelLinkClickedEventHandler(linkLabel2_LinkClicked), 
+            Gui.draw(this, typeof(LinkLabel), text: "Calculate your farm’s profits with APT",
+                linkLabelLinkClickedEventHandler: new LinkLabelLinkClickedEventHandler(linkLabel2_LinkClicked),
                 placev: Gui.Place.Nine);
         }
 
@@ -220,7 +233,7 @@ namespace WinAMBurner
             allControlsDisable();
             Gui.hide(this);
             //FarmTableGet();
-            farmTable = entityTableGet(farms);
+            farmTable = entityTableGet(farms.Cast<Entity>().ToList());
             screenFarmShow();
         }
 
@@ -229,7 +242,7 @@ namespace WinAMBurner
             allControlsDisable();
             Gui.hide(this);
             //serviceTableGet();
-            serviceTable = entityTableGet(services);
+            serviceTable = entityTableGet(services.Cast<Entity>().ToList());
             screenServiceShow();
         }
 
@@ -245,7 +258,8 @@ namespace WinAMBurner
                 control.Enabled = true;
         }
 
-        private DataTable entityTableGet<T>(List<T> entities)
+        //private DataTable entityTableGet<T>(List<T> entities)
+        private DataTable entityTableGet(List<Entity> entities)
         {
             //farms = await web.farmsGet();
             //if (entities != null)
@@ -254,7 +268,8 @@ namespace WinAMBurner
             entityTable.Columns.AddRange(new List<DataColumn>(){new DataColumn("Name"),
                                     new DataColumn("Country / State"),
                                     new DataColumn("City"),
-                                    new DataColumn("Address")}.ToArray());
+                                    new DataColumn("Address"),
+                                    new DataColumn("Contract") }.ToArray());
             foreach (var entity in entities.Select(e => entityToRow(e)))
                 entityTable.Rows.Add(entity.ToArray<string>());
             //}
@@ -292,19 +307,22 @@ namespace WinAMBurner
         //    }
         //}
 
-        private List<string> entityToRow<T>(T entity)
+        //private List<string> entityToRow<T>(T entity)
+        private List<string> entityToRow(Entity e)
         {
             List<string> l = null;
-            if(typeof(T) == typeof(Farm))
-            {
-                Farm e = entity as Farm;
-                l = new List<string> { e.Name.val, e.Country.val + ((e.State.val == null) ? string.Empty : " / ") + e.State.val, e.City.val, e.Address.val };
-            }
-            if (typeof(T) == typeof(Service))
-            {
-                Service e = entity as Service;
-                l = new List<string> { e.Name.val, e.Country.val + ((e.State.val == null) ? string.Empty : " / ") + e.State.val, e.City.val, e.Address.val };
-            }
+            l = new List<string> { e.Name.val, e.Country.val + ((e.State.val == null) ? string.Empty : " / ") + e.State.val, e.City.val, e.Address.val, e.ContractType.val };
+
+            //if (typeof(T) == typeof(Farm))
+            //{
+            //    Farm e = entity as Farm;
+            //    l = new List<string> { e.Name.val, e.Country.val + ((e.State.val == null) ? string.Empty : " / ") + e.State.val, e.City.val, e.Address.val, e.ContractType.val };
+            //}
+            //if (typeof(T) == typeof(Service))
+            //{
+            //    Service e = entity as Service;
+            //    l = new List<string> { e.Name.val, e.Country.val + ((e.State.val == null) ? string.Empty : " / ") + e.State.val, e.City.val, e.Address.val, e.ContractType.val };
+            //}
             return l;
         }
 
@@ -324,9 +342,9 @@ namespace WinAMBurner
             Gui.draw(this, typeof(Label), text: "Welcome distributor", font: Gui.DefaultFontLarge, placev: Gui.Place.Two);
             Gui.draw(this, typeof(Label), text: "Please make sure the AM is connected to your tablet before continue", placev: Gui.Place.Four);
             label1 = Gui.draw(this, typeof(Label), text: "", placev: Gui.Place.Six) as Label;
-            progressBar1 = Gui.draw(this, typeof(ProgressBar), width: Gui.DefaultWidthLarge, placev: Gui.Place.Six) as ProgressBar;
-            button1 = Gui.draw(this, typeof(Button), text: "Check AM present", eventHandler: new EventHandler(buttonCheckAM_Click), placeh: Gui.Place.Left, placev: Gui.Place.End) as Button;
-            button2 = Gui.draw(this, typeof(Button), text: "Forward", eventHandler: new EventHandler(buttonConnectForward_Click), placeh: Gui.Place.Right, placev: Gui.Place.End) as Button;
+            progressBar1 = Gui.draw(this, typeof(ProgressBar), width: Gui.DefaultWidthLarge, height: Gui.DefaultHeightSmall, placev: Gui.Place.Ten) as ProgressBar;
+            button1 = Gui.draw(this, typeof(Button), text: "Check AM present", eventHandler: new EventHandler(buttonCheckAM_Click), placeh: Gui.Place.Five, placev: Gui.Place.End) as Button;
+            button2 = Gui.draw(this, typeof(Button), text: "Forward", eventHandler: new EventHandler(buttonConnectForward_Click), placeh: Gui.Place.Two, placev: Gui.Place.End) as Button;
             if (AMConnected)
                 AMConnectedShow();
             else
@@ -335,6 +353,7 @@ namespace WinAMBurner
                 label1.Visible = false;
                 button2.Enabled = false;
             }
+            progressBar1.Visible = false;
         }
 
         private async void buttonCheckAM_Click(object sender, EventArgs e)
@@ -343,13 +362,14 @@ namespace WinAMBurner
             button1.Enabled = false;
             button2.Enabled = false;
             progressBar1.Visible = true;
-            am.serialPortProgressEvent += new EventHandler(progressBar1_Callback);
-            progressBar1.Maximum = 60;
+            am.serialPortProgressEvent += new EventHandler(progressBar_Callback);
+            //progressBar1.Maximum = 60;
+            progressBar1.Value = progressBar1.Minimum;
             ErrCode errcode = await am.AMDataCheckConnect();
             if (errcode >= ErrCode.OK)
                 errcode = await am.AMDataRead();
-            progressBar1.Value = progressBar1.Minimum;
-            progressBar1.Visible = false;
+            progressBar1.Value = progressBar1.Maximum;
+            //progressBar1.Value = progressBar1.Minimum;
             if (errcode == ErrCode.OK)
             {
                 //if ok
@@ -359,7 +379,8 @@ namespace WinAMBurner
             else
             {
                 // if fail
-                AMConnected = false;
+                //AMConnected = false;
+                clearAM();
                 AMDisconnectedShow();
                 FormNotify formNotify = new FormNotify(new List<string>()
                     { "AM not found make sure the AM is connected",
@@ -370,6 +391,7 @@ namespace WinAMBurner
             }
             label1.Visible = true;
             button1.Enabled = true;
+            progressBar1.Visible = false;
         }
 
         private void AMDisconnectedShow()
@@ -397,11 +419,11 @@ namespace WinAMBurner
             //amData.SNum = 0x123;
             Gui.draw(this, typeof(PictureBox), placev: Gui.Place.One);
             Gui.draw(this, typeof(Label), text: "Welcome distributor", font: Gui.DefaultFontLarge, placev: Gui.Place.Two);
-            Gui.draw(this, typeof(Label), text: "AM information, pulses per treatment : " + settings.number_of_pulses_per_treatment, placev: Gui.Place.Four);
-            Gui.draw(this, typeof(Label), text: "AM identified with SN: " + am.SNum, placev: Gui.Place.Six);
-            Gui.draw(this, typeof(Label), text: "Current available treatments: " + am.Maxi / settings.number_of_pulses_per_treatment, placev: Gui.Place.Eight);
-            Gui.draw(this, typeof(Button), text: "Back", eventHandler: new EventHandler(buttonInfoBack_Click), placeh: Gui.Place.Left, placev: Gui.Place.End);
-            Gui.draw(this, typeof(Button), text: "Continue", eventHandler: new EventHandler(buttonInfoContinue_Click), placeh: Gui.Place.Right, placev: Gui.Place.End);
+            //Gui.draw(this, typeof(Label), text: "AM information, pulses per treatment : " + settings.number_of_pulses_per_treatment, placev: Gui.Place.Four);
+            Gui.draw(this, typeof(Label), text: "AM identified with SN: " + am.SNum, placev: Gui.Place.Four);
+            Gui.draw(this, typeof(Label), text: "Current available treatments: " + am.Maxi / settings.number_of_pulses_per_treatment, placev: Gui.Place.Six);
+            Gui.draw(this, typeof(Button), text: "Back", eventHandler: new EventHandler(buttonInfoBack_Click), placeh: Gui.Place.Five, placev: Gui.Place.End);
+            Gui.draw(this, typeof(Button), text: "Continue", eventHandler: new EventHandler(buttonInfoContinue_Click), placeh: Gui.Place.Two, placev: Gui.Place.End);
         }
 
         private void buttonInfoBack_Click(object sender, EventArgs e)
@@ -420,49 +442,87 @@ namespace WinAMBurner
         {
             Gui.draw(this, typeof(PictureBox), placev: Gui.Place.One);
             Gui.draw(this, typeof(Label), text: "Welcome distributor", font: Gui.DefaultFontLarge, placev: Gui.Place.Two);
-            checkBox1 = Gui.draw(this, typeof(CheckBox), text: "Farm", eventHandler: checkBox_CheckedChanged, placeh: Gui.Place.LeftTwo, placev: Gui.Place.Four) as CheckBox;
-            checkBox2 = Gui.draw(this, typeof(CheckBox), text: "Service provider", eventHandler: checkBox_CheckedChanged, placeh: Gui.Place.LeftTwo, placev: Gui.Place.Five) as CheckBox;
+            //checkBox1 = Gui.draw(this, typeof(CheckBox), text: "Farm", eventHandler: checkBox_CheckedChanged, placeh: Gui.Place.LeftTwo, placev: Gui.Place.Four) as CheckBox;
+            //checkBox2 = Gui.draw(this, typeof(CheckBox), text: "Service provider", eventHandler: checkBox_CheckedChanged, placeh: Gui.Place.LeftTwo, placev: Gui.Place.Five) as CheckBox;
+            radioButton1 = Gui.draw(this, typeof(RadioButton), text: "Farm", eventHandler: radioButton_CheckedChanged, placeh: Gui.Place.Two, placev: Gui.Place.Five) as RadioButton;
+            radioButton2 = Gui.draw(this, typeof(RadioButton), text: "Service provider", eventHandler: radioButton_CheckedChanged, placeh: Gui.Place.Two, placev: Gui.Place.Six) as RadioButton;
             //Gui.draw(this, typeof(RadioButton), text: "Service provider", placeh: Gui.Place.LeftOne, placev: Gui.Place.Five);
             Gui.draw(this, typeof(Label), text: "Select Farm / Service provider", placev: Gui.Place.Four);
             //comboBox1 = Gui.draw(this, typeof(ComboBox), items: farms.Select(f => f.name).ToList(), placev: Gui.Place.Five) as ComboBox;
-            comboBox1 = Gui.draw(this, typeof(ComboBox), placev: Gui.Place.Five) as ComboBox;
-            Gui.draw(this, typeof(Label), text: "Add treatments to AM – SN" + am.SNum, placev: Gui.Place.Six);
-            comboBox2 = Gui.draw(this, typeof(ComboBox), items: treatmentPackages.Select(t => t.PartNumber).ToList(), placev: Gui.Place.Seven) as ComboBox;
-            progressBar1 = Gui.draw(this, typeof(ProgressBar), width: Gui.DefaultWidthLarge, placev: Gui.Place.Eight) as ProgressBar;
-            Gui.draw(this, typeof(Button), text: "Cancel", eventHandler: new EventHandler(buttonTreatCansel_Click), placeh: Gui.Place.Left, placev: Gui.Place.End);
-            Gui.draw(this, typeof(Button), text: "Approve", eventHandler: new EventHandler(buttonTreatApprove_Click), placeh: Gui.Place.Right, placev: Gui.Place.End);
+            comboBox1 = Gui.draw(this, typeof(ComboBox), eventHandler: comboBox_SelectedIndexChanged, placev: Gui.Place.Five) as ComboBox;
+            Gui.draw(this, typeof(Label), text: "Add treatments to AM – SN" + am.SNum, placev: Gui.Place.Seven);
+            //comboBox2 = Gui.draw(this, typeof(ComboBox), items: treatmentPackages.Select(t => t.PartNumber).ToList(), placev: Gui.Place.Eight) as ComboBox;
+            //comboBox2 = Gui.draw(this, typeof(ComboBox), items: treatmentPackages.ToArray(), placev: Gui.Place.Eight) as ComboBox;
+            comboBox2 = Gui.draw(this, typeof(ComboBox), placev: Gui.Place.Eight) as ComboBox;
+            progressBar1 = Gui.draw(this, typeof(ProgressBar), width: Gui.DefaultWidthLarge, height: Gui.DefaultHeightSmall, placev: Gui.Place.Ten) as ProgressBar;
+            Gui.draw(this, typeof(Button), text: "Cancel", eventHandler: new EventHandler(buttonTreatCansel_Click), placeh: Gui.Place.Five, placev: Gui.Place.End);
+            Gui.draw(this, typeof(Button), text: "Approve", eventHandler: new EventHandler(buttonTreatApprove_Click), placeh: Gui.Place.Two, placev: Gui.Place.End);
+            progressBar1.Visible = false;
         }
 
-        private void checkBox_CheckedChanged(object sender, EventArgs e)
+        private void comboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-            CheckBox checkBox = sender as CheckBox;
-            if (checkBox.Checked)
+            if ((comboBox1 != null) && (comboBox2 != null) && (treatmentPackages != null))
             {
-                if (checkBox == checkBox1)
-                {
-                    checkBox2.Checked = false;
-                    comboBox1.Items.AddRange(farms.ToArray());
-                }
-                if (checkBox == checkBox2)
-                {
-                    checkBox1.Checked = false;
-                    comboBox1.Items.AddRange(services.ToArray());
-                }
-            }
-            else
-            {
-                while (comboBox1.Items.Count > 0)
-                    comboBox1.Items.RemoveAt(0);
+                clearComboBox(comboBox2);
+                Farm farm = comboBox1.SelectedItem as Farm;
+                Service service = comboBox1.SelectedItem as Service;
+                if (farm != null)
+                    comboBox2.Items.AddRange(treatmentPackages.Where(t => t.contract_type == farm.contract_type).ToArray());
+                if (service != null)
+                    comboBox2.Items.AddRange(treatmentPackages.Where(t => t.contract_type == service.contract_type).ToArray());
             }
         }
 
-        private void progressBar1_Callback(object sender, EventArgs e)
+        private void radioButton_CheckedChanged(object sender, EventArgs e)
         {
-            SerialPortEventArgs args = e as SerialPortEventArgs;
-            if ((progressBar1.Value + args.progress) <= progressBar1.Maximum)
-                progressBar1.Value += args.progress;
-            if ((progressBar1.Value > (progressBar1.Maximum * 2 / 3)) && (args.progress == args.maximum))
-                progressBar1.Value = progressBar1.Maximum;
+            RadioButton radioButton = sender as RadioButton;
+            if ((radioButton != null) && (radioButton1 != null) && (radioButton2 != null) && (comboBox1 != null))
+            {
+                if (radioButton.Checked)
+                {
+                    if (radioButton == radioButton1)
+                    {
+                        radioButton2.Checked = false;
+                        comboBox1.Items.AddRange(farms.ToArray());
+                    }
+                    if (radioButton == radioButton2)
+                    {
+                        radioButton1.Checked = false;
+                        comboBox1.Items.AddRange(services.ToArray());
+                    }
+                }
+                else
+                {
+                    clearComboBox(comboBox1);
+                }
+            }
+        }
+
+        private void clearComboBox(ComboBox comboBox)
+        {
+            if (comboBox != null)
+            {
+                comboBox.Text = string.Empty;
+                while (comboBox.Items.Count > 0)
+                    comboBox.Items.RemoveAt(0);
+            }
+        }
+
+        private void progressBar_Callback(object sender, EventArgs e)
+        {
+            if (progressBar1 != null)
+            {
+                SerialPortEventArgs args = e as SerialPortEventArgs;
+                if (args != null)
+                {
+                    if (args.progress == 0)
+                        progressBar1.Maximum = progressBar1.Value + args.maximum * 2;
+                    
+                    if ((progressBar1.Value + args.progress) <= progressBar1.Maximum)
+                        progressBar1.Value += args.progress;
+                }
+            }
         }
 
         private void buttonTreatCansel_Click(object sender, EventArgs e)
@@ -486,67 +546,86 @@ namespace WinAMBurner
 
             allControlsDisable();
 
-            progressBar1.Visible = true;
-            am.serialPortProgressEvent += new EventHandler(progressBar1_Callback);
-            progressBar1.Maximum = 160;
+            //progressBar1.Visible = true;
+            //am.serialPortProgressEvent += new EventHandler(progressBar_Callback);
+            ////progressBar1.Maximum = 160;
+            //progressBar1.Value = progressBar1.Minimum;
 
             Farm farm = null;
             int? farmId = null;
             Service service = null;
             int? serviceId = null;
-            if (checkBox1.Checked)
+            if (radioButton1.Checked)
             {
                 //farm = farms.FirstOrDefault(f => f.Name.val == comboBox1.Text);
                 farm = comboBox1.SelectedItem as Farm;
                 if (farm != null)
                     farmId = farm.Id;
             }
-            else if (checkBox2.Checked)
+            else if (radioButton2.Checked)
             {
                 //service = services.FirstOrDefault(s => s.Name.val == comboBox1.Text);
                 service = comboBox1.SelectedItem as Service;
                 if (service != null)
                     serviceId = service.Id;
             }
-            TreatmentPackage treatmentPackage = treatmentPackages.FirstOrDefault(t => t.PartNumber == comboBox2.Text);
+            //TreatmentPackage treatmentPackage = treatmentPackages.FirstOrDefault(t => t.PartNumber == comboBox2.Text);
+            TreatmentPackage treatmentPackage = comboBox2.SelectedItem as TreatmentPackage;
 
             if ((farm != null) || (service != null) && (treatmentPackage != null))
             {
-                am.MaxiSet = treatmentPackage.amount_of_treatments * settings.number_of_pulses_per_treatment;
-                if ((errcode = await am.AMDataWrite()) == ErrCode.OK)
+                am.MaxiSet = (uint)(treatmentPackage.amount_of_treatments * settings.number_of_pulses_per_treatment);
+                if ((am.Maxi + am.MaxiSet) < settings.max_am_pulses)
+                //if ((am.Maxi + am.MaxiSet) > settings.max_device_pulses)
                 {
-                    if ((errcode = await am.AMDataRead()) == ErrCode.OK)
-                    {
-                        ActionJson action = new ActionJson()
-                        {
-                            aptx_id = string.Format("0x{0:x} 0x{1:x} 0x{2:x}", am.AptxId[0], am.AptxId[1], am.AptxId[2]),
-                            am_id = am.SNum.ToString(),
-                            part_number = Gui.stringToInt(treatmentPackage.part_number),
-                            tablet = TabletNo,
-                            farm = farmId,
-                            service_provider = serviceId
-                        };
+                    progressBar1.Visible = true;
+                    am.serialPortProgressEvent += new EventHandler(progressBar_Callback);
+                    progressBar1.Value = progressBar1.Minimum;
 
-                        JsonDocument actionResponse = await web.entityAdd<ActionJson>(action, "api/p/actions/");
-                        if ((errcode = responseParse<FarmJson>(actionResponse)) == ErrCode.OK)
+                    if ((errcode = await am.AMDataWrite()) == ErrCode.OK)
+                    {
+                        if ((errcode = await am.AMDataRead()) == ErrCode.OK)
                         {
-                            FormNotify formNotify = new FormNotify(new List<string>() {
+                            ActionJson action = new ActionJson()
+                            {
+                                aptx_id = string.Format("{0:x} {1:x} {2:x}", am.AptxId[0], am.AptxId[1], am.AptxId[2]),
+                                am_id = am.SNum.ToString(),
+                                part_number = Gui.stringToInt(treatmentPackage.part_number),
+                                tablet = TabletNo,
+                                farm = farmId,
+                                service_provider = serviceId
+                            };
+
+                            JsonDocument jsonDocument = await web.entityAdd<ActionJson>(action, "api/p/actions/");
+                            if ((jsonDocument != null) && ((errcode = responseParse<ActionJson>(jsonDocument)) == ErrCode.OK))
+                            {
+                                notify(new List<string>() {
                                     string.Format("{0} treatments updated,",am.MaxiSet / settings.number_of_pulses_per_treatment),
                                     string.Format("{0} treatments available on AM - SN {1},", am.Maxi / settings.number_of_pulses_per_treatment, am.SNum),
                                     "please disconnect the AM"},
-                                NotifyButtons.OK, caption: "Success");
-                            formNotify.ShowDialog();
-                            formNotify.Dispose();
-
-                            Gui.hide(this);
-                            screenActionShow();
+                                    NotifyButtons.OK, caption: "Success");
+                                Gui.hide(this);
+                                clearAM();
+                                screenActionShow();
+                            }
+                            else
+                            {
+                                //
+                                // erase am needed
+                                //
+                                errcode = ErrCode.ERASE;
+                                notify(new List<string>() { "Restoring AM" }, NotifyButtons.OK, caption: "Fail");
+                                am.MaxiSet = 0;
+                                progressBar1.Value = progressBar1.Minimum;
+                                if ((errcode = await am.AMDataWrite()) == ErrCode.OK)
+                                    if ((errcode = await am.AMDataRead()) == ErrCode.OK)
+                                        errcode = ErrCode.EPARAM;
+                            }
                         }
-                        //else
-                            //
-                            // erase am needed
-                            //
                     }
                 }
+                else
+                    errcode = ErrCode.MAX;
             }
             else
                 errcode = ErrCode.EPARAM;
@@ -554,19 +633,36 @@ namespace WinAMBurner
             if (errcode == ErrCode.EPARAM)
                 screenTreatError(new List<string>() {
                     "Wrong parameters,",
-                    "please choose the Farm / Service provider and the number of treatments" });
+                    "please choose the Farm / Service provider",
+                    "and the number of treatments" });
+            else if (errcode == ErrCode.MAX)
+                screenTreatError(new List<string>() {
+                    "Wrong part number,",
+                    "the maximum number of treatments reached,",
+                    "please choose a smaller number of treatments" });
+            else if (errcode == ErrCode.ERASE)
+                screenTreatError(new List<string>() { "Error, AM did not burned" });
             else if (errcode == ErrCode.ERROR)
                 screenTreatError(new List<string>() { "The operation failed, the treatments were not added" });
         }
 
-        private void screenTreatError(List<string> error)
+        private void notify(List<string> text, NotifyButtons notifyButtons, string caption = "Error")
         {
-            FormNotify formNotify = new FormNotify(error,
-                        NotifyButtons.OK, caption: "Fail");
+            //FormNotify formNotify = new FormNotify(new List<string>() {
+            //                        string.Format("{0} treatments updated,",am.MaxiSet / settings.number_of_pulses_per_treatment),
+            //                        string.Format("{0} treatments available on AM - SN {1},", am.Maxi / settings.number_of_pulses_per_treatment, am.SNum),
+            //                        "please disconnect the AM"},
+            //    NotifyButtons.OK, caption: "Success");
+            FormNotify formNotify = new FormNotify(text, notifyButtons, caption);
             formNotify.ShowDialog();
             formNotify.Dispose();
+        }
 
-            progressBar1.Value = progressBar1.Minimum;
+        private void screenTreatError(List<string> text)
+        {
+            notify(text, NotifyButtons.OK, caption: "Fail");
+
+            //progressBar1.Value = progressBar1.Minimum;
             progressBar1.Visible = false;
 
             allControlsEnable();
@@ -578,10 +674,11 @@ namespace WinAMBurner
 
         private void screenFarmShow()
         {
-            screenDataGridShow("Manage Farms", 
-                new System.EventHandler(this.buttonFarmEdit_Click), 
-                new System.EventHandler(this.buttonFarmAdd_Click), 
-                new System.EventHandler(this.buttonBackToAction_Click));
+            screenDataGridShow("Manage Farms",
+                new EventHandler(this.buttonFarmEdit_Click),
+                new EventHandler(this.buttonFarmAdd_Click),
+                new EventHandler(richTextBoxFarmSearch_TextChanged),
+                new EventHandler(this.buttonBackToAction_Click));
 
             dataGridView1.DataSource = farmTable;
         }
@@ -589,20 +686,61 @@ namespace WinAMBurner
         private void screenServiceShow()
         {
             screenDataGridShow("Manage Service providers",
-                new System.EventHandler(this.buttonServiceEdit_Click),
-                new System.EventHandler(this.buttonServiceAdd_Click),
-                new System.EventHandler(this.buttonBackToAction_Click));
+                new EventHandler(buttonServiceEdit_Click),
+                new EventHandler(buttonServiceAdd_Click),
+                new EventHandler(richTextBoxServiceSearch_TextChanged),
+                new EventHandler(buttonBackToAction_Click));
             dataGridView1.DataSource = serviceTable;
         }
 
-        private void screenDataGridShow(string dataName, System.EventHandler eventHandlerButton1, System.EventHandler eventHandlerButton2, System.EventHandler eventHandler3)
+        private void richTextBoxFarmSearch_TextChanged(object sender, EventArgs e)
+        {
+            //RichTextBox richTextBox = sender as RichTextBox;
+            //if ((richTextBox != null) && (dataGridView1 != null))
+            //{
+            //    if ((richTextBox.Text != null) && (richTextBox.Name != Gui.DefaultText))
+            //    {
+            //        farmTable = entityTableGet(farms.Cast<Entity>().ToList().Where(et => et.Name.val.ToLowerInvariant().Contains(richTextBox.Text.ToLowerInvariant())).ToList());
+            //        dataGridView1.DataSource = farmTable;
+            //    }
+            //}
+            DataTable table = null;
+            if ((table = richTextBoxSearch(sender, farms.Cast<Entity>().ToList())) != null)
+                farmTable = table;
+        }
+
+        private void richTextBoxServiceSearch_TextChanged(object sender, EventArgs e)
+        {
+            DataTable table = null;
+            if ((table = richTextBoxSearch(sender, services.Cast<Entity>().ToList())) != null)
+                serviceTable = table;
+        }
+
+        private DataTable richTextBoxSearch(object sender, List<Entity> entities)
+        {
+            RichTextBox richTextBox = sender as RichTextBox;
+            DataTable table = null;
+            if ((richTextBox != null) && (dataGridView1 != null))
+            {
+                if ((richTextBox.Text != null) && (richTextBox.Name != Gui.DefaultText))
+                {
+                    table = entityTableGet(entities.Where(e => e.Name.val.ToLowerInvariant().Contains(richTextBox.Text.ToLowerInvariant())).ToList());
+                    dataGridView1.DataSource = table;
+                }
+            }
+            return table;
+        }
+
+        private void screenDataGridShow(string dataName, EventHandler eventHandlerButton1, EventHandler eventHandlerButton2, EventHandler eventHandlerButton3, EventHandler eventHandlerButton4)
         {
             Gui.draw(this, typeof(PictureBox), placev: Gui.Place.One);
             Gui.draw(this, typeof(Label), text: dataName, placev: Gui.Place.Two);
-            Gui.draw(this, typeof(Button), text: "Edit", eventHandler: eventHandlerButton1, placeh: Gui.Place.RightOne, placev: Gui.Place.Three);
-            Gui.draw(this, typeof(Button), text: "Add New", eventHandler: eventHandlerButton2, placeh: Gui.Place.RightTwo, placev: Gui.Place.Three);
-            Gui.draw(this, typeof(RichTextBox), text: "Search", placeh: Gui.Place.LeftOne, placev: Gui.Place.Three);
-            Gui.draw(this, typeof(Button), text: "Back", eventHandler: eventHandler3, placeh: Gui.Place.LeftTwo, placev: Gui.Place.Three);
+            Gui.draw(this, typeof(Button), text: "Back", eventHandler: eventHandlerButton4, placeh: Gui.Place.Four, placev: Gui.Place.Three);
+            Gui.draw(this, typeof(RichTextBox), text: "Search", eventHandler: eventHandlerButton3, placeh: Gui.Place.Six, placev: Gui.Place.Three);
+            Gui.draw(this, typeof(Button), text: "Edit", eventHandler: eventHandlerButton1, placeh: Gui.Place.One, placev: Gui.Place.Three);
+            Gui.draw(this, typeof(Button), text: "Add New", eventHandler: eventHandlerButton2, placeh: Gui.Place.Three, placev: Gui.Place.Three);
+            //Gui.draw(this, typeof(RichTextBox), text: "Search", eventHandler: eventHandlerButton3, placeh: Gui.Place.Six, placev: Gui.Place.Three);
+            //Gui.draw(this, typeof(Button), text: "Back", eventHandler: eventHandlerButton4, placeh: Gui.Place.Four, placev: Gui.Place.Three);
             Gui.dataGridDraw(this, ref dataGridView1, placev: Gui.Place.Four);
         }
 
@@ -627,28 +765,27 @@ namespace WinAMBurner
         private void screenFarmAddShow()
         {
             farm = new Farm();
-            Gui.draw(this, typeof(Label), text: "Add Farm", font: Gui.DefaultFontLarge, placev: Gui.Place.Two);
-            Gui.draw(this, typeof(Button), text: "Submit", eventHandler: new System.EventHandler(buttonFarmAddSubmit_Click),
-                placeh: Gui.Place.RightTwo, placev: Gui.Place.Eleven);
             screenUpdateShow(farm, false, buttonFarmCancel_Click);
+            Gui.draw(this, typeof(Label), text: "Add Farm", font: Gui.DefaultFontLarge, placev: Gui.Place.Two);
+            Gui.draw(this, typeof(Button), text: "Submit", eventHandler: new EventHandler(buttonFarmAddSubmit_Click),
+                placeh: Gui.Place.Three, placev: Gui.Place.Eleven);
         }
 
         private void screenServiceAddShow()
         {
             service = new Service();
-            Gui.draw(this, typeof(Label), text: "Add Service provider", font: Gui.DefaultFontLarge, placev: Gui.Place.Two);
-            Gui.draw(this, typeof(Button), text: "Submit", eventHandler: new System.EventHandler(buttonServiceAddSubmit_Click),
-                placeh: Gui.Place.RightTwo, placev: Gui.Place.Eleven);
             screenUpdateShow(service, false, buttonServiceCancel_Click);
+            Gui.draw(this, typeof(Label), text: "Add Service provider", font: Gui.DefaultFontLarge, placev: Gui.Place.Two);
+            Gui.draw(this, typeof(Button), text: "Submit", eventHandler: new EventHandler(buttonServiceAddSubmit_Click),
+                placeh: Gui.Place.Three, placev: Gui.Place.Eleven);
         }
 
         private void screenUpdateShow<T>(T entity, bool edit, EventHandler eventHandler)
         {
+            drawFields(entity, edit);
             Gui.draw(this, typeof(PictureBox), placev: Gui.Place.One);
             Gui.draw(this, typeof(Button), text: "Cancel", eventHandler: eventHandler,
-                placeh: Gui.Place.LeftOne, placev: Gui.Place.Eleven);
-
-            drawFields(entity, edit);
+                placeh: Gui.Place.Six, placev: Gui.Place.Eleven);
         }
 
         private void drawFields<T>(T entity, bool edit)
@@ -685,22 +822,20 @@ namespace WinAMBurner
 
         private void drawField(Field field, bool edit)
         {
-            //Gui.draw<RichTextBox>(this, field.type, text: field.val, items: field.items, name: field.deflt, placeh: field.placeh, placev: field.placev);
-            //if (field.type == typeof(RichTextBox))
-            //{
             string defaultText;
             if (edit)
                 defaultText = field.val;
             else
                 defaultText = Gui.DefaultText;
 
+            //field.control = Gui.draw(this, field.type, text: field.val, name: defaultText, items: field.items.ToArray(), placeh: field.placeh, placev: field.placev);
             field.control = Gui.draw(this, field.type, text: field.val, name: defaultText, items: field.items, placeh: field.placeh, placev: field.placev);
-            field.lcontrol = Gui.draw(this, typeof(Label), text: field.text, autoSize: false, items: field.items, placeh: field.lplaceh, placev: field.placev);
+            field.lcontrol = Gui.draw(this, typeof(Label), text: field.text, autoSize: false, placeh: field.lplaceh, placev: field.placev);
         }
 
         private void buttonFarmEdit_Click(object sender, EventArgs e)
         {
-            if(dataGridView1.SelectedRows.Count > 0)
+            if (dataGridView1.SelectedRows.Count > 0)
             {
                 farm = farms.ElementAt(dataGridView1.Rows.IndexOf(dataGridView1.SelectedRows[0]));
                 farmRow = farmTable.Rows[dataGridView1.Rows.IndexOf(dataGridView1.SelectedRows[0])];
@@ -724,8 +859,8 @@ namespace WinAMBurner
         {
             screenUpdateShow(farm, true, buttonFarmCancel_Click);
             Gui.draw(this, typeof(Label), text: "Edit Farm", font: Gui.DefaultFontLarge, placev: Gui.Place.Two);
-            Gui.draw(this, typeof(Button), text: "Submit", eventHandler: new EventHandler(buttonFarmEditSubmit_Click), 
-                placeh: Gui.Place.RightTwo, placev: Gui.Place.Eleven);
+            Gui.draw(this, typeof(Button), text: "Submit", eventHandler: new EventHandler(buttonFarmEditSubmit_Click),
+                placeh: Gui.Place.Three, placev: Gui.Place.Eleven);
         }
 
         private void screenServiceEditShow(Service service)
@@ -733,7 +868,7 @@ namespace WinAMBurner
             screenUpdateShow(service, true, buttonServiceCancel_Click);
             Gui.draw(this, typeof(Label), text: "Edit Service provider", font: Gui.DefaultFontLarge, placev: Gui.Place.Two);
             Gui.draw(this, typeof(Button), text: "Submit", eventHandler: new EventHandler(buttonServiceEditSubmit_Click),
-                placeh: Gui.Place.RightTwo, placev: Gui.Place.Eleven);
+                placeh: Gui.Place.Three, placev: Gui.Place.Eleven);
         }
 
         private void buttonFarmCancel_Click(object sender, EventArgs e)
@@ -752,12 +887,10 @@ namespace WinAMBurner
         {
             allControlsDisable();
             updateParams(farm);
-            JsonDocument farmResponse = await web.entityAdd<FarmJson>(farm as FarmJson, "api/p/farms/");
-            if(responseParse<FarmJson>(farmResponse) == ErrCode.OK)
+            JsonDocument jsonDocument = await web.entityAdd<FarmJson>(farm, "api/p/farms/");
+            if ((jsonDocument != null) && (responseParse<FarmJson>(jsonDocument) == ErrCode.OK))
             {
-                //farms.Remove(farm);
                 farms.Add(farm);
-                //farmTable.Rows.Add((new List<string>() { farm.Name.val, farm.Country.val + " / " + farm.State.val, farm.City.val, farm.Address.val }).ToArray<string>());
                 farmTable.Rows.Add(entityToRow(farm).ToArray<string>());
 
                 Gui.hide(this);
@@ -771,8 +904,8 @@ namespace WinAMBurner
         {
             allControlsDisable();
             updateParams(service);
-            JsonDocument serviceResponse = await web.entityAdd<ServiceJson>(service as ServiceJson, "api/p/service_providers/");
-            if (responseParse<ServiceJson>(serviceResponse) == ErrCode.OK)
+            JsonDocument jsonDocument = await web.entityAdd<ServiceJson>(service, "api/p/service_providers/");
+            if ((jsonDocument != null) && (responseParse<ServiceJson>(jsonDocument) == ErrCode.OK))
             {
                 services.Add(service);
                 serviceTable.Rows.Add(entityToRow(service).ToArray<string>());
@@ -787,27 +920,42 @@ namespace WinAMBurner
         private ErrCode responseParse<T>(JsonDocument jsonDocument)
         {
             ErrCode errCode = ErrCode.EPARAM;
-            List<string> texts = new List<string>();
+            List<string> errors = new List<string>();
 
             if (jsonDocument != null)
             {
                 foreach (PropertyInfo prop in typeof(T).GetProperties())
                 {
                     //Console.WriteLine("{0} = {1}", prop.Name, prop.GetValue(user, null));
-                    string text = "";
-                    try { text = jsonDocument.RootElement.GetProperty(prop.Name).EnumerateArray().ElementAt(0).ToString(); }
-                    catch { }
-                    if (text != "")
-                        texts.Add(text);
-                }
-                if (texts.Count > 0)
-                {
-                    FormNotify formNotify = new FormNotify(texts, NotifyButtons.OK);
-                    formNotify.ShowDialog();
-                    formNotify.Dispose();
-                    return errCode;
+                    //string text = jsonDocument.RootElement.GetProperty(prop.Name).ToString();
+                    //string text = "";
+                    //try { text = jsonDocument.RootElement.GetProperty(prop.Name).EnumerateArray().ElementAt(0).ToString(); }
+                    //catch { }
+                    //if (text != "")
+                    //    texts.Add(text);
+                    JsonElement jsonElement;
+                    if (jsonDocument.RootElement.TryGetProperty(prop.Name, out jsonElement))
+                        if(jsonElement.ValueKind == JsonValueKind.Array )
+                            //errors.Add(jsonElement.EnumerateArray().ElementAt(0).ToString());
+                            errors.AddRange(jsonElement.EnumerateArray().Select(e => e.ToString()));
+                            //errors.Add(jsonElement.ToString());
                 }
                 errCode = ErrCode.OK;
+            }
+            else
+            {
+                FormNotify formNotify = new FormNotify(new List<string>() { "Error occured while processing", "the entry by the server"}, NotifyButtons.OK);
+                formNotify.ShowDialog();
+                formNotify.Dispose();
+                errCode = ErrCode.ERROR;
+            }
+
+            if (errors.Count > 0)
+            {
+                FormNotify formNotify = new FormNotify(errors, NotifyButtons.OK);
+                formNotify.ShowDialog();
+                formNotify.Dispose();
+                errCode = ErrCode.ERROR;
             }
             return errCode;
         }
@@ -838,14 +986,9 @@ namespace WinAMBurner
         {
             allControlsDisable();
             updateParams(farm);
-            JsonDocument jsonDocument = await web.entityEdit<FarmJson>(farm as FarmJson, "api/p/farms/" + farm.Id + "/");
-            if (responseParse<Farm>(jsonDocument) == ErrCode.OK)
+            JsonDocument jsonDocument = await web.entityEdit<FarmJson>(farm, "api/p/farms/" + farm.Id + "/");
+            if ((jsonDocument != null) && (responseParse<FarmJson>(jsonDocument) == ErrCode.OK))
             {
-                //farms.Remove(farm);
-                //farms.Add(farm);
-                //farmTable.Rows.Add((new List<string>() { farm.name, farm.country, farm.city, farm.address }).ToArray<string>());
-                //farmTable.Rows.Remove(farmRow);
-                //farmTable.Rows.Add(entityToRow(farm).ToArray<string>());
                 farmRow.ItemArray = entityToRow(farm).ToArray<string>();
 
                 Gui.hide(this);
@@ -859,8 +1002,8 @@ namespace WinAMBurner
         {
             allControlsDisable();
             updateParams(service);
-            JsonDocument jsonDocument = await web.entityEdit<ServiceJson>(service as ServiceJson, "api/p/service_providers/" + service.Id + "/");
-            if (responseParse<Service>(jsonDocument) == ErrCode.OK)
+            JsonDocument jsonDocument = await web.entityEdit<ServiceJson>(service, "api/p/service_providers/" + service.Id + "/");
+            if ((jsonDocument != null) && (responseParse<ServiceJson>(jsonDocument) == ErrCode.OK))
             {
                 //serviceTable.Rows.Remove(serviceRow);
                 //serviceTable.Rows.Add(entityToRow(service).ToArray<string>());
@@ -875,22 +1018,30 @@ namespace WinAMBurner
 
         private void linkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            linkLabel1.LinkVisited = true;
-            var uri = "https://google.com";
-            var psi = new System.Diagnostics.ProcessStartInfo();
-            psi.UseShellExecute = true;
-            psi.FileName = uri;
-            System.Diagnostics.Process.Start(psi);
+            LinkLabel linkLabel = sender as LinkLabel;
+            if (linkLabel != null)
+            {
+                linkLabel.LinkVisited = true;
+                var uri = "https://google.com";
+                var psi = new System.Diagnostics.ProcessStartInfo();
+                psi.UseShellExecute = true;
+                psi.FileName = uri;
+                System.Diagnostics.Process.Start(psi);
+            }
         }
 
         private void linkLabel2_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            linkLabel2.LinkVisited = true;
-            var uri = "https://armentavet.com/apt-calc/";
-            var psi = new System.Diagnostics.ProcessStartInfo();
-            psi.UseShellExecute = true;
-            psi.FileName = uri;
-            System.Diagnostics.Process.Start(psi); 
+            LinkLabel linkLabel = sender as LinkLabel;
+            if (linkLabel != null)
+            {
+                linkLabel.LinkVisited = true;
+                var uri = "https://armentavet.com/apt-calc/";
+                var psi = new System.Diagnostics.ProcessStartInfo();
+                psi.UseShellExecute = true;
+                psi.FileName = uri;
+                System.Diagnostics.Process.Start(psi);
+            }
         }
     }
 }

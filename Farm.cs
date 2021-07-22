@@ -10,12 +10,22 @@ namespace WinAMBurner
         public string email { get; set; }
         public string password { get; set; }
         public string tablet { get; set; }
+
+        public override string ToString()
+        {
+            return Const.entityToString(this);
+        }
     }
 
     class LoginResponseJson
     {
         public string token { get; set; }
         public UserJson user { get; set; }
+
+        public override string ToString()
+        {
+            return Const.entityToString(this);
+        }
     }
 
     class UserJson
@@ -25,10 +35,15 @@ namespace WinAMBurner
         public string email { get; set; }
         public string first_name { get; set; }
         public string last_name { get; set; }
+
+        public override string ToString()
+        {
+            return Const.entityToString(this);
+        }
     }
 
     class DistributorJson
-        {
+    {
         public int id { get; set; }
         public string address { get; set; }
         public string country { get; set; }
@@ -39,7 +54,12 @@ namespace WinAMBurner
         public string name { get; set; }
         public string company_id { get; set; }
         public string parent_distributor { get; set; }
+
+        public override string ToString()
+        {
+            return Const.entityToString(this);
         }
+    }
 
     class ContactJson
     {
@@ -54,11 +74,30 @@ namespace WinAMBurner
         public string last_name { get; set; }
         public string mobile { get; set; }
         public string email { get; set; }
+
+        public override string ToString()
+        {
+            return Const.entityToString(this);
+        }
     }
 
-    class FarmJson
+    //interface EntityJson
+    //{
+    //    public int id { get; set; }
+    //    public string mobile { get; set; }
+    //    public string address { get; set; }
+    //    public string country { get; set; }
+    //    public string city { get; set; }
+    //    public string state { get; set; }
+    //    public string email { get; set; }
+    //    public string name { get; set; }
+    //    public string contact_name { get; set; }
+    //    public string contract_type { get; set; }
+    //}
+
+    interface FarmJson
     {
-        public int id { get; set; }
+        //public int id { get; set; }
         public string mobile { get; set; }
         public string address { get; set; }
         public string country { get; set; }
@@ -67,6 +106,7 @@ namespace WinAMBurner
         public bool is_active { get; set; }
         public string email { get; set; }
         public string name { get; set; }
+        public string contact_name { get; set; }
         public string farm_type { get; set; }
         public string breed_type { get; set; }
         public string milking_setup_type { get; set; }
@@ -74,14 +114,11 @@ namespace WinAMBurner
         public string contract_type { get; set; }
         public int number_of_lactating_cows { get; set; }
         public bool dhi_test { get; set; }
-        //public int contact_name { get; set; }
-        //public int contact { get; set; }
-        //public int distributor { get; set; }
     }
 
-    class ServiceJson
+    interface ServiceJson
     {
-        public int id { get; set; }
+        //public int id { get; set; }
         public string mobile { get; set; }
         public string address { get; set; }
         public string country { get; set; }
@@ -91,18 +128,22 @@ namespace WinAMBurner
         public int number_of_dairy_farms { get; set; }
         public int number_of_dairy_cows { get; set; }
         public string name { get; set; }
+        public string contact_name { get; set; }
         public string contract_type { get; set; }
-        //public int contact { get; set; }
-        //public int distributor { get; set; }
     }
 
     class SettingsJson
     {
-        public int max_device_pulses { get; set; }
+        public int max_am_pulses { get; set; }
         public int number_of_pulses_per_treatment { get; set; }
+
+        public override string ToString()
+        {
+            return Const.entityToString(this);
+        }
     }
 
-    class TreatmentPackageJson
+    interface TreatmentPackageJson
     {
         public int id { get; set; }
         public bool is_active { get; set; }
@@ -125,79 +166,171 @@ namespace WinAMBurner
         public int? farm { get; set; }
         public int? service_provider { get; set; }
         //public int distributor { get; set; }
+
+        public override string ToString()
+        {
+            return Const.entityToString(this);
+        }
     }
 
-    class Farm : FarmJson
+    class Entity
     {
         public static int ID = 0;
         public static string MOBILE = "123456";
         public static string EMAIL = "email@email.com";
         public static string ADDRESS = "Adress";
-        //public static Dictionary<string, string> DCOUNTRY;
-        //public static List<string> COUNTRY;
         public static string CITY = "City";
-        //public static Dictionary<string, string> DSTATE;
-        //public static List<string> STATE;
-        //public static string IS_ACTIVE = "Yes";
         public static string NAME = "Name";
-        //public static List<string> FARM_TYPE;
-        //public static List<string> BREED_TYPE;
-        //public static List<string> MILKING_SETUP_TYPE;
-        //public static List<string> LOCATION_OF_TREATMENT_TYPE;
-        //public static List<string> CONTRACT_TYPE;
-        public static string NUMBER_OF_LACTATING_COWS = "0";
-        public static List<string> DHI_TEST = new List<string>() { "No", "Yes" };
-        public static string CONTACT_NAME = "Contact name";
-        //public static string CONTACT = "0";
-        //public static string DISTRIBUTOR = "0";
+        public static string CONTACT_NAME = "Contact Name";
 
+        public int id { get; set; }
+        //public int id { get; }
+        public string mobile { get; set; }
+        public string address { get; set; }
+        public string country { get; set; }
+        public string city { get; set; }
+        public string state { get; set; }
+        public string email { get; set; }
+        public string name { get; set; }
+        public string contact_name { get; set; }
+        public string contract_type { get; set; }
+        
         public int Id { get { return id; } set { id = value; } }
-
-        public string pMobile { get { return mobile; } set { mobile = value; } }
-        public Field fMobile;
-        public Field Mobile { get { fMobile.val = pMobile; return fMobile; } set { fMobile = value; pMobile = fMobile.val; } }
-
+        //public int Id { get { return id; } }
+    
+        public string pName { get { return name; } set { name = value; } }
+        public Field fName;
+        public Field Name { get { fName.val = pName; return fName; } set { fName = value; pName = fName.val; } }
+    
         public string pAddress { get { return address; } set { address = value; } }
         public Field fAddress;
         public Field Address { get { fAddress.val = pAddress; return fAddress; } set { fAddress = value; pAddress = fAddress.val; } }
-
+    
         public string pCountry
         {
             get
             {
-                //string value;
-                //Cnst.DCOUNTRY.TryGetValue(country, out value);
-                //return value;
-                return Cnst.getDictionary(Cnst.DCOUNTRY, country);
+                return Const.getFromDictionary(Const.DCOUNTRY, country);
             }
             set
             {
-                country = Cnst.DCOUNTRY.FirstOrDefault(c => (c.Value == value)).Key;
+                country = Const.DCOUNTRY.FirstOrDefault(c => (c.Value == value)).Key;
             }
         }
         public Field fCountry;
         public Field Country { get { fCountry.val = pCountry; return fCountry; } set { fCountry = value; pCountry = fCountry.val; } }
-
-        public string pCity { get { return city; } set { city = value; } }
-        public Field fCity;
-        public Field City { get { fCity.val = pCity; return fCity; } set { fCity = value; pCity = fCity.val; } }
-
+    
         public string pState
         {
             get
             {
-                //string value;
-                //Cnst.DSTATE.TryGetValue(state, out value);
-                //return value;
-                return Cnst.getDictionary(Cnst.DSTATE, state);
+                return Const.getFromDictionary(Const.DSTATE, state);
             }
             set
             {
-                state = Cnst.DSTATE.FirstOrDefault(c => (c.Value == value)).Key;
+                state = Const.DSTATE.FirstOrDefault(c => (c.Value == value)).Key;
             }
         }
         public Field fState;
         public Field State { get { fState.val = pState; return fState; } set { fState = value; pState = fState.val; } }
+    
+        public string pCity { get { return city; } set { city = value; } }
+        public Field fCity;
+        public Field City { get { fCity.val = pCity; return fCity; } set { fCity = value; pCity = fCity.val; } }
+    
+        public string pContactName { get { return contact_name; } set { contact_name = value; } }
+        public Field fContactName;
+        public Field ContactName { get { fContactName.val = pContactName; return fContactName; } set { fContactName = value; pContactName = fContactName.val; } }
+    
+        public string pMobile { get { return mobile; } set { mobile = value; } }
+        public Field fMobile;
+        public Field Mobile { get { fMobile.val = pMobile; return fMobile; } set { fMobile = value; pMobile = fMobile.val; } }
+    
+        public string pEmail { get { return email; } set { email = value; } }
+        public Field fEmail;
+        public Field Email { get { fEmail.val = pEmail; return fEmail; } set { fEmail = value; pEmail = fEmail.val; } }
+    
+        public string pContractType { get { return contract_type; } set { contract_type = value; } }
+        public Field fContractType;
+        public Field ContractType { get { fContractType.val = pContractType; return fContractType; } set { fContractType = value; pContractType = fContractType.val; } }
+
+        public override string ToString()
+        {
+            return Name.val;
+        }
+    }
+
+    class Farm : Entity, FarmJson
+    {
+        //public static int ID = 0;
+        //public static string MOBILE = "123456";
+        //public static string EMAIL = "email@email.com";
+        //public static string ADDRESS = "Adress";
+        //public static string CITY = "City";
+        //public static string NAME = "Name";
+        public static string NUMBER_OF_LACTATING_COWS = "0";
+        public static string[] DHI_TEST = new string[] { "No", "Yes" };
+        //public static string CONTACT_NAME = "Contact Name";
+
+        //public int id { get; set; }
+        //public string mobile { get; set; }
+        //public string address { get; set; }
+        //public string country { get; set; }
+        //public string city { get; set; }
+        //public string state { get; set; }
+        public bool is_active { get; set; }
+        //public string email { get; set; }
+        //public string name { get; set; }
+        //public string contact_name { get; set; }
+        public string farm_type { get; set; }
+        public string breed_type { get; set; }
+        public string milking_setup_type { get; set; }
+        public string location_of_treatment_type { get; set; }
+        //public string contract_type { get; set; }
+        public int number_of_lactating_cows { get; set; }
+        public bool dhi_test { get; set; }
+
+        //public int Id { get { return id; } set { id = value; } }
+        
+        //public string pName { get { return name; } set { name = value; } }
+        //public Field fName;
+        //public Field Name { get { fName.val = pName; return fName; } set { fName = value; pName = fName.val; } }
+        
+        //public string pAddress { get { return address; } set { address = value; } }
+        //public Field fAddress;
+        //public Field Address { get { fAddress.val = pAddress; return fAddress; } set { fAddress = value; pAddress = fAddress.val; } }
+
+        //public string pCountry
+        //{
+        //    get
+        //    {
+        //        return Cnst.getFromDictionary(Cnst.DCOUNTRY, country);
+        //    }
+        //    set
+        //    {
+        //        country = Cnst.DCOUNTRY.FirstOrDefault(c => (c.Value == value)).Key;
+        //    }
+        //}
+        //public Field fCountry;
+        //public Field Country { get { fCountry.val = pCountry; return fCountry; } set { fCountry = value; pCountry = fCountry.val; } }
+
+        //public string pState
+        //{
+        //    get
+        //    {
+        //        return Cnst.getFromDictionary(Cnst.DSTATE, state);
+        //    }
+        //    set
+        //    {
+        //        state = Cnst.DSTATE.FirstOrDefault(c => (c.Value == value)).Key;
+        //    }
+        //}
+        //public Field fState;
+        //public Field State { get { fState.val = pState; return fState; } set { fState = value; pState = fState.val; } }
+
+        //public string pCity { get { return city; } set { city = value; } }
+        //public Field fCity;
+        //public Field City { get { fCity.val = pCity; return fCity; } set { fCity = value; pCity = fCity.val; } }
 
         public string IsActive
         {
@@ -211,13 +344,17 @@ namespace WinAMBurner
             }
         }
 
-        public string pEmail { get { return email; } set { email = value; } }
-        public Field fEmail;
-        public Field Email { get { fEmail.val = pEmail; return fEmail; } set { fEmail = value; pEmail = fEmail.val; } }
+        //public string pContactName { get { return contact_name; } set { contact_name = value; } }
+        //public Field fContactName;
+        //public Field ContactName { get { fContactName.val = pContactName; return fContactName; } set { fContactName = value; pContactName = fContactName.val; } }
 
-        public string pName { get { return name; } set { name = value; } }
-        public Field fName;
-        public Field Name { get { fName.val = pName; return fName; } set { fName = value; pName = fName.val; } }
+        //public string pMobile { get { return mobile; } set { mobile = value; } }
+        //public Field fMobile;
+        //public Field Mobile { get { fMobile.val = pMobile; return fMobile; } set { fMobile = value; pMobile = fMobile.val; } }
+
+        //public string pEmail { get { return email; } set { email = value; } }
+        //public Field fEmail;
+        //public Field Email { get { fEmail.val = pEmail; return fEmail; } set { fEmail = value; pEmail = fEmail.val; } }
 
         public string pFarmType { get { return farm_type; } set { farm_type = value; } }
         public Field fFarmType;
@@ -226,18 +363,6 @@ namespace WinAMBurner
         public string pBreedType { get { return breed_type; } set { breed_type = value; } }
         public Field fBreedType;
         public Field BreedType { get { fBreedType.val = pBreedType; return fBreedType; } set { fBreedType = value; pBreedType = fBreedType.val; } }
-
-        public string pMilkingSetupType { get { return milking_setup_type; } set { milking_setup_type = value; } }
-        public Field fMilkingSetupType;
-        public Field MilkingSetupType { get { fMilkingSetupType.val = pMilkingSetupType; return fMilkingSetupType; } set { fMilkingSetupType = value; pMilkingSetupType = fMilkingSetupType.val; } }
-
-        public string pLocationOfTreatmentType { get { return location_of_treatment_type; } set { location_of_treatment_type = value; } }
-        public Field fLocationOfTreatmentType;
-        public Field LocationOfTreatmentType { get { fLocationOfTreatmentType.val = pLocationOfTreatmentType; return fLocationOfTreatmentType; } set { fLocationOfTreatmentType = value; pLocationOfTreatmentType = fLocationOfTreatmentType.val; } }
-
-        public string pContractType { get { return contract_type; } set { contract_type = value; } }
-        public Field fContractType;
-        public Field ContractType { get { fContractType.val = pContractType; return fContractType; } set { fContractType = value; pContractType = fContractType.val; } }
 
         public string pNumberOfLactatingCows
         {
@@ -267,129 +392,66 @@ namespace WinAMBurner
         public Field fDhiTest;
         public Field DhiTest { get { fDhiTest.val = pDhiTest; return fDhiTest; } set { fDhiTest = value; pDhiTest = fDhiTest.val; } }
 
-        //public string pContactName { get { return contact_name; } set { contact_name = value; } }
-        //public Field fContactName;
-        //public Field ContactName{ get { fContactName.val = pContactName; return fContactName; } set { fContactName= value; pContactName= fContactName.val; } }
+        public string pMilkingSetupType { get { return milking_setup_type; } set { milking_setup_type = value; } }
+        public Field fMilkingSetupType;
+        public Field MilkingSetupType { get { fMilkingSetupType.val = pMilkingSetupType; return fMilkingSetupType; } set { fMilkingSetupType = value; pMilkingSetupType = fMilkingSetupType.val; } }
 
-        //public string pContact
-        //{
-        //    get
-        //    {
-        //        return Gui.intToString(contact);
-        //    }
-        //    set
-        //    {
-        //        contact = Gui.stringToInt(value);
-        //    }
-        //}
-        //public Field fContact;// = new Field(ADDRESS, null, typeof(RichTextBox), "Address:", Gui.Place.LeftOne, Gui.Place.LeftTwo, Gui.Place.Four);
-        //public Field Contact { get { fContact.val = pContact; return fContact; } set { fContact = value; pContact = fContact.val; } }
+        public string pLocationOfTreatmentType { get { return location_of_treatment_type; } set { location_of_treatment_type = value; } }
+        public Field fLocationOfTreatmentType;
+        public Field LocationOfTreatmentType { get { fLocationOfTreatmentType.val = pLocationOfTreatmentType; return fLocationOfTreatmentType; } set { fLocationOfTreatmentType = value; pLocationOfTreatmentType = fLocationOfTreatmentType.val; } }
 
-        //public string Distributor
-        //{
-        //    get
-        //    {
-        //        return Gui.intToString(distributor);
-        //    }
-        //    set
-        //    {
-        //        distributor = Gui.stringToInt(value);
-        //    }
-        //}
+        //public string pContractType { get { return contract_type; } set { contract_type = value; } }
+        //public Field fContractType;
+        //public Field ContractType { get { fContractType.val = pContractType; return fContractType; } set { fContractType = value; pContractType = fContractType.val; } }
 
         public Farm()
         {
-            Id = ID;
-            Mobile = new Field(MOBILE, null, typeof(RichTextBox), "Mobile:", placeh: Gui.Place.LeftOne, lplaceh: Gui.Place.LeftTwo, placev: Gui.Place.Nine);
-            Address = new Field(ADDRESS, null, typeof(RichTextBox), "Address:", placeh: Gui.Place.LeftOne, lplaceh: Gui.Place.LeftTwo, placev: Gui.Place.Four);
-            Country = new Field(Cnst.COUNTRY.FirstOrDefault(), Cnst.COUNTRY, typeof(ComboBox), "Country:", placeh: Gui.Place.LeftOne, lplaceh: Gui.Place.LeftTwo, placev: Gui.Place.Five);
-            City = new Field(CITY, null, typeof(RichTextBox), "City:", placeh: Gui.Place.LeftOne, lplaceh: Gui.Place.LeftTwo, placev: Gui.Place.Seven);
-            State = new Field(Cnst.STATE.FirstOrDefault(), Cnst.STATE, typeof(ComboBox), "State:", placeh: Gui.Place.LeftOne, lplaceh: Gui.Place.LeftTwo, placev: Gui.Place.Six);
-            IsActive = Cnst.IS_ACTIVE;
-            Email = new Field(EMAIL, null, typeof(RichTextBox), "Email Address:", placeh: Gui.Place.LeftOne, lplaceh: Gui.Place.LeftTwo, placev: Gui.Place.Ten);
-            Name = new Field(NAME, null, typeof(RichTextBox), "Name:", placeh: Gui.Place.LeftOne, lplaceh: Gui.Place.LeftTwo, placev: Gui.Place.Three);
-            FarmType = new Field(Cnst.FARM_TYPE.FirstOrDefault(), Cnst.FARM_TYPE, typeof(ComboBox), "Farm Type:", placeh: Gui.Place.RightTwo, lplaceh: Gui.Place.RightOne, placev: Gui.Place.Three);
-            BreedType = new Field(Cnst.BREED_TYPE.FirstOrDefault(), Cnst.BREED_TYPE, typeof(ComboBox), "Breed Type:", placeh: Gui.Place.RightTwo, lplaceh: Gui.Place.RightOne, placev: Gui.Place.Four);
-            MilkingSetupType = new Field(Cnst.MILKING_SETUP_TYPE.FirstOrDefault(), Cnst.MILKING_SETUP_TYPE, typeof(ComboBox), "Milking Setup:", placeh: Gui.Place.RightTwo, lplaceh: Gui.Place.RightOne, placev: Gui.Place.Seven);
-            LocationOfTreatmentType = new Field(Cnst.LOCATION_OF_TREATMENT_TYPE.FirstOrDefault(), Cnst.LOCATION_OF_TREATMENT_TYPE, typeof(ComboBox), "Location of Treatment:", placeh: Gui.Place.RightTwo, lplaceh: Gui.Place.RightOne, placev: Gui.Place.Eight);
-            ContractType = new Field(Cnst.CONTRACT_TYPE.FirstOrDefault(), Cnst.CONTRACT_TYPE, typeof(ComboBox), "Contract Type:", placeh: Gui.Place.RightTwo, lplaceh: Gui.Place.RightOne, placev: Gui.Place.Nine);
-            NumberOfLactatingCows = new Field(NUMBER_OF_LACTATING_COWS, null, typeof(RichTextBox), "# of Lactating Cows:", placeh: Gui.Place.RightTwo, lplaceh: Gui.Place.RightOne, placev: Gui.Place.Five);
-            DhiTest = new Field(DHI_TEST.FirstOrDefault(), DHI_TEST, typeof(ComboBox), "Monthly DHI test:", placeh: Gui.Place.RightTwo, lplaceh: Gui.Place.RightOne, placev: Gui.Place.Six);
-            //ContactName = new Field(CONTACT_NAME, null, typeof(RichTextBox), "Contact Name:", Gui.Place.LeftOne, Gui.Place.LeftTwo, Gui.Place.Eight);
-            //Contact = new Field(CONTACT, null, typeof(RichTextBox), "Contact Name:", Gui.Place.LeftOne, Gui.Place.LeftTwo, Gui.Place.Eight); //CONTACT;
-            //Distributor = DISTRIBUTOR;
-        }
-
-        public override string? ToString()
-        {
-            return this.Name.val;
+            //Id = ID;
+            Name = new Field(NAME, null, typeof(RichTextBox), "Name:", placeh: Gui.Place.Six, lplaceh: Gui.Place.Four, placev: Gui.Place.Three);
+            Address = new Field(ADDRESS, null, typeof(RichTextBox), "Address:", placeh: Gui.Place.Six, lplaceh: Gui.Place.Four, placev: Gui.Place.Four);
+            Country = new Field(Const.COUNTRY.FirstOrDefault(), Const.COUNTRY, typeof(ComboBox), "Country:", placeh: Gui.Place.Six, lplaceh: Gui.Place.Four, placev: Gui.Place.Five);
+            State = new Field(Const.STATE.FirstOrDefault(), Const.STATE, typeof(ComboBox), "State:", placeh: Gui.Place.Six, lplaceh: Gui.Place.Four, placev: Gui.Place.Six);
+            City = new Field(CITY, null, typeof(RichTextBox), "City:", placeh: Gui.Place.Six, lplaceh: Gui.Place.Four, placev: Gui.Place.Seven);
+            IsActive = Const.IS_ACTIVE;
+            ContactName = new Field(CONTACT_NAME, null, typeof(RichTextBox), "Contact Name:", placeh: Gui.Place.Six, lplaceh: Gui.Place.Four, placev: Gui.Place.Eight);
+            Mobile = new Field(MOBILE, null, typeof(RichTextBox), "Mobile:", placeh: Gui.Place.Six, lplaceh: Gui.Place.Four, placev: Gui.Place.Nine);
+            Email = new Field(EMAIL, null, typeof(RichTextBox), "Email Address:", placeh: Gui.Place.Six, lplaceh: Gui.Place.Four, placev: Gui.Place.Ten);
+            FarmType = new Field(Const.FARM_TYPE.FirstOrDefault(), Const.FARM_TYPE, typeof(ComboBox), "Farm Type:", placeh: Gui.Place.Three, lplaceh: Gui.Place.One, placev: Gui.Place.Three);
+            BreedType = new Field(Const.BREED_TYPE.FirstOrDefault(), Const.BREED_TYPE, typeof(ComboBox), "Breed Type:", placeh: Gui.Place.Three, lplaceh: Gui.Place.One, placev: Gui.Place.Four);
+            NumberOfLactatingCows = new Field(NUMBER_OF_LACTATING_COWS, null, typeof(RichTextBox), "# of Lactating Cows:", placeh: Gui.Place.Three, lplaceh: Gui.Place.One, placev: Gui.Place.Five);
+            DhiTest = new Field(DHI_TEST.FirstOrDefault(), DHI_TEST, typeof(ComboBox), "Milk Recording:", placeh: Gui.Place.Three, lplaceh: Gui.Place.One, placev: Gui.Place.Six);
+            MilkingSetupType = new Field(Const.MILKING_SETUP_TYPE.FirstOrDefault(), Const.MILKING_SETUP_TYPE, typeof(ComboBox), "Milking Setup:", placeh: Gui.Place.Three, lplaceh: Gui.Place.One, placev: Gui.Place.Seven);
+            LocationOfTreatmentType = new Field(Const.LOCATION_OF_TREATMENT_TYPE.FirstOrDefault(), Const.LOCATION_OF_TREATMENT_TYPE, typeof(ComboBox), "Treatment Location:", placeh: Gui.Place.Three, lplaceh: Gui.Place.One, placev: Gui.Place.Eight);
+            ContractType = new Field(Const.CONTRACT_TYPE.FirstOrDefault(), Const.CONTRACT_TYPE, typeof(ComboBox), "Contract Type:", placeh: Gui.Place.Three, lplaceh: Gui.Place.One, placev: Gui.Place.Nine);
         }
     }
 
-    class Service : ServiceJson
+    class Service : Entity, ServiceJson 
     {
-        public static int ID = 0;
-        public static string MOBILE = "123456";
-        public static string ADDRESS = "Adress";
-        //public static string COUNTRY = "Country";
-        public static string CITY = "City";
-        //public static string STATE = "State";
-        public static string EMAIL = "Email@Email.com";
+        //public static int ID = 0;
+        //public static string MOBILE = "123456";
+        //public static string ADDRESS = "Adress";
+        //public static string CITY = "City";
+        //public static string EMAIL = "Email@Email.com";
         public static string NUMBER_OF_DAIRY_FARMS = "0";
         public static string NUMBER_OF_DAIRY_COWS = "0";
-        public static string NAME = "Name";
-        //public static string CONTACT = "0";
-        //public static string DISTRIBUTOR = "0";
+        //public static string NAME = "Name";
+        //public static string CONTACT_NAME = "Contact Name";
 
-        public int Id { get { return id; } set { id = value; } }
-
-        public string pMobile { get { return mobile; } set { mobile = value; } }
-        public Field fMobile;// = new Field(MOBILE, null, typeof(RichTextBox), "Mobile:", Gui.Place.LeftOne, Gui.Place.LeftTwo, Gui.Place.Nine);
-        public Field Mobile { get { fMobile.val = pMobile; return fMobile; } set { fMobile = value; pMobile = fMobile.val; } }
-
-        public string pAddress { get { return address; } set { address = value; } }
-        public Field fAddress;// = new Field(ADDRESS, null, typeof(RichTextBox), "Address:", Gui.Place.LeftOne, Gui.Place.LeftTwo, Gui.Place.Four);
-        public Field Address { get { fAddress.val = pAddress; return fAddress; } set { fAddress = value; pAddress = fAddress.val; } }
-
-        public string pCountry
-        {
-            get
-            {
-                //string value;
-                //Cnst.DCOUNTRY.TryGetValue(country, out value);
-                //return value;
-                return Cnst.getDictionary(Cnst.DCOUNTRY, country);
-            }
-            set
-            {
-                country = Cnst.DCOUNTRY.FirstOrDefault(c => (c.Value == value)).Key;
-            }
-        }
-        public Field fCountry;
-        public Field Country { get { fCountry.val = pCountry; return fCountry; } set { fCountry = value; pCountry = fCountry.val; } }
-
-        public string pCity { get { return city; } set { city = value; } }
-        public Field fCity;
-        public Field City { get { fCity.val = pCity; return fCity; } set { fCity = value; pCity = fCity.val; } }
-
-        public string pState
-        {
-            get
-            {
-                return Cnst.getDictionary(Cnst.DSTATE, state);
-            }
-            set
-            {
-                state = Cnst.DSTATE.FirstOrDefault(c => (c.Value == value)).Key;
-            }
-        }
-
-        public Field fState;
-        public Field State { get { fState.val = pState; return fState; } set { fState = value; pState = fState.val; } }
-
-        public string pEmail { get { return email; } set { email = value; } }
-        public Field fEmail;
-        public Field Email { get { fEmail.val = pEmail; return fEmail; } set { fEmail = value; pEmail = fEmail.val; } }
+        //public int id { get; set; }
+        //public string mobile { get; set; }
+        //public string address { get; set; }
+        //public string country { get; set; }
+        //public string city { get; set; }
+        //public string state { get; set; }
+        //public string email { get; set; }
+        public int number_of_dairy_farms { get; set; }
+        public int number_of_dairy_cows { get; set; }
+        //public string name { get; set; }
+        //public string contact_name { get; set; }
+        //public string contract_type { get; set; }
+        
+        //public int Id { get { return id; } set { id = value; } }
 
         public string pNumberOfDairyFarms
         {
@@ -419,105 +481,102 @@ namespace WinAMBurner
         public Field fNumberOfDairyCows;
         public Field NumberOfDairyCows { get { fNumberOfDairyCows.val = pNumberOfDairyCows; return fNumberOfDairyCows; } set { fNumberOfDairyCows = value; pNumberOfDairyCows = fNumberOfDairyCows.val; } }
 
-        public string pName { get { return name; } set { name = value; } }
-        public Field fName;
-        public Field Name { get { fName.val = pName; return fName; } set { fName = value; pName = fName.val; } }
+        //public string pAddress { get { return address; } set { address = value; } }
+        //public Field fAddress;// = new Field(ADDRESS, null, typeof(RichTextBox), "Address:", Gui.Place.LeftOne, Gui.Place.LeftTwo, Gui.Place.Four);
+        //public Field Address { get { fAddress.val = pAddress; return fAddress; } set { fAddress = value; pAddress = fAddress.val; } }
 
-        public string pContractType { get { return contract_type; } set { contract_type = value; } }
-        public Field fContractType;
-        public Field ContractType { get { fContractType.val = pContractType; return fContractType; } set { fContractType = value; pContractType = fContractType.val; } }
-
-        //public string Contact
+        //public string pCountry
         //{
         //    get
         //    {
-        //        return Gui.intToString(contact);
+        //        return Cnst.getFromDictionary(Cnst.DCOUNTRY, country);
         //    }
         //    set
         //    {
-        //        contact = Gui.stringToInt(value);
+        //        country = Cnst.DCOUNTRY.FirstOrDefault(c => (c.Value == value)).Key;
         //    }
         //}
+        //public Field fCountry;
+        //public Field Country { get { fCountry.val = pCountry; return fCountry; } set { fCountry = value; pCountry = fCountry.val; } }
+
+        //public string pState
+        //{
+        //    get
+        //    {
+        //        return Cnst.getFromDictionary(Cnst.DSTATE, state);
+        //    }
+        //    set
+        //    {
+        //        state = Cnst.DSTATE.FirstOrDefault(c => (c.Value == value)).Key;
+        //    }
+        //}
+        //public Field fState;
+        //public Field State { get { fState.val = pState; return fState; } set { fState = value; pState = fState.val; } }
+
+        //public string pCity { get { return city; } set { city = value; } }
+        //public Field fCity;
+        //public Field City { get { fCity.val = pCity; return fCity; } set { fCity = value; pCity = fCity.val; } }
         
-        //public string Distributor
-        //{
-        //    get
-        //    {
-        //        return Gui.intToString(distributor);
-        //    }
-        //    set
-        //    {
-        //        distributor = Gui.stringToInt(value);
-        //    }
-        //}
+        //public string pName { get { return name; } set { name = value; } }
+        //public Field fName;
+        //public Field Name { get { fName.val = pName; return fName; } set { fName = value; pName = fName.val; } }
+        
+        //public string pMobile { get { return mobile; } set { mobile = value; } }
+        //public Field fMobile;// = new Field(MOBILE, null, typeof(RichTextBox), "Mobile:", Gui.Place.LeftOne, Gui.Place.LeftTwo, Gui.Place.Nine);
+        //public Field Mobile { get { fMobile.val = pMobile; return fMobile; } set { fMobile = value; pMobile = fMobile.val; } }
+        
+        //public string pEmail { get { return email; } set { email = value; } }
+        //public Field fEmail;
+        //public Field Email { get { fEmail.val = pEmail; return fEmail; } set { fEmail = value; pEmail = fEmail.val; } }
+        
+        //public string pContactName { get { return contact_name; } set { contact_name = value; } }
+        //public Field fContactName;
+        //public Field ContactName { get { fContactName.val = pContactName; return fContactName; } set { fContactName = value; pContactName = fContactName.val; } }
+        
+        //public string pContractType { get { return contract_type; } set { contract_type = value; } }
+        //public Field fContractType;
+        //public Field ContractType { get { fContractType.val = pContractType; return fContractType; } set { fContractType = value; pContractType = fContractType.val; } }
 
         public Service()
         {
-            Id = ID;
-            Mobile = new Field(MOBILE, null, typeof(RichTextBox), "Mobile:", placeh: Gui.Place.RightTwo, lplaceh: Gui.Place.RightOne, placev: Gui.Place.Five);
-            Address = new Field(ADDRESS, null, typeof(RichTextBox), "Address:", placeh: Gui.Place.LeftOne, lplaceh: Gui.Place.LeftTwo, placev: Gui.Place.Five);
-            Country = new Field(Cnst.COUNTRY.FirstOrDefault(), Cnst.COUNTRY, typeof(ComboBox), "Country:", placeh: Gui.Place.LeftOne, lplaceh: Gui.Place.LeftTwo, placev: Gui.Place.Six);
-            City = new Field(CITY, null, typeof(RichTextBox), "City:", placeh: Gui.Place.RightTwo, lplaceh: Gui.Place.RightOne, placev: Gui.Place.Three);
-            State = new Field(Cnst.STATE.FirstOrDefault(), Cnst.STATE, typeof(ComboBox), "State:", placeh: Gui.Place.LeftOne, lplaceh: Gui.Place.LeftTwo, placev: Gui.Place.Seven);
-            Email = new Field(EMAIL, null, typeof(RichTextBox), "Email Address:", placeh: Gui.Place.RightTwo, lplaceh: Gui.Place.RightOne, placev: Gui.Place.Six);
-            NumberOfDairyFarms = new Field(NUMBER_OF_DAIRY_FARMS, null, typeof(RichTextBox), "# of dairy farms:", placeh: Gui.Place.LeftOne, lplaceh: Gui.Place.LeftTwo, placev: Gui.Place.Three);
-            NumberOfDairyCows = new Field(NUMBER_OF_DAIRY_COWS, null, typeof(RichTextBox), "# of dairy cows:", placeh: Gui.Place.LeftOne, lplaceh: Gui.Place.LeftTwo, placev: Gui.Place.Four);
-            Name = new Field(NAME, null, typeof(RichTextBox), "Name of contact::", placeh: Gui.Place.RightTwo, lplaceh: Gui.Place.RightOne, placev: Gui.Place.Four);
-            ContractType = new Field(Cnst.CONTRACT_TYPE.FirstOrDefault(), Cnst.CONTRACT_TYPE, typeof(ComboBox), "Contract Type:", placeh: Gui.Place.RightTwo, lplaceh: Gui.Place.RightOne, placev: Gui.Place.Nine);
-            //Contact = CONTACT;
-            //Distributor = DISTRIBUTOR;
-        }
-
-        public override string? ToString()
-        {
-            return this.Name.val;
+            //Id = ID;
+            NumberOfDairyFarms = new Field(NUMBER_OF_DAIRY_FARMS, null, typeof(RichTextBox), "# of dairy farms:", placeh: Gui.Place.Six, lplaceh: Gui.Place.Four, placev: Gui.Place.Three);
+            NumberOfDairyCows = new Field(NUMBER_OF_DAIRY_COWS, null, typeof(RichTextBox), "# of dairy cows:", placeh: Gui.Place.Six, lplaceh: Gui.Place.Four, placev: Gui.Place.Four);
+            Address = new Field(ADDRESS, null, typeof(RichTextBox), "Address:", placeh: Gui.Place.Six, lplaceh: Gui.Place.Four, placev: Gui.Place.Five);
+            Country = new Field(Const.COUNTRY.FirstOrDefault(), Const.COUNTRY, typeof(ComboBox), "Country:", placeh: Gui.Place.Six, lplaceh: Gui.Place.Four, placev: Gui.Place.Six);
+            State = new Field(Const.STATE.FirstOrDefault(), Const.STATE, typeof(ComboBox), "State:", placeh: Gui.Place.Six, lplaceh: Gui.Place.Four, placev: Gui.Place.Seven);
+            City = new Field(CITY, null, typeof(RichTextBox), "City:", placeh: Gui.Place.Six, lplaceh: Gui.Place.Four, placev: Gui.Place.Eight);
+            Name = new Field(NAME, null, typeof(RichTextBox), "Name:", placeh: Gui.Place.Three, lplaceh: Gui.Place.One, placev: Gui.Place.Three);
+            Mobile = new Field(MOBILE, null, typeof(RichTextBox), "Mobile:", placeh: Gui.Place.Three, lplaceh: Gui.Place.One, placev: Gui.Place.Four);
+            Email = new Field(EMAIL, null, typeof(RichTextBox), "Email Address:", placeh: Gui.Place.Three, lplaceh: Gui.Place.One, placev: Gui.Place.Five);
+            ContactName = new Field(CONTACT_NAME, null, typeof(RichTextBox), "Contact Name:", placeh: Gui.Place.Three, lplaceh: Gui.Place.One, placev: Gui.Place.Six);
+            ContractType = new Field(Const.CONTRACT_TYPE.FirstOrDefault(), Const.CONTRACT_TYPE, typeof(ComboBox), "Contract Type:", placeh: Gui.Place.Three, lplaceh: Gui.Place.One, placev: Gui.Place.Seven);
         }
     }
 
     class TreatmentPackage : TreatmentPackageJson
     {
-        public string PartNumber { get { return part_number; } set { part_number = value; } }
-        //    public static List<string> PART_NUMBER = new List<string>() { ""};
-        //    
-        //    public string pPartNumber
-        //    {
-        //        get
-        //        {
-        //            return Gui.intToString(part_number);
-        //        }
-        //        set
-        //        {
-        //            part_number = Gui.stringToInt(value);
-        //        }
-        //    }
-        //    public Field fPartNumber;
-        //    public Field PartNumber { get { fPartNumber.val = pPartNumber; return fPartNumber; } set { fPartNumber = value; pPartNumber = fPartNumber.val; } }
-        //    
-        //    public TreatmentPackage()
-        //    {
-        //        PartNumber = new Field(PART_NUMBER.First(), PART_NUMBER, typeof(ComboBox), "Add treatments to AM – SN", placev: Gui.Place.Seven, lplacev: Gui.Place.Six);
-        //    }
-    }
+        public int id { get; set; }
+        public bool is_active { get; set; }
+        public string part_number { get; set; }
+        public int amount_of_treatments { get; set; }
+        public string description { get; set; }
+        public string contract_type { get; set; }
+        public string added_date { get; set; }
 
-    //class Action: ActionJson
-    //{
-    //    public int Id { get { return id; } set { id = value; } }
-    //    public string Date { get { return date; } set { date = value; } }
-    //    public string AptxId { get { return aptx_id; } set { aptx_id = value; } }
-    //    public string AmId { get { return am_id; } set { am_id = value; } }
-    //    public int PartNumber { get { return part_number; } set { part_number = value; } }
-    //    public int Contact { get { return contact; } set { contact = value; } }
-    //    public string Tablet { get { return tablet; } set { tablet = value; } }
-    //    public int Farm { get { return farm; } set { farm = value; } }
-    //    public int ServiceProvider { get { return service_provider; } set { service_provider = value; } }
-    //    public int Distributor { get { return distributor; } set { distributor = value; } }
-    //}
+        public string PartNumber { get { return part_number; } set { part_number = value; } }
+
+        public override string ToString()
+        {
+            return PartNumber;
+        }
+    }
 
     class Field
     {
         public string val;
         public string deflt;
-        public List<string> items;
+        public string[] items;
         public Control control;
         public Control lcontrol;
         public Type type;
@@ -527,7 +586,7 @@ namespace WinAMBurner
         public Gui.Place placev;
         public Gui.Place lplacev;
 
-        public Field(string deflt, List<string> items, Type type, string text, 
+        public Field(string deflt, string[] items, Type type, string text, 
             Gui.Place placeh = Gui.Place.Center, Gui.Place lplaceh = Gui.Place.Center, Gui.Place placev = Gui.Place.None, Gui.Place lplacev = Gui.Place.None)
         {
             this.deflt = deflt;
@@ -544,4 +603,12 @@ namespace WinAMBurner
                 this.lplacev = lplacev;
         }
     }
+
+    //private string entityToString()
+    //{
+    //    string str = string.Empty;
+    //    foreach (PropertyInfo prop in this.GetType().GetProperties())
+    //        str += string.Format("{0}: {1}\n", prop.Name, prop.GetValue(this));
+    //    return str;
+    //}
 }
