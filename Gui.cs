@@ -37,6 +37,7 @@ namespace WinAMBurner
             //List<string> items = null,
             object[] items = null,
             EventHandler eventHandler = null,
+            //EventHandler eventHandler1 = null,
             LinkLabelLinkClickedEventHandler linkLabelLinkClickedEventHandler = null,
             Place placeh = Place.Center, Place placev = Place.Center)
         {
@@ -71,6 +72,8 @@ namespace WinAMBurner
                 {
                     if (eventHandler != null)
                         richTextBox.TextChanged += eventHandler;
+                    //if (eventHandler1 != null)
+                    //    richTextBox.SelectionChanged += eventHandler1;
                     richTextBox.Multiline = false;
                 }
                 defaultText(name, control);
@@ -98,8 +101,8 @@ namespace WinAMBurner
                         comboBox.Items.AddRange(items);
                     if (eventHandler != null)
                         comboBox.SelectedIndexChanged += eventHandler;
-                    //comboBox.TextChanged += comboBox_TextChanged;
-                    comboBox.TextUpdate += comboBox_TextUpdate;
+                    comboBox.TextChanged += comboBox_TextChanged;
+                    //comboBox.TextUpdate += comboBox_TextChanged;
                 }
                 defaultText(name, control);
             }
@@ -254,7 +257,7 @@ namespace WinAMBurner
             }
         }
 
-        private static void comboBox_TextUpdate(object sender, EventArgs e)
+        private static void comboBox_TextChanged(object sender, EventArgs e)
         {
             ComboBox comboBox = sender as ComboBox;
             if (comboBox != null)
@@ -263,18 +266,12 @@ namespace WinAMBurner
                 {
                     if (comboBox.Items != null)
                     {
-                        List<string> strs = comboBox.Items.Cast<string>().ToList();
-                        if (strs != null)
-                        {
-                            if (selectedItem == null)
-                                selectedItem = string.Empty;
-                            selectedItem = strs.Where(s => s.ToLowerInvariant().StartsWith(comboBox.Text.ToLowerInvariant())).SkipWhile(s => s != selectedItem).Reverse().FirstOrDefault();
-
-                            if (selectedItem != null)
-                                comboBox.Text = selectedItem;
-                            else
-                                comboBox.Text = string.Empty;
-                        }
+                        if (comboBox.Items.Count > 0)
+                            comboBox.SelectedItem = comboBox.Items.Cast<string>().Where(s => s.ToLower().StartsWith(comboBox.Text.ToLower())).FirstOrDefault();
+                        if (comboBox.SelectedItem != null)
+                            comboBox.Text = comboBox.SelectedItem.ToString();
+                        else
+                            comboBox.Text = string.Empty;
                     }
                 }
             }

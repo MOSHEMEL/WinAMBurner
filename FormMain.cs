@@ -52,6 +52,8 @@ namespace WinAMBurner
 
         private LoginJson login = null;
         private UserJson user = null;
+        
+        private string password = null;
 
         private string TabletNo
         {
@@ -120,7 +122,45 @@ namespace WinAMBurner
                 placev: Gui.Place.Seven);
             Gui.draw(this, typeof(Button), text: "Login", eventHandler: new EventHandler(buttonLogin_Click), placev: Gui.Place.End);
             richTextBox1 = Gui.draw(this, typeof(RichTextBox), text: "Username", width: Gui.DefaultWidthLarge, placev: Gui.Place.Three) as RichTextBox;
-            richTextBox2 = Gui.draw(this, typeof(RichTextBox), text: "Password", width: Gui.DefaultWidthLarge, placev: Gui.Place.Five) as RichTextBox;
+            //richTextBox2 = Gui.draw(this, typeof(RichTextBox), text: "Password", eventHandler: richTextBoxPassword_TextChanged, eventHandler1: richTextBoxPassword_SelectionChanged, width: Gui.DefaultWidthLarge, placev: Gui.Place.Five) as RichTextBox;
+            richTextBox2 = Gui.draw(this, typeof(RichTextBox), text: "Password", eventHandler: richTextBoxPassword_TextChanged, width: Gui.DefaultWidthLarge, placev: Gui.Place.Five) as RichTextBox;
+        }
+
+        //private void richTextBoxPassword_SelectionChanged(object sender, EventArgs e)
+        //{
+        //    RichTextBox richTextBox = sender as RichTextBox;
+        //    if ((richTextBox != null) && (password != null))
+        //    {
+        //        if (richTextBox.SelectedText != string.Empty)
+        //        {
+        //            password.TakeWhile(c => c != password.ElementAt(richTextBox.SelectionStart)).Skip(1);
+        //        }
+        //    }
+        //}
+
+        private void richTextBoxPassword_TextChanged(object sender, EventArgs e)
+        {
+            RichTextBox richTextBox = sender as RichTextBox;
+            if (richTextBox != null)
+            {
+                if ((richTextBox.Text.Length == 0) || (richTextBox.Text.Length == 1))
+                {
+                    password = string.Empty;
+                }
+                if (richTextBox.Text.Length > 0)
+                {
+                    char c = richTextBox.Text.Last();
+                    if (c == '*')
+                    {
+                        if (password.Length > 0)
+                            password = password.Remove(password.IndexOf(password.Last()));
+                    }
+                    else
+                        password += c;
+                    richTextBox.Text = new string(richTextBox.Text.Select(c => c = '*').ToArray());
+                    richTextBox.SelectionStart = richTextBox.TextLength;
+                }
+            }
         }
 
         private async void buttonLogin_Click(object sender, EventArgs e)
@@ -131,7 +171,8 @@ namespace WinAMBurner
                 email = //richTextBox1.Text.Trim(),
                 "yael@gmail.com",
                 password = //richTextBox2.Text.Trim(),
-                "yael123",
+                //"yael123",
+                password,
                 tablet = TabletNo
             };
 
@@ -374,7 +415,9 @@ namespace WinAMBurner
             {
                 //if ok
                 AMConnected = true;
-                AMConnectedShow();
+                //AMConnectedShow();
+                Gui.hide(this);
+                screenInfoShow();
             }
             else
             {
@@ -442,21 +485,16 @@ namespace WinAMBurner
         {
             Gui.draw(this, typeof(PictureBox), placev: Gui.Place.One);
             Gui.draw(this, typeof(Label), text: "Welcome distributor", font: Gui.DefaultFontLarge, placev: Gui.Place.Two);
-            //checkBox1 = Gui.draw(this, typeof(CheckBox), text: "Farm", eventHandler: checkBox_CheckedChanged, placeh: Gui.Place.LeftTwo, placev: Gui.Place.Four) as CheckBox;
-            //checkBox2 = Gui.draw(this, typeof(CheckBox), text: "Service provider", eventHandler: checkBox_CheckedChanged, placeh: Gui.Place.LeftTwo, placev: Gui.Place.Five) as CheckBox;
             radioButton1 = Gui.draw(this, typeof(RadioButton), text: "Farm", eventHandler: radioButton_CheckedChanged, placeh: Gui.Place.Two, placev: Gui.Place.Five) as RadioButton;
             radioButton2 = Gui.draw(this, typeof(RadioButton), text: "Service provider", eventHandler: radioButton_CheckedChanged, placeh: Gui.Place.Two, placev: Gui.Place.Six) as RadioButton;
-            //Gui.draw(this, typeof(RadioButton), text: "Service provider", placeh: Gui.Place.LeftOne, placev: Gui.Place.Five);
             Gui.draw(this, typeof(Label), text: "Select Farm / Service provider", placev: Gui.Place.Four);
-            //comboBox1 = Gui.draw(this, typeof(ComboBox), items: farms.Select(f => f.name).ToList(), placev: Gui.Place.Five) as ComboBox;
             comboBox1 = Gui.draw(this, typeof(ComboBox), eventHandler: comboBox_SelectedIndexChanged, placev: Gui.Place.Five) as ComboBox;
             Gui.draw(this, typeof(Label), text: "Add treatments to AM – SN" + am.SNum, placev: Gui.Place.Seven);
-            //comboBox2 = Gui.draw(this, typeof(ComboBox), items: treatmentPackages.Select(t => t.PartNumber).ToList(), placev: Gui.Place.Eight) as ComboBox;
-            //comboBox2 = Gui.draw(this, typeof(ComboBox), items: treatmentPackages.ToArray(), placev: Gui.Place.Eight) as ComboBox;
             comboBox2 = Gui.draw(this, typeof(ComboBox), placev: Gui.Place.Eight) as ComboBox;
             progressBar1 = Gui.draw(this, typeof(ProgressBar), width: Gui.DefaultWidthLarge, height: Gui.DefaultHeightSmall, placev: Gui.Place.Ten) as ProgressBar;
             Gui.draw(this, typeof(Button), text: "Cancel", eventHandler: new EventHandler(buttonTreatCansel_Click), placeh: Gui.Place.Five, placev: Gui.Place.End);
             Gui.draw(this, typeof(Button), text: "Approve", eventHandler: new EventHandler(buttonTreatApprove_Click), placeh: Gui.Place.Two, placev: Gui.Place.End);
+            radioButton1.Checked = true;
             progressBar1.Visible = false;
         }
 
@@ -467,17 +505,22 @@ namespace WinAMBurner
                 clearComboBox(comboBox2);
                 Farm farm = comboBox1.SelectedItem as Farm;
                 Service service = comboBox1.SelectedItem as Service;
+                Entity entity = null;
                 if (farm != null)
-                    comboBox2.Items.AddRange(treatmentPackages.Where(t => t.contract_type == farm.contract_type).ToArray());
+                    entity = farm;
+                //comboBox2.Items.AddRange(treatmentPackages.Where(t => t.contract_type == farm.contract_type).ToArray());
                 if (service != null)
-                    comboBox2.Items.AddRange(treatmentPackages.Where(t => t.contract_type == service.contract_type).ToArray());
+                    entity = service;
+                //comboBox2.Items.AddRange(treatmentPackages.Where(t => t.contract_type == service.contract_type).ToArray());
+                if (entity != null)
+                    comboBox2.Items.AddRange(treatmentPackages.Where(t => t.contract_type == entity.contract_type).ToArray());
             }
         }
 
         private void radioButton_CheckedChanged(object sender, EventArgs e)
         {
             RadioButton radioButton = sender as RadioButton;
-            if ((radioButton != null) && (radioButton1 != null) && (radioButton2 != null) && (comboBox1 != null))
+            if ((radioButton != null) && (radioButton1 != null) && (radioButton2 != null) && (comboBox1 != null) && (comboBox2 != null))
             {
                 if (radioButton.Checked)
                 {
@@ -496,6 +539,7 @@ namespace WinAMBurner
                 {
                     clearComboBox(comboBox1);
                 }
+                clearComboBox(comboBox2);
             }
         }
 
@@ -533,9 +577,12 @@ namespace WinAMBurner
             formNotify.ShowDialog();
             if (formNotify.DialogResult == DialogResult.Yes)
             {
-                logout();
+                //logout();
+                //Gui.hide(this);
+                //screenLoginShow();
                 Gui.hide(this);
-                screenLoginShow();
+                clearAM();
+                screenActionShow();
             }
             formNotify.Dispose();
         }
@@ -720,11 +767,11 @@ namespace WinAMBurner
         {
             RichTextBox richTextBox = sender as RichTextBox;
             DataTable table = null;
-            if ((richTextBox != null) && (dataGridView1 != null))
+            if ((richTextBox != null) && (dataGridView1 != null) && (entities != null))
             {
                 if ((richTextBox.Text != null) && (richTextBox.Name != Gui.DefaultText))
                 {
-                    table = entityTableGet(entities.Where(e => e.Name.val.ToLowerInvariant().Contains(richTextBox.Text.ToLowerInvariant())).ToList());
+                    table = entityTableGet(entities.Where(e => e.Name.val.ToLower().Contains(richTextBox.Text.ToLower())).ToList());
                     dataGridView1.DataSource = table;
                 }
             }
@@ -835,21 +882,47 @@ namespace WinAMBurner
 
         private void buttonFarmEdit_Click(object sender, EventArgs e)
         {
-            if (dataGridView1.SelectedRows.Count > 0)
+            //if (dataGridView1.SelectedRows.Count > 0)
+            //{
+            //farm = farms.ElementAt(dataGridView1.Rows.IndexOf(dataGridView1.SelectedRows[0]));
+            //farmRow = farmTable.Rows[dataGridView1.Rows.IndexOf(dataGridView1.SelectedRows[0])];
+            //}
+            if ((farms != null) && (farmTable != null) && (dataGridView1 != null))
             {
-                farm = farms.ElementAt(dataGridView1.Rows.IndexOf(dataGridView1.SelectedRows[0]));
-                farmRow = farmTable.Rows[dataGridView1.Rows.IndexOf(dataGridView1.SelectedRows[0])];
+                //farm = farms.ElementAt(dataGridView1.CurrentCell.RowIndex);
+                farm = getCurrentEntity(farms.Cast<Entity>().ToList()) as Farm;
+                //farmRow = farmTable.Rows[dataGridView1.CurrentCell.RowIndex];
+                farmRow = getCurrentRow(farmTable);
                 Gui.hide(this);
                 screenFarmEditShow(farm);
             }
         }
 
+        private DataRow getCurrentRow(DataTable dataTable)
+        {
+            return dataTable.Rows[dataGridView1.CurrentCell.RowIndex];
+        }
+
+        private Entity getCurrentEntity(List<Entity> entities)
+        {
+            return entities.ElementAt(dataGridView1.CurrentCell.RowIndex);
+        }
+
         private void buttonServiceEdit_Click(object sender, EventArgs e)
         {
-            if (dataGridView1.SelectedRows.Count > 0)
+            //if (dataGridView1.SelectedRows.Count > 0)
+            //{
+            //    service = services.ElementAt(dataGridView1.Rows.IndexOf(dataGridView1.SelectedRows[0]));
+            //    serviceRow = serviceTable.Rows[dataGridView1.Rows.IndexOf(dataGridView1.SelectedRows[0])];
+            //    Gui.hide(this);
+            //    screenServiceEditShow(service);
+            //}
+            if ((services != null) && (serviceTable != null) && (dataGridView1 != null))
             {
-                service = services.ElementAt(dataGridView1.Rows.IndexOf(dataGridView1.SelectedRows[0]));
-                serviceRow = serviceTable.Rows[dataGridView1.Rows.IndexOf(dataGridView1.SelectedRows[0])];
+                //service = services.ElementAt(dataGridView1.CurrentCell.RowIndex);
+                service = getCurrentEntity(services.Cast<Entity>().ToList()) as Service;
+                //serviceRow = serviceTable.Rows[dataGridView1.CurrentCell.RowIndex];
+                serviceRow = getCurrentRow(serviceTable);
                 Gui.hide(this);
                 screenServiceEditShow(service);
             }

@@ -410,7 +410,7 @@ namespace WinAMBurner
             Name = new Field(NAME, null, typeof(RichTextBox), "Name:", placeh: Gui.Place.Six, lplaceh: Gui.Place.Four, placev: Gui.Place.Three);
             Address = new Field(ADDRESS, null, typeof(RichTextBox), "Address:", placeh: Gui.Place.Six, lplaceh: Gui.Place.Four, placev: Gui.Place.Four);
             Country = new Field(Const.COUNTRY.FirstOrDefault(), Const.COUNTRY, typeof(ComboBox), "Country:", placeh: Gui.Place.Six, lplaceh: Gui.Place.Four, placev: Gui.Place.Five);
-            State = new Field(Const.STATE.FirstOrDefault(), Const.STATE, typeof(ComboBox), "State:", placeh: Gui.Place.Six, lplaceh: Gui.Place.Four, placev: Gui.Place.Six);
+            State = new Field(Const.STATE.FirstOrDefault(), Const.STATE, typeof(ComboBox), "State:", check: State.checkState, depend: Country.control, placeh: Gui.Place.Six, lplaceh: Gui.Place.Four, placev: Gui.Place.Six);
             City = new Field(CITY, null, typeof(RichTextBox), "City:", placeh: Gui.Place.Six, lplaceh: Gui.Place.Four, placev: Gui.Place.Seven);
             IsActive = Const.IS_ACTIVE;
             ContactName = new Field(CONTACT_NAME, null, typeof(RichTextBox), "Contact Name:", placeh: Gui.Place.Six, lplaceh: Gui.Place.Four, placev: Gui.Place.Eight);
@@ -544,7 +544,7 @@ namespace WinAMBurner
             NumberOfDairyCows = new Field(NUMBER_OF_DAIRY_COWS, null, typeof(RichTextBox), "# of dairy cows:", placeh: Gui.Place.Six, lplaceh: Gui.Place.Four, placev: Gui.Place.Four);
             Address = new Field(ADDRESS, null, typeof(RichTextBox), "Address:", placeh: Gui.Place.Six, lplaceh: Gui.Place.Four, placev: Gui.Place.Five);
             Country = new Field(Const.COUNTRY.FirstOrDefault(), Const.COUNTRY, typeof(ComboBox), "Country:", placeh: Gui.Place.Six, lplaceh: Gui.Place.Four, placev: Gui.Place.Six);
-            State = new Field(Const.STATE.FirstOrDefault(), Const.STATE, typeof(ComboBox), "State:", placeh: Gui.Place.Six, lplaceh: Gui.Place.Four, placev: Gui.Place.Seven);
+            State = new Field(Const.STATE.FirstOrDefault(), Const.STATE, typeof(ComboBox), "State:", check: State.checkState, depend: Country.control, placeh: Gui.Place.Six, lplaceh: Gui.Place.Four, placev: Gui.Place.Seven);
             City = new Field(CITY, null, typeof(RichTextBox), "City:", placeh: Gui.Place.Six, lplaceh: Gui.Place.Four, placev: Gui.Place.Eight);
             Name = new Field(NAME, null, typeof(RichTextBox), "Name:", placeh: Gui.Place.Three, lplaceh: Gui.Place.One, placev: Gui.Place.Three);
             Mobile = new Field(MOBILE, null, typeof(RichTextBox), "Mobile:", placeh: Gui.Place.Three, lplaceh: Gui.Place.One, placev: Gui.Place.Four);
@@ -585,8 +585,12 @@ namespace WinAMBurner
         public Gui.Place lplaceh;
         public Gui.Place placev;
         public Gui.Place lplacev;
+        public delegate bool Check(Control depend);
+        public Check check;
+        public Control depend;
 
-        public Field(string deflt, string[] items, Type type, string text, 
+        public Field(string deflt, string[] items, Type type, string text,
+            Check check = null, Control depend = null,
             Gui.Place placeh = Gui.Place.Center, Gui.Place lplaceh = Gui.Place.Center, Gui.Place placev = Gui.Place.None, Gui.Place lplacev = Gui.Place.None)
         {
             this.deflt = deflt;
@@ -601,6 +605,20 @@ namespace WinAMBurner
                 this.lplacev = placev;
             else
                 this.lplacev = lplacev;
+            if (check != null)
+            {
+                this.check = check;
+                this.depend = depend;
+            }
+        }
+
+        public bool checkState(Control depend)
+        {
+            if (depend.Text.Contains("United States of America"))
+                control.Enabled = true;
+            else
+                control.Enabled = false;
+            return control.Enabled;
         }
     }
 
