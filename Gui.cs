@@ -29,7 +29,6 @@ namespace WinAMBurner
         //public const float DefaultFontLarge = 24F * ScaleFactor;
         public const float DefaultFontLarge = 30F * ScaleFactor;
         public const string DefaultText = "DefaultText";
-        private static string selectedItem;
 
         public static Control draw(Form thisForm, Type type, string text = null, string name = DefaultText,
             float font = DefaultFont, Color color = new Color(),
@@ -37,7 +36,6 @@ namespace WinAMBurner
             //List<string> items = null,
             object[] items = null,
             EventHandler eventHandler = null,
-            //EventHandler eventHandler1 = null,
             LinkLabelLinkClickedEventHandler linkLabelLinkClickedEventHandler = null,
             Place placeh = Place.Center, Place placev = Place.Center)
         {
@@ -95,8 +93,6 @@ namespace WinAMBurner
                 ComboBox comboBox = (control as ComboBox);
                 if (comboBox != null)
                 {
-                    //if (items != null)
-                    //    (control as ComboBox).Items.AddRange(items.ToArray());
                     if (items != null)
                         comboBox.Items.AddRange(items);
                     if (eventHandler != null)
@@ -106,8 +102,6 @@ namespace WinAMBurner
                 }
                 defaultText(name, control);
             }
-            //if (type == typeof(CheckBox))
-            //    (control as CheckBox).CheckedChanged += eventHandler;
             if (type == typeof(RadioButton))
             {
                 RadioButton radioButton = control as RadioButton;

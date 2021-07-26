@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 
@@ -410,7 +411,7 @@ namespace WinAMBurner
             Name = new Field(NAME, null, typeof(RichTextBox), "Name:", placeh: Gui.Place.Six, lplaceh: Gui.Place.Four, placev: Gui.Place.Three);
             Address = new Field(ADDRESS, null, typeof(RichTextBox), "Address:", placeh: Gui.Place.Six, lplaceh: Gui.Place.Four, placev: Gui.Place.Four);
             Country = new Field(Const.COUNTRY.FirstOrDefault(), Const.COUNTRY, typeof(ComboBox), "Country:", placeh: Gui.Place.Six, lplaceh: Gui.Place.Four, placev: Gui.Place.Five);
-            State = new Field(Const.STATE.FirstOrDefault(), Const.STATE, typeof(ComboBox), "State:", check: State.checkState, depend: Country.control, placeh: Gui.Place.Six, lplaceh: Gui.Place.Four, placev: Gui.Place.Six);
+            State = new Field(Const.STATE.FirstOrDefault(), Const.STATE, typeof(ComboBox), "State:", placeh: Gui.Place.Six, lplaceh: Gui.Place.Four, placev: Gui.Place.Six);
             City = new Field(CITY, null, typeof(RichTextBox), "City:", placeh: Gui.Place.Six, lplaceh: Gui.Place.Four, placev: Gui.Place.Seven);
             IsActive = Const.IS_ACTIVE;
             ContactName = new Field(CONTACT_NAME, null, typeof(RichTextBox), "Contact Name:", placeh: Gui.Place.Six, lplaceh: Gui.Place.Four, placev: Gui.Place.Eight);
@@ -544,7 +545,7 @@ namespace WinAMBurner
             NumberOfDairyCows = new Field(NUMBER_OF_DAIRY_COWS, null, typeof(RichTextBox), "# of dairy cows:", placeh: Gui.Place.Six, lplaceh: Gui.Place.Four, placev: Gui.Place.Four);
             Address = new Field(ADDRESS, null, typeof(RichTextBox), "Address:", placeh: Gui.Place.Six, lplaceh: Gui.Place.Four, placev: Gui.Place.Five);
             Country = new Field(Const.COUNTRY.FirstOrDefault(), Const.COUNTRY, typeof(ComboBox), "Country:", placeh: Gui.Place.Six, lplaceh: Gui.Place.Four, placev: Gui.Place.Six);
-            State = new Field(Const.STATE.FirstOrDefault(), Const.STATE, typeof(ComboBox), "State:", check: State.checkState, depend: Country.control, placeh: Gui.Place.Six, lplaceh: Gui.Place.Four, placev: Gui.Place.Seven);
+            State = new Field(Const.STATE.FirstOrDefault(), Const.STATE, typeof(ComboBox), "State:", placeh: Gui.Place.Six, lplaceh: Gui.Place.Four, placev: Gui.Place.Seven);
             City = new Field(CITY, null, typeof(RichTextBox), "City:", placeh: Gui.Place.Six, lplaceh: Gui.Place.Four, placev: Gui.Place.Eight);
             Name = new Field(NAME, null, typeof(RichTextBox), "Name:", placeh: Gui.Place.Three, lplaceh: Gui.Place.One, placev: Gui.Place.Three);
             Mobile = new Field(MOBILE, null, typeof(RichTextBox), "Mobile:", placeh: Gui.Place.Three, lplaceh: Gui.Place.One, placev: Gui.Place.Four);
@@ -585,12 +586,14 @@ namespace WinAMBurner
         public Gui.Place lplaceh;
         public Gui.Place placev;
         public Gui.Place lplacev;
-        public delegate bool Check(Control depend);
-        public Check check;
-        public Control depend;
+        public Field depend;
+        public EventHandler comboEventHandler;
+        public EventHandler textEventHandler;
+        public LinkLabelLinkClickedEventHandler linkEventHandler;
+        private EventHandler rdioEventHandler;
+        private EventHandler buttonEventHandler;
 
         public Field(string deflt, string[] items, Type type, string text,
-            Check check = null, Control depend = null,
             Gui.Place placeh = Gui.Place.Center, Gui.Place lplaceh = Gui.Place.Center, Gui.Place placev = Gui.Place.None, Gui.Place lplacev = Gui.Place.None)
         {
             this.deflt = deflt;
@@ -605,28 +608,257 @@ namespace WinAMBurner
                 this.lplacev = placev;
             else
                 this.lplacev = lplacev;
-            if (check != null)
+            comboEventHandler = comboBox_SelectedIndexChanged;
+        }
+
+        private void comboBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            ComboBox comboBox = sender as ComboBox;
+            if(comboBox != null)
+            { 
+                check(depend); 
+            }
+            
+        }
+
+        public bool check(Field depend)
+        {
+            if(depend != null)
             {
-                this.check = check;
-                this.depend = depend;
+                if (control.Text.Contains("United States of America"))
+                    depend.control.Enabled = true;
+                else
+                    depend.control.Enabled = false;
+                return depend.control.Enabled;
+            }
+            return false;
+        }
+
+        //public enum Place
+        //{
+        //    None,
+        //    Center, Start, End,
+        //    One, Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Eleven
+        //}
+
+        public const int DefaultWidth = 390;
+        public const int DefaultWidthLarge = 1200;
+        public const int DefaultHeight = 60;
+        public const int DefaultHeightSmall = 12;
+        public const int DefaultHeightLarge = 90;
+        public const float ScaleFactor = 0.5F;
+        public const float PlaceOne = 200 * ScaleFactor;
+        public const float DeltaV = 100 * ScaleFactor;
+        //public const float DefaultFont = 18F * ScaleFactor;
+        public const float DefaultFont = 24F * ScaleFactor;
+        //public const float DefaultFontLarge = 24F * ScaleFactor;
+        public const float DefaultFontLarge = 30F * ScaleFactor;
+        public const string DefaultText = "DefaultText";
+
+        //field.control = Gui.draw(this, field.type, text: field.val, name: defaultText, items: field.items, eventHandler: field.comboEventHandler, placeh: field.placeh, placev: field.placev);
+        //field.lcontrol = Gui.draw(this, typeof(Label), text: field.text, autoSize: false, placeh: field.lplaceh, placev: field.placev);
+
+        public void draw(Form thisForm)
+        {
+            draw(thisForm, type, text: val, placeh: placeh, placev: placev);
+            draw(thisForm, typeof(Label), text: text, autoSize: false, placeh: lplaceh, placev: lplacev);
+        }
+
+        public void draw(Form thisForm, Type type)
+        {
+            draw(thisForm, type, text: val);
+        }
+
+        //public Control draw(Form thisForm, string name = DefaultText,
+        //    float font = DefaultFont, Color color = new Color(),
+        //    int width = DefaultWidth, int height = DefaultHeight, bool autoSize = true)
+        public Control draw(Form thisForm, Type type, string text = null, string name = DefaultText,
+            float font = DefaultFont, Color color = new Color(),
+            int width = DefaultWidth, int height = DefaultHeight, bool autoSize = true,
+            object[] items = null,
+            Gui.Place placeh = Gui.Place.Center, Gui.Place placev = Gui.Place.Center)
+        {
+            Control control = type.GetConstructor(new Type[] { }).Invoke(null) as Control;
+            thisForm.Controls.Add(control);
+            control.Anchor = (AnchorStyles.Top);// | (AnchorStyles.Left);
+            control.Margin = new Padding(4);
+            control.Size = new Size(width, height);
+            control.Scale(new SizeF(ScaleFactor, ScaleFactor));
+            control.TabIndex = 1;
+            control.Text = text;
+            control.Font = new Font("Segoe UI", font, FontStyle.Regular, GraphicsUnit.Point);
+
+            //if ((type == typeof(PictureBox)) || (type == typeof(LinkLabel)))
+            //    control.AutoSize = true;
+            if (type == typeof(Label))
+            {
+                if (color != Color.Empty)
+                    control.ForeColor = color;
+                control.AutoSize = autoSize;
+            }
+            if (type == typeof(PictureBox))
+            {
+                PictureBox pictureBox = (control as PictureBox);
+                if (pictureBox != null)
+                {
+                    pictureBox.Image = Properties.Resources.ARmentaSmall;
+                    control.AutoSize = autoSize;
+                }
+            }
+            if (type == typeof(RichTextBox))
+            {
+                RichTextBox richTextBox = control as RichTextBox;
+                if (richTextBox != null)
+                {
+                    richTextBox.Multiline = false;
+                    if (textEventHandler != null)
+                        richTextBox.TextChanged += textEventHandler;
+                }
+                defaultText(name, control);
+            }
+            if (type == typeof(Button))
+                if (buttonEventHandler != null)
+                    control.Click += buttonEventHandler;
+            if (type == typeof(LinkLabel))
+            {
+                LinkLabel linkLabel = control as LinkLabel;
+                if (linkLabel != null)
+                {
+                    control.AutoSize = autoSize;
+                    if (linkEventHandler != null)
+                        linkLabel.LinkClicked += linkEventHandler;
+                }
+            }
+            if (type == typeof(ComboBox))
+            {
+                ComboBox comboBox = (control as ComboBox);
+                if (comboBox != null)
+                {
+                    if (items != null)
+                        comboBox.Items.AddRange(items);
+                    if (comboEventHandler != null)
+                        comboBox.SelectedIndexChanged += comboEventHandler;
+                    comboBox.TextChanged += comboBox_TextChanged;
+                    //comboBox.TextUpdate += comboBox_TextChanged;
+                }
+                defaultText(name, control);
+            }
+            if (type == typeof(RadioButton))
+            {
+                RadioButton radioButton = control as RadioButton;
+                if (radioButton != null)
+                    if (rdioEventHandler != null)
+                        radioButton.CheckedChanged += rdioEventHandler;
+            }
+
+            control.Location = placeCalc(thisForm, control, placeh: placeh, placev: placev);
+
+            return control;
+        }
+
+        private void defaultText(string name, Control control)
+        {
+            control.Name = name;
+            if (control.Name == DefaultText)
+            {
+                control.ForeColor = Color.Silver;
+                control.Enter += new EventHandler(controlEnter_Click);
+                control.Leave += new EventHandler(controlLeave_Click);
             }
         }
 
-        public bool checkState(Control depend)
+        public static Point placeCalc(Form thisForm,
+                Control control, Point location = new System.Drawing.Point(), Gui.Place placeh = Gui.Place.Center, Gui.Place placev = Gui.Place.Center)
         {
-            if (depend.Text.Contains("United States of America"))
-                control.Enabled = true;
-            else
-                control.Enabled = false;
-            return control.Enabled;
+            if (placeh == Gui.Place.Center)
+                location.X = thisForm.Width / 2 - control.Width / 2;
+            else if (placeh == Gui.Place.Start)
+                location.X = thisForm.Width / 2 - control.Width / 2 - control.Width * 2 - control.Width * 2 / 4;
+            else if (placeh == Gui.Place.End)
+                location.X = thisForm.Width / 2 + control.Width / 2 + control.Width + control.Width * 2 / 4;
+            else if (placeh == Gui.Place.One)
+                location.X = thisForm.Width / 2 + control.Width / 4 / 2;
+            else if (placeh == Gui.Place.Two)
+                location.X = thisForm.Width / 2 + control.Width / 2 + control.Width / 4;
+            else if (placeh == Gui.Place.Three)
+                location.X = thisForm.Width / 2 + control.Width + control.Width / 4 / 2 + control.Width / 4;
+            else if (placeh == Gui.Place.Four)
+                location.X = thisForm.Width / 2 - control.Width * 2 - control.Width / 4 / 2 - control.Width / 4;
+            else if (placeh == Gui.Place.Five)
+                location.X = thisForm.Width / 2 - control.Width / 2 - control.Width - control.Width / 4;
+            else if (placeh == Gui.Place.Six)
+                location.X = thisForm.Width / 2 - control.Width - control.Width / 4 / 2;
+
+            if (placev == Gui.Place.One)
+                location.Y = 30;
+            else if (placev == Gui.Place.Two)
+                location.Y = (int)(PlaceOne + 0 * DeltaV);//200;
+            else if (placev == Gui.Place.Three)
+                location.Y = (int)(PlaceOne + 1 * DeltaV);//300;
+            else if (placev == Gui.Place.Four)
+                location.Y = (int)(PlaceOne + 2 * DeltaV);//400;
+            else if (placev == Gui.Place.Five)
+                location.Y = (int)(PlaceOne + 3 * DeltaV);//500;
+            else if (placev == Gui.Place.Six)
+                location.Y = (int)(PlaceOne + 4 * DeltaV);//600;
+            else if (placev == Gui.Place.Seven)
+                location.Y = (int)(PlaceOne + 5 * DeltaV);//700;
+            else if (placev == Gui.Place.Eight)
+                location.Y = (int)(PlaceOne + 6 * DeltaV);//800;
+            else if (placev == Gui.Place.Nine)
+                location.Y = (int)(PlaceOne + 7 * DeltaV);//900;
+            else if (placev == Gui.Place.Ten)
+                location.Y = (int)(PlaceOne + 8 * DeltaV);//1000;
+            else if (placev == Gui.Place.Eleven)
+                location.Y = (int)(PlaceOne + 9 * DeltaV);//1100;
+            else if (placev == Gui.Place.End)
+                location.Y = (int)(PlaceOne + 10 * DeltaV);//1200;
+
+            return location;
+        }
+
+        private void controlEnter_Click(object sender, EventArgs e)
+        {
+            Control control = sender as Control;
+            if (control.Name == DefaultText)
+            {
+                string dflt = control.Text;
+                control.Text = "";
+                control.Name = dflt;
+                control.ForeColor = Color.Black;
+            }
+        }
+
+        private void controlLeave_Click(object sender, EventArgs e)
+        {
+            Control control = sender as Control;
+            if (control.Text == string.Empty)
+            {
+                string dflt = control.Name;
+                control.Name = DefaultText;
+                control.Text = dflt;
+                control.ForeColor = Color.Silver;
+            }
+        }
+
+        private void comboBox_TextChanged(object sender, EventArgs e)
+        {
+            ComboBox comboBox = sender as ComboBox;
+            if (comboBox != null)
+            {
+                if (comboBox.Text != string.Empty)
+                {
+                    if (comboBox.Items != null)
+                    {
+                        if (comboBox.Items.Count > 0)
+                            comboBox.SelectedItem = comboBox.Items.Cast<string>().Where(s => s.ToLower().StartsWith(comboBox.Text.ToLower())).FirstOrDefault();
+                        if (comboBox.SelectedItem != null)
+                            comboBox.Text = comboBox.SelectedItem.ToString();
+                        else
+                            comboBox.Text = string.Empty;
+                    }
+                }
+            }
         }
     }
-
-    //private string entityToString()
-    //{
-    //    string str = string.Empty;
-    //    foreach (PropertyInfo prop in this.GetType().GetProperties())
-    //        str += string.Format("{0}: {1}\n", prop.Name, prop.GetValue(this));
-    //    return str;
-    //}
 }

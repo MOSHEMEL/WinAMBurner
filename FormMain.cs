@@ -500,20 +500,27 @@ namespace WinAMBurner
 
         private void comboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if ((comboBox1 != null) && (comboBox2 != null) && (treatmentPackages != null))
+            ComboBox comboBox = sender as ComboBox;
+            if(comboBox != null)
             {
-                clearComboBox(comboBox2);
-                Farm farm = comboBox1.SelectedItem as Farm;
-                Service service = comboBox1.SelectedItem as Service;
-                Entity entity = null;
-                if (farm != null)
-                    entity = farm;
-                //comboBox2.Items.AddRange(treatmentPackages.Where(t => t.contract_type == farm.contract_type).ToArray());
-                if (service != null)
-                    entity = service;
-                //comboBox2.Items.AddRange(treatmentPackages.Where(t => t.contract_type == service.contract_type).ToArray());
-                if (entity != null)
-                    comboBox2.Items.AddRange(treatmentPackages.Where(t => t.contract_type == entity.contract_type).ToArray());
+                if(comboBox.SelectedItem != null)
+                {
+                    if ((comboBox2 != null) && (treatmentPackages != null))
+                    {
+                        clearComboBox(comboBox2);
+                        Farm farm = comboBox.SelectedItem as Farm;
+                        Service service = comboBox.SelectedItem as Service;
+                        Entity entity = null;
+                        if (farm != null)
+                            entity = farm;
+                        //comboBox2.Items.AddRange(treatmentPackages.Where(t => t.contract_type == farm.contract_type).ToArray());
+                        if (service != null)
+                            entity = service;
+                        //comboBox2.Items.AddRange(treatmentPackages.Where(t => t.contract_type == service.contract_type).ToArray());
+                        if (entity != null)
+                            comboBox2.Items.AddRange(treatmentPackages.Where(t => t.contract_type == entity.contract_type).ToArray());
+                    }
+                }
             }
         }
 
@@ -837,6 +844,9 @@ namespace WinAMBurner
 
         private void drawFields<T>(T entity, bool edit)
         {
+            Field country = null;
+            Field state = null;
+
             foreach (PropertyInfo prop in typeof(T).GetProperties())
             {
                 //Console.WriteLine("{0} = {1}", prop.Name, prop.GetValue(user, null));
@@ -844,27 +854,18 @@ namespace WinAMBurner
                 Field field = prop.GetValue(entity) as Field;
                 if (field != null)
                 {
-                    ////Gui.draw<RichTextBox>(this, field.type, text: field.val, items: field.items, name: field.deflt, placeh: field.placeh, placev: field.placev);
-                    ////if (field.type == typeof(RichTextBox))
-                    ////{
-                    //string defaultText;
-                    //if (edit)
-                    //{
-                    //    if (field.text.Contains("Contract"))
-                    //        continue;
-                    //    defaultText = field.val;
-                    //}
-                    //else
-                    //    defaultText = Gui.DefaultText;
-                    //
-                    //field.control = Gui.draw(this, field.type, text: field.val, name: defaultText, items: field.items, placeh: field.placeh, placev: field.placev);
-                    //field.lcontrol = Gui.draw(this, typeof(Label), text: field.text, autoSize: false, items: field.items, placeh: field.lplaceh, placev: field.placev);
-
                     if (edit && field.text.Contains("Contract"))
                         continue;
+
                     drawField(field, edit);
+
+                    if (prop.Name == "Country")
+                        country = field;
+                    if (prop.Name == "State")
+                        state = field;
                 }
             }
+            country.depend = state;
         }
 
         private void drawField(Field field, bool edit)
@@ -874,24 +875,16 @@ namespace WinAMBurner
                 defaultText = field.val;
             else
                 defaultText = Gui.DefaultText;
-
-            //field.control = Gui.draw(this, field.type, text: field.val, name: defaultText, items: field.items.ToArray(), placeh: field.placeh, placev: field.placev);
-            field.control = Gui.draw(this, field.type, text: field.val, name: defaultText, items: field.items, placeh: field.placeh, placev: field.placev);
-            field.lcontrol = Gui.draw(this, typeof(Label), text: field.text, autoSize: false, placeh: field.lplaceh, placev: field.placev);
+            //field.control = Gui.draw(this, field.type, text: field.val, name: defaultText, items: field.items, eventHandler: field.comboEventHandler, placeh: field.placeh, placev: field.placev);
+            //field.lcontrol = Gui.draw(this, typeof(Label), text: field.text, autoSize: false, placeh: field.lplaceh, placev: field.placev);
+            field.draw(this);
         }
 
         private void buttonFarmEdit_Click(object sender, EventArgs e)
         {
-            //if (dataGridView1.SelectedRows.Count > 0)
-            //{
-            //farm = farms.ElementAt(dataGridView1.Rows.IndexOf(dataGridView1.SelectedRows[0]));
-            //farmRow = farmTable.Rows[dataGridView1.Rows.IndexOf(dataGridView1.SelectedRows[0])];
-            //}
             if ((farms != null) && (farmTable != null) && (dataGridView1 != null))
             {
-                //farm = farms.ElementAt(dataGridView1.CurrentCell.RowIndex);
                 farm = getCurrentEntity(farms.Cast<Entity>().ToList()) as Farm;
-                //farmRow = farmTable.Rows[dataGridView1.CurrentCell.RowIndex];
                 farmRow = getCurrentRow(farmTable);
                 Gui.hide(this);
                 screenFarmEditShow(farm);
