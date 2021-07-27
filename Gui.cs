@@ -6,7 +6,7 @@ using System.Windows.Forms;
 
 namespace WinAMBurner
 {
-    static class Gui
+    class GuiBase
     {
         public enum Place
         {
@@ -29,7 +29,10 @@ namespace WinAMBurner
         //public const float DefaultFontLarge = 24F * ScaleFactor;
         public const float DefaultFontLarge = 30F * ScaleFactor;
         public const string DefaultText = "DefaultText";
+    }
 
+    class Gui : GuiBase
+    {
         public static Control draw(Form thisForm, Type type, string text = null, string name = DefaultText,
             float font = DefaultFont, Color color = new Color(),
             int width = DefaultWidth, int height = DefaultHeight, bool autoSize = true,
@@ -295,6 +298,18 @@ namespace WinAMBurner
             else
                 return false;
         }
+
+        //public static string uintToString(uint iVal)
+        //{
+        //    return iVal.ToString();
+        //}
+
+        //public static uint stringToUint(string sVal)
+        //{
+        //    uint iVal = 0;
+        //    uint.TryParse(sVal, out iVal);
+        //    return iVal;
+        //}
 
         public static string intToString(int iVal)
         {
