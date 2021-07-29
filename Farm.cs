@@ -218,12 +218,38 @@ namespace WinAMBurner
     
         public string pName { get { return name; } set { name = value; } }
         public Field fName;
-        public Field Name { get { fName.text = pName; return fName; } set { fName = value; pName = fName.text; } }
-    
+        public Field Name { get { return getField(fName, pName); } set { if (setField(ref fName, value)) pName = fName.text; } }
+        //public Field Name { get { fName.text = pName; return fName; } set { if (value.text != string.Empty) { value.error = ErrCode.OK; fName = value; pName = fName.text; } else { value.error = ErrCode.EPARAM; } } }
+
+        public bool setField(ref Field field, Field value)
+        {
+            if (value.fcheck(value))
+            {
+                field = value;
+                //field.error = ErrCode.OK;
+                return true;
+            }
+            else
+            {
+                field = value;
+                //field.error = ErrCode.EPARAM;
+                return false;
+            }
+        }
+
+        public Field getField(Field field, string param)
+        {
+            if (field.pcheck(param))
+                field.text = param;
+            //field.error = ErrCode.OK;
+            return field;
+        }
+
         public string pAddress { get { return address; } set { address = value; } }
         public Field fAddress;
-        public Field Address { get { fAddress.text = pAddress; return fAddress; } set { fAddress = value; pAddress = fAddress.text; } }
-    
+        //public Field Address { get { fAddress.text = pAddress; return fAddress; } set { fAddress = value; pAddress = fAddress.text; } }
+        public Field Address { get { return getField(fAddress, pAddress); } set { if (setField(ref fAddress, value)) pAddress = fAddress.text; } }
+
         public string pCountry
         {
             get
@@ -236,8 +262,9 @@ namespace WinAMBurner
             }
         }
         public Field fCountry;
-        public Field Country { get { fCountry.text = pCountry; return fCountry; } set { fCountry = value; pCountry = fCountry.text; } }
-    
+        //public Field Country { get { fCountry.text = pCountry; return fCountry; } set { fCountry = value; pCountry = fCountry.text; } }
+        public Field Country { get { return getField(fCountry, pCountry); } set { if (setField(ref fCountry, value)) pCountry = fCountry.text; } }
+
         public string pState
         {
             get
@@ -254,23 +281,33 @@ namespace WinAMBurner
     
         public string pCity { get { return city; } set { city = value; } }
         public Field fCity;
-        public Field City { get { fCity.text = pCity; return fCity; } set { fCity = value; pCity = fCity.text; } }
-    
+        //public Field City { get { fCity.text = pCity; return fCity; } set { fCity = value; pCity = fCity.text; } }
+        public Field City { get { return getField(fCity, pCity); } set { if (setField(ref fCity, value)) pCity = fCity.text; } }
+
         public string pContactName { get { return contact_name; } set { contact_name = value; } }
         public Field fContactName;
-        public Field ContactName { get { fContactName.text = pContactName; return fContactName; } set { fContactName = value; pContactName = fContactName.text; } }
-    
+        //public Field ContactName { get { fContactName.text = pContactName; return fContactName; } set { fContactName = value; pContactName = fContactName.text; } }
+        public Field ContactName { get { return getField(fContactName, pContactName); } set { if (setField(ref fContactName, value)) pContactName = fContactName.text; } }
+
         public string pMobile { get { return mobile; } set { mobile = value; } }
         public Field fMobile;
-        public Field Mobile { get { fMobile.text = pMobile; return fMobile; } set { fMobile = value; pMobile = fMobile.text; } }
-    
+        //public Field Mobile { get { fMobile.text = pMobile; return fMobile; } set { fMobile = value; pMobile = fMobile.text; } }
+        public Field Mobile { get { return getField(fMobile, pMobile); } set { if (setField(ref fMobile, value)) pMobile = fMobile.text; } }
+
         public string pEmail { get { return email; } set { email = value; } }
         public Field fEmail;
-        public Field Email { get { fEmail.text = pEmail; return fEmail; } set { fEmail = value; pEmail = fEmail.text; } }
-    
+        //public Field Email { get { fEmail.text = pEmail; return fEmail; } set { fEmail = value; pEmail = fEmail.text; } }
+        public Field Email { get { return getField(fEmail, pEmail); } set { if (setField(ref fEmail, value)) pEmail = fEmail.text; } }
+
         public string pContractType { get { return contract_type; } set { contract_type = value; } }
         public Field fContractType;
-        public Field ContractType { get { fContractType.text = pContractType; return fContractType; } set { fContractType = value; pContractType = fContractType.text; } }
+        //public Field ContractType { get { fContractType.text = pContractType; return fContractType; } set { fContractType = value; pContractType = fContractType.text; } }
+        public Field ContractType { get { return getField(fContractType, pContractType); } set { if (setField(ref fContractType, value)) pContractType = fContractType.text; } }
+
+        public object clone()
+        {
+            return MemberwiseClone();
+        }
 
         public override string ToString()
         {
@@ -376,18 +413,18 @@ namespace WinAMBurner
 
         public string pFarmType { get { return farm_type; } set { farm_type = value; } }
         public Field fFarmType;
-        public Field FarmType { get { fFarmType.text = pFarmType; return fFarmType; } set { fFarmType = value; pFarmType = fFarmType.text; } }
+        //public Field FarmType { get { fFarmType.text = pFarmType; return fFarmType; } set { fFarmType = value; pFarmType = fFarmType.text; } }
+        public Field FarmType { get { return getField(fFarmType, pFarmType); } set { if (setField(ref fFarmType, value)) pFarmType = fFarmType.text; } }
 
         public string pBreedType { get { return breed_type; } set { breed_type = value; } }
         public Field fBreedType;
-        public Field BreedType { get { fBreedType.text = pBreedType; return fBreedType; } set { fBreedType = value; pBreedType = fBreedType.text; } }
+        //public Field BreedType { get { fBreedType.text = pBreedType; return fBreedType; } set { fBreedType = value; pBreedType = fBreedType.text; } }
+        public Field BreedType { get { return getField(fBreedType, pBreedType); } set { if (setField(ref fBreedType, value)) pBreedType = fBreedType.text; } }
 
-        public string pNumberOfLactatingCows
+        private string pNumberOfLactatingCows
         {
             get
             {
-                if (number_of_lactating_cows < 0)
-                    return ErrCode.EPARAM.ToString();
                 return Gui.intToString(number_of_lactating_cows);
             }
             set
@@ -395,8 +432,11 @@ namespace WinAMBurner
                 number_of_lactating_cows = Gui.stringToInt(value);
             }
         }
-        public Field fNumberOfLactatingCows;
-        public Field NumberOfLactatingCows { get { fNumberOfLactatingCows.text = pNumberOfLactatingCows; return fNumberOfLactatingCows; } set { fNumberOfLactatingCows = value; pNumberOfLactatingCows = fNumberOfLactatingCows.text; } }
+        private Field fNumberOfLactatingCows;
+        //public Field Name { get { return getField(fName, pName); } set { if (setField(value, ref fName)) pName = value.text; } }
+        //public Field NumberOfLactatingCows { get { return getField(fNumberOfLactatingCows, pNumberOfLactatingCows); } set { if (setField(value, ref fNumberOfLactatingCows)) pNumberOfLactatingCows = value.text; } }
+        //public Field NumberOfLactatingCows { get { fNumberOfLactatingCows.text = pNumberOfLactatingCows; return fNumberOfLactatingCows; } set { if (value.text != string.Empty) { value.error = ErrCode.OK; fNumberOfLactatingCows = value; pNumberOfLactatingCows = fNumberOfLactatingCows.text; } else { value.error = ErrCode.EPARAM; } } }
+        public Field NumberOfLactatingCows { get { return getField(fNumberOfLactatingCows, pNumberOfLactatingCows); } set { if (setField(ref fNumberOfLactatingCows, value)) pNumberOfLactatingCows = fNumberOfLactatingCows.text; } }
 
         public string pDhiTest
         {
@@ -410,15 +450,18 @@ namespace WinAMBurner
             }
         }
         public Field fDhiTest;
-        public Field DhiTest { get { fDhiTest.text = pDhiTest; return fDhiTest; } set { fDhiTest = value; pDhiTest = fDhiTest.text; } }
+        //public Field DhiTest { get { fDhiTest.text = pDhiTest; return fDhiTest; } set { fDhiTest = value; pDhiTest = fDhiTest.text; } }
+        public Field DhiTest { get { return getField(fDhiTest, pDhiTest); } set { if (setField(ref fDhiTest, value)) pDhiTest = fDhiTest.text; } }
 
         public string pMilkingSetupType { get { return milking_setup_type; } set { milking_setup_type = value; } }
         public Field fMilkingSetupType;
-        public Field MilkingSetupType { get { fMilkingSetupType.text = pMilkingSetupType; return fMilkingSetupType; } set { fMilkingSetupType = value; pMilkingSetupType = fMilkingSetupType.text; } }
+        //public Field MilkingSetupType { get { fMilkingSetupType.text = pMilkingSetupType; return fMilkingSetupType; } set { fMilkingSetupType = value; pMilkingSetupType = fMilkingSetupType.text; } }
+        public Field MilkingSetupType { get { return getField(fMilkingSetupType, pMilkingSetupType); } set { if (setField(ref fMilkingSetupType, value)) pMilkingSetupType = fMilkingSetupType.text; } }
 
         public string pLocationOfTreatmentType { get { return location_of_treatment_type; } set { location_of_treatment_type = value; } }
         public Field fLocationOfTreatmentType;
-        public Field LocationOfTreatmentType { get { fLocationOfTreatmentType.text = pLocationOfTreatmentType; return fLocationOfTreatmentType; } set { fLocationOfTreatmentType = value; pLocationOfTreatmentType = fLocationOfTreatmentType.text; } }
+        //public Field LocationOfTreatmentType { get { fLocationOfTreatmentType.text = pLocationOfTreatmentType; return fLocationOfTreatmentType; } set { fLocationOfTreatmentType = value; pLocationOfTreatmentType = fLocationOfTreatmentType.text; } }
+        public Field LocationOfTreatmentType { get { return getField(fLocationOfTreatmentType, pLocationOfTreatmentType); } set { if (setField(ref fLocationOfTreatmentType, value)) pLocationOfTreatmentType = fLocationOfTreatmentType.text; } }
 
         //public string pContractType { get { return contract_type; } set { contract_type = value; } }
         //public Field fContractType;
@@ -485,7 +528,8 @@ namespace WinAMBurner
             }
         }
         public Field fNumberOfDairyFarms;
-        public Field NumberOfDairyFarms { get { fNumberOfDairyFarms.text = pNumberOfDairyFarms; return fNumberOfDairyFarms; } set { fNumberOfDairyFarms = value; pNumberOfDairyFarms = fNumberOfDairyFarms.text; } }
+        //public Field NumberOfDairyFarms { get { fNumberOfDairyFarms.text = pNumberOfDairyFarms; return fNumberOfDairyFarms; } set { fNumberOfDairyFarms = value; pNumberOfDairyFarms = fNumberOfDairyFarms.text; } }
+        public Field NumberOfDairyFarms { get { return getField(fNumberOfDairyFarms, pNumberOfDairyFarms); } set { if (setField(ref fNumberOfDairyFarms, value)) pNumberOfDairyFarms = fNumberOfDairyFarms.text; } }
 
         public string pNumberOfDairyCows
         {
@@ -499,7 +543,8 @@ namespace WinAMBurner
             }
         }
         public Field fNumberOfDairyCows;
-        public Field NumberOfDairyCows { get { fNumberOfDairyCows.text = pNumberOfDairyCows; return fNumberOfDairyCows; } set { fNumberOfDairyCows = value; pNumberOfDairyCows = fNumberOfDairyCows.text; } }
+        //public Field NumberOfDairyCows { get { fNumberOfDairyCows.text = pNumberOfDairyCows; return fNumberOfDairyCows; } set { fNumberOfDairyCows = value; pNumberOfDairyCows = fNumberOfDairyCows.text; } }
+        public Field NumberOfDairyCows { get { return getField(fNumberOfDairyCows, pNumberOfDairyCows); } set { if (setField(ref fNumberOfDairyCows, value)) pNumberOfDairyCows = fNumberOfDairyCows.text; } }
 
         //public string pAddress { get { return address; } set { address = value; } }
         //public Field fAddress;// = new Field(ADDRESS, null, typeof(RichTextBox), "Address:", Gui.Place.LeftOne, Gui.Place.LeftTwo, Gui.Place.Four);
@@ -536,23 +581,23 @@ namespace WinAMBurner
         //public string pCity { get { return city; } set { city = value; } }
         //public Field fCity;
         //public Field City { get { fCity.val = pCity; return fCity; } set { fCity = value; pCity = fCity.val; } }
-        
+
         //public string pName { get { return name; } set { name = value; } }
         //public Field fName;
         //public Field Name { get { fName.val = pName; return fName; } set { fName = value; pName = fName.val; } }
-        
+
         //public string pMobile { get { return mobile; } set { mobile = value; } }
         //public Field fMobile;// = new Field(MOBILE, null, typeof(RichTextBox), "Mobile:", Gui.Place.LeftOne, Gui.Place.LeftTwo, Gui.Place.Nine);
         //public Field Mobile { get { fMobile.val = pMobile; return fMobile; } set { fMobile = value; pMobile = fMobile.val; } }
-        
+
         //public string pEmail { get { return email; } set { email = value; } }
         //public Field fEmail;
         //public Field Email { get { fEmail.val = pEmail; return fEmail; } set { fEmail = value; pEmail = fEmail.val; } }
-        
+
         //public string pContactName { get { return contact_name; } set { contact_name = value; } }
         //public Field fContactName;
         //public Field ContactName { get { fContactName.val = pContactName; return fContactName; } set { fContactName = value; pContactName = fContactName.val; } }
-        
+
         //public string pContractType { get { return contract_type; } set { contract_type = value; } }
         //public Field fContractType;
         //public Field ContractType { get { fContractType.val = pContractType; return fContractType; } set { fContractType = value; pContractType = fContractType.val; } }
@@ -594,15 +639,17 @@ namespace WinAMBurner
 
     class Field
     {
+        public ErrCode error;
         public string text;
         public string ltext;
-        private string deflt;
+        public string dflt;
         private string[] items;
         public Control control;
         private Control lcontrol;
         private Type type;
         private Type ltype;
         private float font;
+        private Color color;
         private int width;
         private int height;
         private Gui.Place placeh;
@@ -613,24 +660,32 @@ namespace WinAMBurner
         private EventHandler comboEventHandler;
         private EventHandler textEventHandler;
         private LinkLabelLinkClickedEventHandler linkEventHandler;
-        private EventHandler rdioEventHandler;
+        private EventHandler radioEventHandler;
         private EventHandler buttonEventHandler;
+        public delegate bool fCheck(Field field);
+        public fCheck fcheck;
+        public delegate bool pCheck(string param);
+        public pCheck pcheck;
 
-        public Field(Type type = null, Type ltype = null, string text = null, string ltext = null, string[] items = null, 
+        public Field(Type type = null, Type ltype = null, string text = null, string ltext = null, string[] items = null,
             LinkLabelLinkClickedEventHandler linkEventHandler = null,
+            EventHandler comboEventHandler = null,
             EventHandler buttonEventHandler = null,
             EventHandler textEventHandler = null,
-            float font = DefaultFont,
+            EventHandler radioEventHandler = null,
+            fCheck fcheck = null, pCheck pcheck = null,
+            float font = DefaultFont, Color color = new Color(),
             int width = DefaultWidth, int height = DefaultHeight,
             Gui.Place placeh = Gui.Place.Center, Gui.Place lplaceh = Gui.Place.Center, Gui.Place placev = Gui.Place.None, Gui.Place lplacev = Gui.Place.None)
         {
-            this.deflt = text;
-            this.text = text;
+            this.dflt = "<" + text + ">";
+            this.text = dflt;
             this.ltext = ltext;
             this.items = items;
             this.type = type;
             this.ltype = ltype;
             this.font = font;
+            this.color = color;
             this.width = width;
             this.height = height;
             this.placeh = placeh;
@@ -640,18 +695,47 @@ namespace WinAMBurner
                 this.lplacev = placev;
             else
                 this.lplacev = lplacev;
-         
+
             this.linkEventHandler = linkEventHandler;
             this.buttonEventHandler = buttonEventHandler;
             this.textEventHandler = textEventHandler;
-            this.comboEventHandler = comboBox_SelectedIndexChanged;
+            //this.comboEventHandler = comboBox_SelectedIndexChanged;
+            this.comboEventHandler = comboEventHandler;
+            if (fcheck != null)
+                this.fcheck += fcheck;
+            else
+                this.fcheck += checkEmpty;
+            if (pcheck != null)
+                this.pcheck += pcheck;
+            else
+                this.pcheck += checkEmpty;
+        }
+
+        public static bool checkEmpty(Field field)
+        {
+            if ((field.text != null) && (field.text != field.dflt) && (field.text != string.Empty))
+            {
+                field.error = ErrCode.OK;
+                return true;
+            }
+            field.error = ErrCode.EPARAM;
+            return false;
+        }
+
+        public static bool checkEmpty(string param)
+        {
+            if ((param != null) && (param != string.Empty))
+                return true;
+            return false;
         }
 
         public void updateField()
         {
             if (control != null)
             {
-                if (control.Name == Gui.DefaultText)
+                //if (control.Name == Gui.DefaultText)
+                control.Text = control.Text.Trim();
+                if (control.Text == dflt)
                     text = string.Empty;
                 else
                     text = control.Text;
@@ -673,12 +757,11 @@ namespace WinAMBurner
             ComboBox comboBox = sender as ComboBox;
             if(comboBox != null)
             { 
-                check(depend); 
+                checkState(depend); 
             }
-            
         }
 
-        public bool check(Field depend)
+        public bool checkState(Field depend)
         {
             if(depend != null)
             {
@@ -703,18 +786,22 @@ namespace WinAMBurner
         public const float DefaultFontLarge = 30F * ScaleFactor;
         public const string DefaultText = "DefaultText";
 
-        public void draw(Form thisForm, string defaultText)
+        public Control draw(Form thisForm)
         {
-            control = draw(thisForm, type, text: text, name: defaultText, placeh: placeh, placev: placev);
+            control = draw(thisForm, type, text: text, placeh: placeh, placev: placev);
+            return control;
         }
 
-        public void draw(Form thisForm, bool autoSize = true)
+        public Control draw(Form thisForm, bool autoSize)
         {
             lcontrol = draw(thisForm, ltype, text: ltext, autoSize: autoSize, placeh: lplaceh, placev: lplacev);
+            return lcontrol;
         }
 
-        public Control draw(Form thisForm, Type type, string text = null, string name = DefaultText,
-            float font = DefaultFont, Color color = new Color(), bool autoSize = true,
+        //public Control draw(Form thisForm, Type type, string text = null, string name = DefaultText,
+        public Control draw(Form thisForm, Type type, string text = null,
+            //float font = DefaultFont, Color color = new Color(), bool autoSize = true,
+            bool autoSize = true,
             //int width = DefaultWidth, int height = DefaultHeight, bool autoSize = true,
             Gui.Place placeh = Gui.Place.Center, Gui.Place placev = Gui.Place.Center)
         {
@@ -756,7 +843,7 @@ namespace WinAMBurner
                         richTextBox.Multiline = false;
                         if (textEventHandler != null)
                             richTextBox.TextChanged += textEventHandler;
-                        defaultText(name, control);
+                        defaultText(control);
                     }
                 }
                 if (type == typeof(TextBox))
@@ -765,7 +852,7 @@ namespace WinAMBurner
                     if (textBox != null)
                     {
                         textBox.Multiline = false;
-                        defaultText(name, control);
+                        defaultText(control);
                     }
                 }
                 if (type == typeof(Button))
@@ -791,16 +878,17 @@ namespace WinAMBurner
                         if (comboEventHandler != null)
                             comboBox.SelectedIndexChanged += comboEventHandler;
                         comboBox.TextChanged += comboBox_TextChanged;
+                        comboBox.DisplayMember = type.Name;
                         //comboBox.TextUpdate += comboBox_TextChanged;
-                        defaultText(name, control);
+                        defaultText(control);
                     }
                 }
                 if (type == typeof(RadioButton))
                 {
                     RadioButton radioButton = control as RadioButton;
                     if (radioButton != null)
-                        if (rdioEventHandler != null)
-                            radioButton.CheckedChanged += rdioEventHandler;
+                        if (radioEventHandler != null)
+                            radioButton.CheckedChanged += radioEventHandler;
                 }
 
                 control.Location = placeCalc(thisForm, control, placeh: placeh, placev: placev);
@@ -808,15 +896,20 @@ namespace WinAMBurner
             return control;
         }
 
-        private void defaultText(string name, Control control)
+        //private void defaultText(string name, Control control)
+        private void defaultText(Control control)
         {
-            control.Name = name;
-            if (control.Name == DefaultText)
-            {
+            //control.Name = name;
+            //if (control.Name == DefaultText)
+            //{
+            //if (control.Text == dflt)
+            if (text == dflt)
                 control.ForeColor = Color.Silver;
-                control.Enter += new EventHandler(controlEnter_Click);
-                control.Leave += new EventHandler(controlLeave_Click);
-            }
+            else
+                control.ForeColor = Color.Black;
+            control.Enter += new EventHandler(controlEnter_Click);
+            control.Leave += new EventHandler(controlLeave_Click);
+            //}
         }
 
         public static Point placeCalc(Form thisForm,
@@ -873,13 +966,14 @@ namespace WinAMBurner
         {
             Control control = sender as Control;
             TextBox textBox = sender as TextBox;
-            if(control != null)
+            if (control != null)
             {
-                if (control.Name == DefaultText)
+                //if (control.Name == DefaultText)
+                if (control.Text == dflt)
                 {
-                    string dflt = control.Text;
-                    control.Text = "";
-                    control.Name = dflt;
+                    //    string dflt = control.Text;
+                    control.Text = string.Empty;
+                    //control.Name = string.Empty;
                     control.ForeColor = Color.Black;
                     if (textBox != null)
                         textBox.PasswordChar = '*';
@@ -895,8 +989,8 @@ namespace WinAMBurner
             {
                 if (control.Text == string.Empty)
                 {
-                    string dflt = control.Name;
-                    control.Name = DefaultText;
+                    //    string dflt = control.Name;
+                    //control.Name = dflt;
                     control.Text = dflt;
                     control.ForeColor = Color.Silver;
                     if (textBox != null)
@@ -910,16 +1004,19 @@ namespace WinAMBurner
             ComboBox comboBox = sender as ComboBox;
             if (comboBox != null)
             {
-                if (comboBox.Text != string.Empty)
+                if (comboBox.Text != dflt)
                 {
-                    if (comboBox.Items != null)
+                    if (comboBox.Text != string.Empty)
                     {
-                        if (comboBox.Items.Count > 0)
-                            comboBox.SelectedItem = comboBox.Items.Cast<string>().Where(s => s.ToLower().StartsWith(comboBox.Text.ToLower())).FirstOrDefault();
-                        if (comboBox.SelectedItem != null)
-                            comboBox.Text = comboBox.SelectedItem.ToString();
-                        else
-                            comboBox.Text = string.Empty;
+                        if (comboBox.Items != null)
+                        {
+                            if (comboBox.Items.Count > 0)
+                                comboBox.SelectedItem = comboBox.Items.Cast<string>().Where(s => s.ToLower().StartsWith(comboBox.Text.ToLower())).FirstOrDefault();
+                            if (comboBox.SelectedItem != null)
+                                comboBox.Text = comboBox.SelectedItem.ToString();
+                            else
+                                comboBox.Text = string.Empty;
+                        }
                     }
                 }
             }

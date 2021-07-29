@@ -6,7 +6,7 @@ using System.Windows.Forms;
 
 namespace WinAMBurner
 {
-    class GuiBase
+    class Gui
     {
         public enum Place
         {
@@ -29,10 +29,7 @@ namespace WinAMBurner
         //public const float DefaultFontLarge = 24F * ScaleFactor;
         public const float DefaultFontLarge = 30F * ScaleFactor;
         public const string DefaultText = "DefaultText";
-    }
 
-    class Gui : GuiBase
-    {
         public static Control draw(Form thisForm, Type type, string text = null, string name = DefaultText,
             float font = DefaultFont, Color color = new Color(),
             int width = DefaultWidth, int height = DefaultHeight, bool autoSize = true,
@@ -263,8 +260,8 @@ namespace WinAMBurner
                 {
                     if (comboBox.Items != null)
                     {
-                        if (comboBox.Items.Count > 0)
-                            comboBox.SelectedItem = comboBox.Items.Cast<string>().Where(s => s.ToLower().StartsWith(comboBox.Text.ToLower())).FirstOrDefault();
+                        //if (comboBox.Items.Count > 0)
+                        //    comboBox.SelectedItem = comboBox.Items.Cast<string>().Where(s => s.ToLower().StartsWith(comboBox.Text.ToLower())).FirstOrDefault();
                         if (comboBox.SelectedItem != null)
                             comboBox.Text = comboBox.SelectedItem.ToString();
                         else
