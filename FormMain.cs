@@ -12,13 +12,13 @@ namespace WinAMBurner
 {
     public partial class FormMain : Form
     {
-        private RichTextBox richTextBox1;
-        private RichTextBox richTextBox2;
+        //private RichTextBox richTextBox1;
+        //private RichTextBox richTextBox2;
         private Label label1;
         private Button button1;
         private Button button2;
-        private ComboBox comboBox1;
-        private ComboBox comboBox2;
+        //private ComboBox comboBox1;
+        //private ComboBox comboBox2;
         private ProgressBar progressBar1;
         //private System.Windows.Forms.BindingSource bindingSource1;
         private DataGridView dataGridView1;
@@ -26,7 +26,6 @@ namespace WinAMBurner
         //private CheckBox checkBox2;
         private RadioButton radioButton1;
         private RadioButton radioButton2;
-
         private bool AMConnected = false;
         private AM am = new AM();
 
@@ -53,7 +52,10 @@ namespace WinAMBurner
         //private LoginJson login = null;
         private Login login = null;
         private UserJson user = null;
-        
+
+        //private TreatmentPackage treatmentPackage;
+        private Action action;
+
         //private string password = null;
         //private Field fUsername;
         //private Field fPassword;
@@ -328,7 +330,8 @@ namespace WinAMBurner
         {
             allControlsDisable();
             Gui.hide(this);
-            screenConnectShow();
+            screenConnectShow(); 
+            screenTreatShow();
         }
 
         private async void buttonFarm_Click(object sender, EventArgs e)
@@ -568,13 +571,18 @@ namespace WinAMBurner
             //radioButton2 = Gui.draw(this, typeof(RadioButton), text: "Service provider", eventHandler: radioButton_CheckedChanged, placeh: Gui.Place.Two, placev: Gui.Place.Six) as RadioButton;
             radioButton2 = new Field(ltype: typeof(RadioButton), ltext: "Service provider", radioEventHandler: radioButton_CheckedChanged, lplaceh: Gui.Place.Two, lplacev: Gui.Place.Six).draw(this, true) as RadioButton;
             //Gui.draw(this, typeof(Label), text: "Select Farm / Service provider", placev: Gui.Place.Four);
-            new Field(ltype: typeof(Label), ltext: "Select Farm / Service provider", lplacev: Gui.Place.Four).draw(this, true);
+            //new Field(ltype: typeof(Label), ltext: "Select Farm / Service provider", lplacev: Gui.Place.Four).draw(this, true);
             //comboBox1 = Gui.draw(this, typeof(ComboBox), eventHandler: comboBox_SelectedIndexChanged, placev: Gui.Place.Five) as ComboBox;
-            comboBox1 = new Field(type: typeof(ComboBox), comboEventHandler: comboBox_SelectedIndexChanged, placev: Gui.Place.Five).draw(this, true) as ComboBox;
+            //comboBox1 = new Field(type: typeof(ComboBox), comboEventHandler: comboBox_SelectedIndexChanged, placev: Gui.Place.Five).draw(this) as ComboBox;
             //Gui.draw(this, typeof(Label), text: "Add treatments to AM – SN" + am.SNum, placev: Gui.Place.Seven);
-            new Field(ltype: typeof(Label), ltext: "Add treatments to AM – SN" + am.SNum, lplacev: Gui.Place.Seven).draw(this, true);
+            //new Field(ltype: typeof(Label), ltext: "Add treatments to AM – SN" + am.SNum, lplacev: Gui.Place.Seven).draw(this, true);
             //comboBox2 = Gui.draw(this, typeof(ComboBox), placev: Gui.Place.Eight) as ComboBox;
-            comboBox2 = new Field(type: typeof(ComboBox), placev: Gui.Place.Eight).draw(this, true) as ComboBox;
+            //comboBox2 = new Field(type: typeof(ComboBox), placev: Gui.Place.Eight).draw(this) as ComboBox;
+            //treatmentPackage = new TreatmentPackage();
+            //comboBox2 = drawField(treatmentPackage.PartNumber, false) as ComboBox;
+            //treatmentPackage.PartNumber.lcontrol.Text += am.SNum;
+            action = new Action(am, TabletNo, comboBox_SelectedIndexChanged);
+            drawFields(action,false);
             //progressBar1 = Gui.draw(this, typeof(ProgressBar), width: Gui.DefaultWidthLarge, height: Gui.DefaultHeightSmall, placev: Gui.Place.Ten) as ProgressBar;
             progressBar1 = new Field(ltype: typeof(ProgressBar), width: Gui.DefaultWidthLarge, height: Gui.DefaultHeightSmall, lplacev: Gui.Place.Ten).draw(this, true) as ProgressBar;
             //Gui.draw(this, typeof(Button), text: "Cancel", eventHandler: new EventHandler(buttonTreatCansel_Click), placeh: Gui.Place.Five, placev: Gui.Place.End);
@@ -587,23 +595,24 @@ namespace WinAMBurner
 
         private void comboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-            ComboBox comboBox = sender as ComboBox;
-            if(comboBox != null)
+            ComboBox comboBoxId = sender as ComboBox;
+            ComboBox comboBoxPN = action.PartNumber.control as ComboBox;
+            if (comboBoxId != null)
             {
-                if(comboBox.SelectedItem != null)
+                if(comboBoxId.SelectedItem != null)
                 {
-                    if ((comboBox2 != null) && (treatmentPackages != null))
+                    if ((comboBoxPN != null) && (treatmentPackages != null))
                     {
-                        clearComboBox(comboBox2);
-                        Farm farm = comboBox.SelectedItem as Farm;
-                        Service service = comboBox.SelectedItem as Service;
+                        clearComboBox(comboBoxPN, action.PartNumber.dText);
+                        Farm farm = comboBoxId.SelectedItem as Farm;
+                        Service service = comboBoxId.SelectedItem as Service;
                         Entity entity = null;
                         if (farm != null)
                             entity = farm;
                         if (service != null)
                             entity = service;
                         if (entity != null)
-                            comboBox2.Items.AddRange(treatmentPackages.Where(t => t.contract_type == entity.contract_type).ToArray());
+                            comboBoxPN.Items.AddRange(treatmentPackages.Where(t => t.contract_type == entity.contract_type).ToArray());
                     }
                 }
             }
@@ -612,34 +621,36 @@ namespace WinAMBurner
         private void radioButton_CheckedChanged(object sender, EventArgs e)
         {
             RadioButton radioButton = sender as RadioButton;
-            if ((radioButton != null) && (radioButton1 != null) && (radioButton2 != null) && (comboBox1 != null) && (comboBox2 != null))
+            ComboBox comboBoxId = action.Farm.control as ComboBox;
+            ComboBox comboBoxPN = action.PartNumber.control as ComboBox;
+            if ((radioButton != null) && (radioButton1 != null) && (radioButton2 != null) && (comboBoxId != null) && (comboBoxPN != null))
             {
                 if (radioButton.Checked)
                 {
                     if (radioButton == radioButton1)
                     {
                         radioButton2.Checked = false;
-                        comboBox1.Items.AddRange(farms.ToArray());
+                        comboBoxId.Items.AddRange(farms.ToArray());
                     }
                     if (radioButton == radioButton2)
                     {
                         radioButton1.Checked = false;
-                        comboBox1.Items.AddRange(services.ToArray());
+                        comboBoxId.Items.AddRange(services.ToArray());
                     }
                 }
                 else
                 {
-                    clearComboBox(comboBox1);
+                    clearComboBox(comboBoxId, action.Farm.dText);
                 }
-                clearComboBox(comboBox2);
+                clearComboBox(comboBoxPN, action.PartNumber.dText);
             }
         }
 
-        private void clearComboBox(ComboBox comboBox)
+        private void clearComboBox(ComboBox comboBox, string dflt)
         {
             if (comboBox != null)
             {
-                comboBox.Text = string.Empty;
+                comboBox.Text = dflt;
                 while (comboBox.Items.Count > 0)
                     comboBox.Items.RemoveAt(0);
             }
@@ -685,25 +696,34 @@ namespace WinAMBurner
 
             allControlsDisable();
 
-            Farm farm = null;
-            int? farmId = null;
-            Service service = null;
-            int? serviceId = null;
-            if (radioButton1.Checked)
-            {
-                farm = comboBox1.SelectedItem as Farm;
-                if (farm != null)
-                    farmId = farm.Id;
-            }
-            else if (radioButton2.Checked)
-            {
-                service = comboBox1.SelectedItem as Service;
-                if (service != null)
-                    serviceId = service.Id;
-            }
-            TreatmentPackage treatmentPackage = comboBox2.SelectedItem as TreatmentPackage;
-
-            if ((farm != null) || (service != null) && (treatmentPackage != null))
+            //Farm farm = null;
+            //int? farmId = null;
+            //Service service = null;
+            //int? serviceId = null;
+            //ComboBox comboBoxId = action.Farm.control as ComboBox;
+            ComboBox comboBoxPN = action.PartNumber.control as ComboBox;
+            //if ((comboBoxId != null) && (comboBoxPN != null))
+            TreatmentPackage treatmentPackage = null;
+            if (comboBoxPN != null)
+                //{
+                //    if (radioButton1.Checked)
+                //    {
+                //        farm = comboBoxId.SelectedItem as Farm;
+                //        if (farm != null)
+                //            farmId = farm.Id;
+                //    }
+                //    else if (radioButton2.Checked)
+                //    {
+                //        service = comboBoxId.SelectedItem as Service;
+                //        if (service != null)
+                //            serviceId = service.Id;
+                //    }
+                treatmentPackage = comboBoxPN.SelectedItem as TreatmentPackage;
+            //    
+            //    if ((farm != null) || (service != null) && (treatmentPackage != null))
+            //    {
+            updateParams(action);
+            if ((errcode = checkParams(action)) == ErrCode.OK)
             {
                 am.MaxiSet = (uint)(treatmentPackage.amount_of_treatments * settings.number_of_pulses_per_treatment);
                 if ((am.Maxi + am.MaxiSet) < settings.max_am_pulses)
@@ -716,15 +736,15 @@ namespace WinAMBurner
                     {
                         if ((errcode = await am.AMDataRead()) == ErrCode.OK)
                         {
-                            ActionJson action = new ActionJson()
-                            {
-                                aptx_id = string.Format("{0:x} {1:x} {2:x}", am.AptxId[0], am.AptxId[1], am.AptxId[2]),
-                                am_id = am.SNum.ToString(),
-                                part_number = Gui.stringToInt(treatmentPackage.part_number),
-                                tablet = TabletNo,
-                                farm = farmId,
-                                service_provider = serviceId
-                            };
+                            //ActionJson act = new ActionJson()
+                            //{
+                            //    aptx_id = string.Format("{0:x} {1:x} {2:x}", am.AptxId[0], am.AptxId[1], am.AptxId[2]),
+                            //    am_id = am.SNum.ToString(),
+                            //    part_number = treatmentPackage.part_number,
+                            //    tablet = TabletNo,
+                            //    farm = farmId,
+                            //    service_provider = serviceId
+                            //};
 
                             JsonDocument jsonDocument = await web.entityAdd<ActionJson>(action, "api/p/actions/");
                             if ((jsonDocument != null) && ((errcode = responseParse<ActionJson>(jsonDocument)) == ErrCode.OK))
@@ -853,7 +873,7 @@ namespace WinAMBurner
             //Gui.draw(this, typeof(Button), text: "Back", eventHandler: eventHandlerButton4, placeh: Gui.Place.Four, placev: Gui.Place.Three);
             new Field(ltype: typeof(Button), ltext: "Back", buttonEventHandler: eventHandlerButton4, lplaceh: Gui.Place.Four, lplacev: Gui.Place.Three).draw(this, true);
             //Gui.draw(this, typeof(RichTextBox), text: "Search", eventHandler: eventHandlerButton3, placeh: Gui.Place.Six, placev: Gui.Place.Three);
-            new Field(type: typeof(RichTextBox), text: "Search", textEventHandler: eventHandlerButton3, placeh: Gui.Place.Six, placev: Gui.Place.Three).draw(this, true);
+            new Field(type: typeof(RichTextBox), text: "Search", textEventHandler: eventHandlerButton3, placeh: Gui.Place.Six, placev: Gui.Place.Three).draw(this);
             //Gui.draw(this, typeof(Button), text: "Edit", eventHandler: eventHandlerButton1, placeh: Gui.Place.One, placev: Gui.Place.Three);
             new Field(ltype: typeof(Button), ltext: "Edit", buttonEventHandler: eventHandlerButton1, lplaceh: Gui.Place.One, lplacev: Gui.Place.Three).draw(this, true);
             //Gui.draw(this, typeof(Button), text: "Add New", eventHandler: eventHandlerButton2, placeh: Gui.Place.Three, placev: Gui.Place.Three);
@@ -942,7 +962,7 @@ namespace WinAMBurner
                 country.depend = state;
         }
 
-        private void drawField(Field field, bool edit)
+        private Control drawField(Field field, bool edit)
         {
             //string dflt = null;
             //if (edit)
@@ -951,8 +971,9 @@ namespace WinAMBurner
             //    dflt = Gui.DefaultText;
             //field.control = Gui.draw(this, field.type, text: field.val, name: defaultText, items: field.items, eventHandler: field.comboEventHandler, placeh: field.placeh, placev: field.placev);
             //field.lcontrol = Gui.draw(this, typeof(Label), text: field.text, autoSize: false, placeh: field.lplaceh, placev: field.placev);
-            field.draw(this);
+            Control control = field.draw(this);
             field.draw(this, false);
+            return control;
         }
 
         private void buttonFarmEdit_Click(object sender, EventArgs e)
@@ -1160,7 +1181,7 @@ namespace WinAMBurner
                         if (field.control != null)
                         {
                             field.control.ForeColor = Color.Red;
-                            field.control.Text = field.dflt;
+                            field.control.Text = field.dText;
                         }
                         errCode = ErrCode.EPARAM;
                     }

@@ -308,16 +308,23 @@ namespace WinAMBurner
         //    return iVal;
         //}
 
-        public static string intToString(int iVal)
-        {
-            return iVal.ToString();
-        }
+        //public static string intToString(int iVal)
+        //{
+        //    return iVal.ToString();
+        //}
 
         public static int stringToInt(string sVal)
         {
             int iVal = 0;
             int.TryParse(sVal, out iVal);
             return iVal;
+        }
+
+        public static string intToString(int? iVal)
+        {
+            if (iVal != null)
+                return iVal.ToString();
+            return null;
         }
     }
 }

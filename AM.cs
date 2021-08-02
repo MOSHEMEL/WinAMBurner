@@ -435,6 +435,16 @@ namespace WinAMBurner
         {
             int time = 0;
             string dataRdStr = string.Empty;
+            string dataDump = string.Empty;
+            try
+            {
+                dataDump += serialPort.ReadExisting();
+            }
+            catch (Exception e)
+            {
+                LogFile.logWrite(e.ToString());
+                return dataDump;
+            }
             for (int i = cmd.Count - 1; i >= 0; i--)
             {
                 try
