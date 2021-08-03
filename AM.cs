@@ -397,37 +397,43 @@ namespace WinAMBurner
         private ErrCode dataLineParse(string[] dataRd, string pattern, ref uint number)
         {
             ErrCode errcode = ErrCode.ERROR;
-            try
+            //try
+            //{
+            string? dataFind = dataRd.ToList().Find(data => data.Contains(pattern));
+            if (dataFind != null)
             {
-                string[] dataSplit = dataRd.ToList().Find(data => data.Contains(pattern))
-                    .Split(new char[] { ' ', ':', 'x' }, StringSplitOptions.RemoveEmptyEntries);
+                string[] dataSplit = dataFind.Split(new char[] { ' ', ':', 'x' }, StringSplitOptions.RemoveEmptyEntries);
                 if (uint.TryParse(dataSplit[3], NumberStyles.HexNumber,
                     CultureInfo.InvariantCulture, out number))
                     errcode = ErrCode.OK;
             }
-            catch (Exception e)
-            {
-                LogFile.logWrite(e.ToString());
-            }
+            //}
+            //catch (Exception e)
+            //{
+            //    LogFile.logWrite(e.ToString());
+            //}
             return errcode;
         }
 
         private ErrCode dataLineParse(string[] dataRd, string pattern, ref uint[] number)
         {
             ErrCode errcode = ErrCode.ERROR;
-            try
+            //try
+            //{
+            string? dataFind = dataRd.ToList().Find(data => data.Contains(pattern));
+            if (dataFind != null)
             {
-                string[] dataSplit = dataRd.ToList().Find(data => data.Contains(pattern))
-                    .Split(new char[] { 'x', '-' }, StringSplitOptions.RemoveEmptyEntries);
+                string[] dataSplit = dataFind.Split(new char[] { 'x', '-' }, StringSplitOptions.RemoveEmptyEntries);
                 if (uint.TryParse(dataSplit[1], NumberStyles.HexNumber, CultureInfo.InvariantCulture, out number[0]) &&
                     uint.TryParse(dataSplit[3], NumberStyles.HexNumber, CultureInfo.InvariantCulture, out number[1]) &&
                     uint.TryParse(dataSplit[5], NumberStyles.HexNumber, CultureInfo.InvariantCulture, out number[2]))
                     errcode = ErrCode.OK;
             }
-            catch (Exception e)
-            {
-                LogFile.logWrite(e.ToString());
-            }
+            //}
+            //catch (Exception e)
+            //{
+            //    LogFile.logWrite(e.ToString());
+            //}
             return errcode;
         }
 

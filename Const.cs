@@ -98,7 +98,8 @@ namespace WinAMBurner
         ERROR = -1,
         EPARAM = -2,
         MAX = -3,
-        ERASE = -4
+        ERASE = -4,
+        EFAIL = -5
     }
 
     static class LogFile

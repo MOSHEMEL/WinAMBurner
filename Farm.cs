@@ -155,7 +155,7 @@ namespace WinAMBurner
         public string added_date { get; set; }
     }
 
-    class ActionJson
+    interface ActionJson
     {
         //public int id { get; set; }
         //public string date { get; set; }
@@ -186,8 +186,8 @@ namespace WinAMBurner
     
         public Login()
         {
-            Email = new Field(type: typeof(RichTextBox), text: "Username", width: Gui.DefaultWidthLarge, placev: Gui.Place.Three);
-            Password = new Field(type: typeof(TextBox), text: "Password", width: Gui.DefaultWidthLarge, placev: Gui.Place.Five);
+            Email = new Field(type: typeof(RichTextBox), text: "Username", width: Field.DefaultWidthLarge, placev: Place.Three);
+            Password = new Field(type: typeof(TextBox), text: "Password", width: Field.DefaultWidthLarge, placev: Place.Five);
         }
     }
 
@@ -217,11 +217,11 @@ namespace WinAMBurner
         {
             get
             {
-                return Gui.intToString(id as int?);
+                return Field.intToString(id as int?);
             }
             set
             {
-                id = Gui.stringToInt(value);
+                id = Field.stringToInt(value);
             }
         }
 
@@ -400,11 +400,11 @@ namespace WinAMBurner
         {
             get
             {
-                return Gui.boolToString(is_active);
+                return Field.boolToString(is_active);
             }
             set
             {
-                is_active = Gui.stringToBool(value);
+                is_active = Field.stringToBool(value);
             }
         }
 
@@ -434,11 +434,11 @@ namespace WinAMBurner
         {
             get
             {
-                return Gui.intToString(number_of_lactating_cows as int?);
+                return Field.intToString(number_of_lactating_cows as int?);
             }
             set
             {
-                number_of_lactating_cows = Gui.stringToInt(value);
+                number_of_lactating_cows = Field.stringToInt(value);
             }
         }
         private Field fNumberOfLactatingCows;
@@ -451,11 +451,11 @@ namespace WinAMBurner
         {
             get
             {
-                return Gui.boolToString(dhi_test);
+                return Field.boolToString(dhi_test);
             }
             set
             {
-                dhi_test = Gui.stringToBool(value);
+                dhi_test = Field.stringToBool(value);
             }
         }
         public Field fDhiTest;
@@ -479,22 +479,24 @@ namespace WinAMBurner
         public Farm()
         {
             //Id = ID;
-            Name = new Field(type: typeof(RichTextBox), ltype: typeof(Label), text: NAME, ltext: "Name:", placeh: Gui.Place.Six, lplaceh: Gui.Place.Four, placev: Gui.Place.Three);
-            Address = new Field(type: typeof(RichTextBox), ltype: typeof(Label), text: ADDRESS, ltext: "Address:", placeh: Gui.Place.Six, lplaceh: Gui.Place.Four, placev: Gui.Place.Four);
-            Country = new Field(type: typeof(ComboBox), ltype: typeof(Label), text: Const.COUNTRY.FirstOrDefault(), ltext: "Country:", items: Const.COUNTRY, placeh: Gui.Place.Six, lplaceh: Gui.Place.Four, placev: Gui.Place.Five);
-            State = new Field(type: typeof(ComboBox), ltype: typeof(Label), text: Const.STATE.FirstOrDefault(), ltext: "State:", items: Const.STATE, placeh: Gui.Place.Six, lplaceh: Gui.Place.Four, placev: Gui.Place.Six);
-            City = new Field(type: typeof(RichTextBox), ltype: typeof(Label), text: CITY, ltext: "City:", placeh: Gui.Place.Six, lplaceh: Gui.Place.Four, placev: Gui.Place.Seven);
+            Name = new Field(type: typeof(RichTextBox), ltype: typeof(Label), text: NAME, ltext: "Name:", placeh: Place.Six, lplaceh: Place.Four, placev: Place.Three);
+            Address = new Field(type: typeof(RichTextBox), ltype: typeof(Label), text: ADDRESS, ltext: "Address:", placeh: Place.Six, lplaceh: Place.Four, placev: Place.Four);
+            //Country = new Field(type: typeof(ComboBox), ltype: typeof(Label), text: Const.COUNTRY.FirstOrDefault(), ltext: "Country:", items: Const.COUNTRY, placeh: Gui.Place.Six, lplaceh: Gui.Place.Four, placev: Gui.Place.Five);
+            Country = new Field(type: typeof(ComboBox), ltype: typeof(Label), text: "Country", ltext: "Country:", items: Const.COUNTRY, placeh: Place.Six, lplaceh: Place.Four, placev: Place.Five);
+            //State = new Field(type: typeof(ComboBox), ltype: typeof(Label), text: Const.STATE.FirstOrDefault(), ltext: "State:", items: Const.STATE, placeh: Gui.Place.Six, lplaceh: Gui.Place.Four, placev: Gui.Place.Six);
+            State = new Field(type: typeof(ComboBox), ltype: typeof(Label), text: "State", ltext: "State:", items: Const.STATE, placeh: Place.Six, lplaceh: Place.Four, placev: Place.Six);
+            City = new Field(type: typeof(RichTextBox), ltype: typeof(Label), text: CITY, ltext: "City:", placeh: Place.Six, lplaceh: Place.Four, placev: Place.Seven);
             IsActive = Const.IS_ACTIVE;
-            ContactName = new Field(type: typeof(RichTextBox), ltype: typeof(Label), text: CONTACT_NAME, ltext: "Contact Name:", placeh: Gui.Place.Six, lplaceh: Gui.Place.Four, placev: Gui.Place.Eight);
-            Mobile = new Field(type: typeof(RichTextBox), ltype: typeof(Label), text: MOBILE, ltext: "Mobile:", placeh: Gui.Place.Six, lplaceh: Gui.Place.Four, placev: Gui.Place.Nine);
-            Email = new Field(type: typeof(RichTextBox), ltype: typeof(Label), text: EMAIL, ltext: "Email Address:", placeh: Gui.Place.Six, lplaceh: Gui.Place.Four, placev: Gui.Place.Ten);
-            FarmType = new Field(type: typeof(ComboBox), ltype: typeof(Label), text: Const.FARM_TYPE.FirstOrDefault(), ltext: "Farm Type:", items: Const.FARM_TYPE, placeh: Gui.Place.Three, lplaceh: Gui.Place.One, placev: Gui.Place.Three);
-            BreedType = new Field(type: typeof(ComboBox), ltype: typeof(Label), text: Const.BREED_TYPE.FirstOrDefault(), ltext: "Breed Type:", items: Const.BREED_TYPE, placeh: Gui.Place.Three, lplaceh: Gui.Place.One, placev: Gui.Place.Four);
-            NumberOfLactatingCows = new Field(type: typeof(RichTextBox), ltype: typeof(Label), text: NUMBER_OF_LACTATING_COWS, ltext: "# of Lactating Cows:", placeh: Gui.Place.Three, lplaceh: Gui.Place.One, placev: Gui.Place.Five);
-            DhiTest = new Field(type: typeof(ComboBox), ltype: typeof(Label), text: DHI_TEST.FirstOrDefault(), ltext: "Milk Recording:", items: DHI_TEST, placeh: Gui.Place.Three, lplaceh: Gui.Place.One, placev: Gui.Place.Six);
-            MilkingSetupType = new Field(type: typeof(ComboBox), ltype: typeof(Label), text: Const.MILKING_SETUP_TYPE.FirstOrDefault(), ltext: "Milking Setup:", items: Const.MILKING_SETUP_TYPE, placeh: Gui.Place.Three, lplaceh: Gui.Place.One, placev: Gui.Place.Seven);
-            LocationOfTreatmentType = new Field(type: typeof(ComboBox), ltype: typeof(Label), text: Const.LOCATION_OF_TREATMENT_TYPE.FirstOrDefault(), ltext: "Treatment Location:", items: Const.LOCATION_OF_TREATMENT_TYPE, placeh: Gui.Place.Three, lplaceh: Gui.Place.One, placev: Gui.Place.Eight);
-            ContractType = new Field(type: typeof(ComboBox), ltype: typeof(Label), text: Const.CONTRACT_TYPE.FirstOrDefault(), ltext: "Contract Type:", items: Const.CONTRACT_TYPE, placeh: Gui.Place.Three, lplaceh: Gui.Place.One, placev: Gui.Place.Nine);
+            ContactName = new Field(type: typeof(RichTextBox), ltype: typeof(Label), text: CONTACT_NAME, ltext: "Contact Name:", placeh: Place.Six, lplaceh: Place.Four, placev: Place.Eight);
+            Mobile = new Field(type: typeof(RichTextBox), ltype: typeof(Label), text: MOBILE, ltext: "Mobile:", placeh: Place.Six, lplaceh: Place.Four, placev: Place.Nine);
+            Email = new Field(type: typeof(RichTextBox), ltype: typeof(Label), text: EMAIL, ltext: "Email Address:", placeh: Place.Six, lplaceh: Place.Four, placev: Place.Ten);
+            FarmType = new Field(type: typeof(ComboBox), ltype: typeof(Label), text: Const.FARM_TYPE.FirstOrDefault(), ltext: "Farm Type:", items: Const.FARM_TYPE, placeh: Place.Three, lplaceh: Place.One, placev: Place.Three);
+            BreedType = new Field(type: typeof(ComboBox), ltype: typeof(Label), text: Const.BREED_TYPE.FirstOrDefault(), ltext: "Breed Type:", items: Const.BREED_TYPE, placeh: Place.Three, lplaceh: Place.One, placev: Place.Four);
+            NumberOfLactatingCows = new Field(type: typeof(RichTextBox), ltype: typeof(Label), text: NUMBER_OF_LACTATING_COWS, ltext: "# of Lactating Cows:", placeh: Place.Three, lplaceh: Place.One, placev: Place.Five);
+            DhiTest = new Field(type: typeof(ComboBox), ltype: typeof(Label), text: DHI_TEST.FirstOrDefault(), ltext: "Milk Recording:", items: DHI_TEST, placeh: Place.Three, lplaceh: Place.One, placev: Place.Six);
+            MilkingSetupType = new Field(type: typeof(ComboBox), ltype: typeof(Label), text: Const.MILKING_SETUP_TYPE.FirstOrDefault(), ltext: "Milking Setup:", items: Const.MILKING_SETUP_TYPE, placeh: Place.Three, lplaceh: Place.One, placev: Place.Seven);
+            LocationOfTreatmentType = new Field(type: typeof(ComboBox), ltype: typeof(Label), text: Const.LOCATION_OF_TREATMENT_TYPE.FirstOrDefault(), ltext: "Treatment Location:", items: Const.LOCATION_OF_TREATMENT_TYPE, placeh: Place.Three, lplaceh: Place.One, placev: Place.Eight);
+            ContractType = new Field(type: typeof(ComboBox), ltype: typeof(Label), text: Const.CONTRACT_TYPE.FirstOrDefault(), ltext: "Contract Type:", items: Const.CONTRACT_TYPE, placeh: Place.Three, lplaceh: Place.One, placev: Place.Nine);
         }
     }
 
@@ -529,11 +531,11 @@ namespace WinAMBurner
         {
             get
             {
-                return Gui.intToString(number_of_dairy_farms);
+                return Field.intToString(number_of_dairy_farms);
             }
             set
             {
-                number_of_dairy_farms = Gui.stringToInt(value);
+                number_of_dairy_farms = Field.stringToInt(value);
             }
         }
         public Field fNumberOfDairyFarms;
@@ -544,11 +546,11 @@ namespace WinAMBurner
         {
             get
             {
-                return Gui.intToString(number_of_dairy_cows);
+                return Field.intToString(number_of_dairy_cows);
             }
             set
             {
-                number_of_dairy_cows = Gui.stringToInt(value);
+                number_of_dairy_cows = Field.stringToInt(value);
             }
         }
         public Field fNumberOfDairyCows;
@@ -614,17 +616,19 @@ namespace WinAMBurner
         public Service()
         {
             //Id = ID;
-            NumberOfDairyFarms = new Field(type: typeof(RichTextBox), ltype: typeof(Label), text: NUMBER_OF_DAIRY_FARMS, ltext: "# of dairy farms:", placeh: Gui.Place.Six, lplaceh: Gui.Place.Four, placev: Gui.Place.Three);
-            NumberOfDairyCows = new Field(type: typeof(RichTextBox), ltype: typeof(Label), text: NUMBER_OF_DAIRY_COWS, ltext: "# of dairy cows:", placeh: Gui.Place.Six, lplaceh: Gui.Place.Four, placev: Gui.Place.Four);
-            Address = new Field(type: typeof(RichTextBox), ltype: typeof(Label), text: ADDRESS, ltext: "Address:", placeh: Gui.Place.Six, lplaceh: Gui.Place.Four, placev: Gui.Place.Five);
-            Country = new Field(type: typeof(ComboBox), ltype: typeof(Label), text: Const.COUNTRY.FirstOrDefault(), ltext: "Country:", items: Const.COUNTRY, placeh: Gui.Place.Six, lplaceh: Gui.Place.Four, placev: Gui.Place.Six);
-            State = new Field(type: typeof(ComboBox), ltype: typeof(Label), text: Const.STATE.FirstOrDefault(), ltext: "State:", items: Const.STATE, placeh: Gui.Place.Six, lplaceh: Gui.Place.Four, placev: Gui.Place.Seven);
-            City = new Field(type: typeof(RichTextBox), ltype: typeof(Label), text: CITY, ltext: "City:",placeh: Gui.Place.Six, lplaceh: Gui.Place.Four, placev: Gui.Place.Eight);
-            Name = new Field(type: typeof(RichTextBox), ltype: typeof(Label), text: NAME, ltext: "Name:",placeh: Gui.Place.Three, lplaceh: Gui.Place.One, placev: Gui.Place.Three);
-            Mobile = new Field(type: typeof(RichTextBox), ltype: typeof(Label), text: MOBILE, ltext: "Mobile:", placeh: Gui.Place.Three, lplaceh: Gui.Place.One, placev: Gui.Place.Four);
-            Email = new Field(type: typeof(RichTextBox), ltype: typeof(Label), text: EMAIL, ltext: "Email Address:", placeh: Gui.Place.Three, lplaceh: Gui.Place.One, placev: Gui.Place.Five);
-            ContactName = new Field(type: typeof(RichTextBox), ltype: typeof(Label), text: CONTACT_NAME, ltext: "Contact Name:", placeh: Gui.Place.Three, lplaceh: Gui.Place.One, placev: Gui.Place.Six);
-            ContractType = new Field(type: typeof(ComboBox), ltype: typeof(Label), text: Const.CONTRACT_TYPE.FirstOrDefault(), ltext: "Contract Type:", items: Const.CONTRACT_TYPE, placeh: Gui.Place.Three, lplaceh: Gui.Place.One, placev: Gui.Place.Seven);
+            NumberOfDairyFarms = new Field(type: typeof(RichTextBox), ltype: typeof(Label), text: NUMBER_OF_DAIRY_FARMS, ltext: "# of dairy farms:", placeh: Place.Six, lplaceh: Place.Four, placev: Place.Three);
+            NumberOfDairyCows = new Field(type: typeof(RichTextBox), ltype: typeof(Label), text: NUMBER_OF_DAIRY_COWS, ltext: "# of dairy cows:", placeh: Place.Six, lplaceh: Place.Four, placev: Place.Four);
+            Address = new Field(type: typeof(RichTextBox), ltype: typeof(Label), text: ADDRESS, ltext: "Address:", placeh: Place.Six, lplaceh: Place.Four, placev: Place.Five);
+            //Country = new Field(type: typeof(ComboBox), ltype: typeof(Label), text: Const.COUNTRY.FirstOrDefault(), ltext: "Country:", items: Const.COUNTRY, placeh: Gui.Place.Six, lplaceh: Gui.Place.Four, placev: Gui.Place.Six);
+            Country = new Field(type: typeof(ComboBox), ltype: typeof(Label), text: "Country", ltext: "Country:", items: Const.COUNTRY, placeh: Place.Six, lplaceh: Place.Four, placev: Place.Six);
+            //State = new Field(type: typeof(ComboBox), ltype: typeof(Label), text: Const.STATE.FirstOrDefault(), ltext: "State:", items: Const.STATE, placeh: Gui.Place.Six, lplaceh: Gui.Place.Four, placev: Gui.Place.Seven);
+            State = new Field(type: typeof(ComboBox), ltype: typeof(Label), text: "State", ltext: "State:", items: Const.STATE, placeh: Place.Six, lplaceh: Place.Four, placev: Place.Seven);
+            City = new Field(type: typeof(RichTextBox), ltype: typeof(Label), text: CITY, ltext: "City:",placeh: Place.Six, lplaceh: Place.Four, placev: Place.Eight);
+            Name = new Field(type: typeof(RichTextBox), ltype: typeof(Label), text: NAME, ltext: "Name:",placeh: Place.Three, lplaceh: Place.One, placev: Place.Three);
+            Mobile = new Field(type: typeof(RichTextBox), ltype: typeof(Label), text: MOBILE, ltext: "Mobile:", placeh: Place.Three, lplaceh: Place.One, placev: Place.Four);
+            Email = new Field(type: typeof(RichTextBox), ltype: typeof(Label), text: EMAIL, ltext: "Email Address:", placeh: Place.Three, lplaceh: Place.One, placev: Place.Five);
+            ContactName = new Field(type: typeof(RichTextBox), ltype: typeof(Label), text: CONTACT_NAME, ltext: "Contact Name:", placeh: Place.Three, lplaceh: Place.One, placev: Place.Six);
+            ContractType = new Field(type: typeof(ComboBox), ltype: typeof(Label), text: Const.CONTRACT_TYPE.FirstOrDefault(), ltext: "Contract Type:", items: Const.CONTRACT_TYPE, placeh: Place.Three, lplaceh: Place.One, placev: Place.Seven);
         }
     }
 
@@ -652,21 +656,28 @@ namespace WinAMBurner
         public override string ToString()
         {
             //return PartNumber.text;
-            return PartNumber;
+            return description;
         }
     }
 
     class Action : ActionJson
     {
+        public string aptx_id { get; set; }
+        public string am_id { get; set; }
+        public string part_number { get; set; }
+        public string tablet { get; set; }
+        public int? farm { get; set; }
+        public int? service_provider { get; set; }
+        
         private string pFarm
         {
             get
             {
-                return Gui.intToString(farm);
+                return Field.intToString(farm);
             }
             set
             {
-                farm = Gui.stringToInt(value);
+                farm = Field.stringToInt(value);
             }
         }
         private Field fFarm;
@@ -692,9 +703,9 @@ namespace WinAMBurner
 
         public Action(AM am, string tablet, EventHandler comboEventHandler)
         {
-            PartNumber = new Field(type: typeof(ComboBox), ltype: typeof(Label), ltext: "Add treatments to AM – SN", placev: Gui.Place.Eight, lplacev: Gui.Place.Seven);
+            PartNumber = new Field(type: typeof(ComboBox), ltype: typeof(Label), text: "Part Number", ltext: "Add treatments to AM – SN", placev: Place.Eight, lplacev: Place.Seven);
             //+ am.SNum
-            Farm = new Field(type: typeof(ComboBox), ltype: typeof(Label), ltext: "Select Farm / Service provider" + am.SNum.ToString(), comboEventHandler: comboEventHandler, placev: Gui.Place.Five, lplacev: Gui.Place.Four);
+            Farm = new Field(type: typeof(ComboBox), ltype: typeof(Label), text: "Farm / Service provider", ltext: "Select Farm / Service provider" + am.SNum.ToString(), comboEventHandler: comboEventHandler, placev: Place.Five, lplacev: Place.Four);
             //ServiceProvider = Farm;
             aptx_id = string.Format("{0:x} {1:x} {2:x}", am.AptxId[0], am.AptxId[1], am.AptxId[2]);
             am_id = am.SNum.ToString();
@@ -702,13 +713,22 @@ namespace WinAMBurner
         }
     }
 
- class Field
+    public enum Place
+    {
+        None,
+        //Center, RightTwo, RightOne, RightThree, LeftFive, LeftSix, LeftFour, Start, End,
+        Center, Start, End,
+        One, Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Eleven
+    }
+
+    class Field
     {
         public ErrCode error;
         public string text;
         public string ltext;
-        public string dText;
-        private string[] items;
+        public string dtext;
+        public bool dflag;
+        public string[] items;
         public Control control;
         public Control lcontrol;
         private Type type;
@@ -717,10 +737,10 @@ namespace WinAMBurner
         private Color color;
         private int width;
         private int height;
-        private Gui.Place placeh;
-        private Gui.Place lplaceh;
-        private Gui.Place placev;
-        private Gui.Place lplacev;
+        private Place placeh;
+        private Place lplaceh;
+        private Place placev;
+        private Place lplacev;
         public Field depend;
         private EventHandler comboEventHandler;
         private EventHandler textEventHandler;
@@ -741,10 +761,11 @@ namespace WinAMBurner
             fCheck fcheck = null, pCheck pcheck = null,
             float font = DefaultFont, Color color = new Color(),
             int width = DefaultWidth, int height = DefaultHeight,
-            Gui.Place placeh = Gui.Place.Center, Gui.Place lplaceh = Gui.Place.Center, Gui.Place placev = Gui.Place.None, Gui.Place lplacev = Gui.Place.None)
+            Place placeh = Place.Center, Place lplaceh = Place.Center, Place placev = Place.None, Place lplacev = Place.None)
         {
-            this.dText = "<" + text + ">";
-            this.text = dText;
+            this.dtext = text;
+            this.dflag = true;
+            this.text = dtext;
             this.ltext = ltext;
             this.items = items;
             this.type = type;
@@ -756,7 +777,7 @@ namespace WinAMBurner
             this.placeh = placeh;
             this.lplaceh = lplaceh;
             this.placev = placev;
-            if (lplacev == Gui.Place.None)
+            if (lplacev == Place.None)
                 this.lplacev = placev;
             else
                 this.lplacev = lplacev;
@@ -777,6 +798,11 @@ namespace WinAMBurner
                 this.pcheck += checkEmpty;
         }
 
+        public void setDefault()
+        {
+            dflag = true;
+        }
+        
         public static bool setField(ref Field field, Field value)
         {
             if (value.fcheck(value))
@@ -796,14 +822,18 @@ namespace WinAMBurner
         public static Field getField(Field field, string param)
         {
             if (field.pcheck(param))
+            {
                 field.text = param;
+                field.dflag = false;
+            }
             //field.error = ErrCode.OK;
             return field;
         }
 
         public static bool checkEmpty(Field field)
         {
-            if ((field.text != null) && (field.text != field.dText) && (field.text != string.Empty))
+            //if ((field.text != null) && (field.text != field.dtext) && (field.text != string.Empty))
+            if ((field.text != null) && (field.text != string.Empty) && (!field.dflag))
             {
                 field.error = ErrCode.OK;
                 return true;
@@ -842,11 +872,15 @@ namespace WinAMBurner
                     text = treatmentPackage.PartNumber;
                 else
                 {
-                    control.Text = control.Text.Trim();
-                    if (control.Text == dText)
+                    //control.Text = control.Text.Trim();
+                    //if (control.Text == dtext)
+                    if (dflag)
                         text = string.Empty;
                     else
+                    {
+                        control.Text = control.Text.Trim();
                         text = control.Text;
+                    }
                 }
             }
         }
@@ -912,7 +946,7 @@ namespace WinAMBurner
             //float font = DefaultFont, Color color = new Color(), bool autoSize = true,
             bool autoSize = true,
             //int width = DefaultWidth, int height = DefaultHeight, bool autoSize = true,
-            Gui.Place placeh = Gui.Place.Center, Gui.Place placev = Gui.Place.Center)
+            Place placeh = Place.Center, Place placev = Place.Center)
         {
             Control control = null;
             if (type != null)
@@ -986,7 +1020,8 @@ namespace WinAMBurner
                             comboBox.Items.AddRange(items);
                         if (comboEventHandler != null)
                             comboBox.SelectedIndexChanged += comboEventHandler;
-                        comboBox.TextChanged += comboBox_TextChanged;
+                        comboBox.TextUpdate += comboBox_TextUpdate;
+                        comboBox.KeyPress += comboBox_KeyPress;
                         //comboBox.DisplayMember = type.Name;
                         //comboBox.TextUpdate += comboBox_TextChanged;
                         defaultText(control);
@@ -1012,7 +1047,8 @@ namespace WinAMBurner
             //if (control.Name == DefaultText)
             //{
             //if (control.Text == dflt)
-            if (text == dText)
+            //if (text == dtext)
+            if (dflag)
                 control.ForeColor = Color.Silver;
             else
                 control.ForeColor = Color.Black;
@@ -1022,50 +1058,50 @@ namespace WinAMBurner
         }
 
         public static Point placeCalc(Form thisForm,
-                Control control, Point location = new System.Drawing.Point(), Gui.Place placeh = Gui.Place.Center, Gui.Place placev = Gui.Place.Center)
+                Control control, Point location = new System.Drawing.Point(), Place placeh = Place.Center, Place placev = Place.Center)
         {
-            if (placeh == Gui.Place.Center)
+            if (placeh == Place.Center)
                 location.X = thisForm.Width / 2 - control.Width / 2;
-            else if (placeh == Gui.Place.Start)
+            else if (placeh == Place.Start)
                 location.X = thisForm.Width / 2 - control.Width / 2 - control.Width * 2 - control.Width * 2 / 4;
-            else if (placeh == Gui.Place.End)
+            else if (placeh == Place.End)
                 location.X = thisForm.Width / 2 + control.Width / 2 + control.Width + control.Width * 2 / 4;
-            else if (placeh == Gui.Place.One)
+            else if (placeh == Place.One)
                 location.X = thisForm.Width / 2 + control.Width / 4 / 2;
-            else if (placeh == Gui.Place.Two)
+            else if (placeh == Place.Two)
                 location.X = thisForm.Width / 2 + control.Width / 2 + control.Width / 4;
-            else if (placeh == Gui.Place.Three)
+            else if (placeh == Place.Three)
                 location.X = thisForm.Width / 2 + control.Width + control.Width / 4 / 2 + control.Width / 4;
-            else if (placeh == Gui.Place.Four)
+            else if (placeh == Place.Four)
                 location.X = thisForm.Width / 2 - control.Width * 2 - control.Width / 4 / 2 - control.Width / 4;
-            else if (placeh == Gui.Place.Five)
+            else if (placeh == Place.Five)
                 location.X = thisForm.Width / 2 - control.Width / 2 - control.Width - control.Width / 4;
-            else if (placeh == Gui.Place.Six)
+            else if (placeh == Place.Six)
                 location.X = thisForm.Width / 2 - control.Width - control.Width / 4 / 2;
 
-            if (placev == Gui.Place.One)
+            if (placev == Place.One)
                 location.Y = 30;
-            else if (placev == Gui.Place.Two)
+            else if (placev == Place.Two)
                 location.Y = (int)(PlaceOne + 0 * DeltaV);//200;
-            else if (placev == Gui.Place.Three)
+            else if (placev == Place.Three)
                 location.Y = (int)(PlaceOne + 1 * DeltaV);//300;
-            else if (placev == Gui.Place.Four)
+            else if (placev == Place.Four)
                 location.Y = (int)(PlaceOne + 2 * DeltaV);//400;
-            else if (placev == Gui.Place.Five)
+            else if (placev == Place.Five)
                 location.Y = (int)(PlaceOne + 3 * DeltaV);//500;
-            else if (placev == Gui.Place.Six)
+            else if (placev == Place.Six)
                 location.Y = (int)(PlaceOne + 4 * DeltaV);//600;
-            else if (placev == Gui.Place.Seven)
+            else if (placev == Place.Seven)
                 location.Y = (int)(PlaceOne + 5 * DeltaV);//700;
-            else if (placev == Gui.Place.Eight)
+            else if (placev == Place.Eight)
                 location.Y = (int)(PlaceOne + 6 * DeltaV);//800;
-            else if (placev == Gui.Place.Nine)
+            else if (placev == Place.Nine)
                 location.Y = (int)(PlaceOne + 7 * DeltaV);//900;
-            else if (placev == Gui.Place.Ten)
+            else if (placev == Place.Ten)
                 location.Y = (int)(PlaceOne + 8 * DeltaV);//1000;
-            else if (placev == Gui.Place.Eleven)
+            else if (placev == Place.Eleven)
                 location.Y = (int)(PlaceOne + 9 * DeltaV);//1100;
-            else if (placev == Gui.Place.End)
+            else if (placev == Place.End)
                 location.Y = (int)(PlaceOne + 10 * DeltaV);//1200;
 
             return location;
@@ -1078,7 +1114,8 @@ namespace WinAMBurner
             if (control != null)
             {
                 //if (control.Name == DefaultText)
-                if (control.Text == dText)
+                //if (control.Text == dtext)
+                if (dflag)
                 {
                     //    string dflt = control.Text;
                     control.Text = string.Empty;
@@ -1086,6 +1123,7 @@ namespace WinAMBurner
                     control.ForeColor = Color.Black;
                     if (textBox != null)
                         textBox.PasswordChar = '*';
+                    dflag = false;
                 }
             }
         }
@@ -1100,35 +1138,108 @@ namespace WinAMBurner
                 {
                     //    string dflt = control.Name;
                     //control.Name = dflt;
-                    control.Text = dText;
+                    control.Text = dtext;
                     control.ForeColor = Color.Silver;
                     if (textBox != null)
                         textBox.PasswordChar = '\0';
+                    dflag = true;
                 }
             }
         }
 
-        private void comboBox_TextChanged(object sender, EventArgs e)
+        private void comboBox_TextUpdate(object sender, EventArgs e)
         {
             ComboBox comboBox = sender as ComboBox;
+            if ((comboBox != null) && (comboBox.Text != null) && (comboBox.Items != null) && (items != null))
+            {
+                //comboBox.SelectedItem = comboBox.Items.Cast<string>().Where(s => s.ToLower().StartsWith(comboBox.Text.ToLower())).FirstOrDefault();
+                removeItems(comboBox);
+                comboBox.Items.AddRange(items.Where(s => s.ToLower().StartsWith(comboBox.Text.ToLower())).ToArray());
+            }
+        }
+
+        private void comboBox_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            ComboBox comboBox = sender as ComboBox;
+            if ((comboBox != null) && (comboBox.Text != null) && (comboBox.Items != null) && (items != null))
+            {
+                //if (comboBox.Text != string.Empty)
+                comboBox.DroppedDown = true;
+                //clearComboBox(comboBox);
+                //comboBox.Items.AddRange(items.Where(s => s.ToLower().StartsWith((comboBox.Text + e.KeyChar).ToLower())).ToArray());
+            }
+        }
+
+        private void removeItems(ComboBox comboBox)
+        {
             if (comboBox != null)
             {
-                if (comboBox.Text != dText)
-                {
-                    if (comboBox.Text != string.Empty)
-                    {
-                        if (comboBox.Items != null)
-                        {
-                            //if (comboBox.Items.Count > 0)
-                            //    comboBox.SelectedItem = comboBox.Items.Cast<string>().Where(s => s.ToLower().StartsWith(comboBox.Text.ToLower())).FirstOrDefault();
-                            if (comboBox.SelectedItem != null)
-                                comboBox.Text = comboBox.SelectedItem.ToString();
-                            else
-                                comboBox.Text = string.Empty;
-                        }
-                    }
-                }
+                while (comboBox.Items.Count > 0)
+                    comboBox.Items.RemoveAt(0);
             }
+        }
+
+        public static void hide(Form thisForm)
+        {
+            while (thisForm.Controls.Count > 0)
+                thisForm.Controls[0].Dispose();
+        }
+
+        public static void dataGridDraw(Form thisForm, ref DataGridView dataGridView, Place placeh = Place.Center, Place placev = Place.Center)
+        {
+            //this.components = new System.ComponentModel.Container();
+            //this.bindingSource1 = new System.Windows.Forms.BindingSource(this.components);
+            dataGridView = new DataGridView();
+            //((System.ComponentModel.ISupportInitialize)(this.bindingSource1)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(dataGridView)).BeginInit();
+            //dataGridView.AutoSize = true;
+            dataGridView.Anchor = (AnchorStyles.Top);// | (AnchorStyles.Left);
+            dataGridView.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dataGridView.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            dataGridView.RowHeadersWidth = 62;
+            dataGridView.RowTemplate.Height = 33;
+            dataGridView.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
+            dataGridView.ReadOnly = true;
+            dataGridView.Size = new Size(1853, 800);
+            dataGridView.Scale(new SizeF(ScaleFactor, ScaleFactor));
+            dataGridView.Font = new Font("Segoe UI", DefaultFont, FontStyle.Regular, GraphicsUnit.Point);
+            dataGridView.Location = placeCalc(thisForm, dataGridView, placeh: placeh, placev: placev);
+            dataGridView.TabIndex = 6;
+            thisForm.Controls.Add(dataGridView);
+            //((System.ComponentModel.ISupportInitialize)(this.bindingSource1)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(dataGridView)).EndInit();
+            //this.bindingSource1.DataSource = new DataSet1.DataTable1DataTable();
+            //dataGridView.DataSource = this.bindingSource1;
+        }
+
+        public static string boolToString(bool bVal)
+        {
+            if (bVal)
+                return "Yes";
+            else
+                return "No";
+        }
+        
+        public static bool stringToBool(string sVal)
+        {
+            if (sVal == "Yes")
+                return true;
+            else
+                return false;
+        }
+
+        public static int stringToInt(string sVal)
+        {
+            int iVal = 0;
+            int.TryParse(sVal, out iVal);
+            return iVal;
+        }
+        
+        public static string intToString(int? iVal)
+        {
+            if (iVal != null)
+                return iVal.ToString();
+            return null;
         }
     }
 }
