@@ -24,8 +24,8 @@ namespace WinAMBurner
         private DataGridView dataGridView1;
         //private CheckBox checkBox1;
         //private CheckBox checkBox2;
-        private RadioButton radioButton1;
-        private RadioButton radioButton2;
+        //private RadioButton radioButton1;
+        //private RadioButton radioButton2;
         private bool AMConnected = false;
         private AM am = new AM();
 
@@ -93,10 +93,10 @@ namespace WinAMBurner
             this.Scale(new SizeF(Field.ScaleFactor, Field.ScaleFactor));
             this.Font = new Font("Segoe UI", Field.DefaultFont, FontStyle.Regular, GraphicsUnit.Point);
             //pictureBoxTitle.Scale(new SizeF(Misc.ScaleFactor, Misc.ScaleFactor));
-            
-            login = new Login() { tablet = TabletNo };
 
-            screenLoginShow();
+            (login = new Login(linkLabel1_LinkClicked, buttonLogin_Click) { tablet = TabletNo }).drawFields(this);
+
+            //screenLoginShow();
         }
 
         private void logout()
@@ -122,7 +122,7 @@ namespace WinAMBurner
             settings = null;
 
             //login = null;
-            login = new Login() { tablet = TabletNo };
+            login = new Login(linkLabel1_LinkClicked, buttonLogin_Click) { tablet = TabletNo };
             user = null;
 
             //amData.SNum = 0;
@@ -136,81 +136,24 @@ namespace WinAMBurner
             am = new AM();
         }
 
-        private void screenLoginShow()
-        {
-            //Gui.draw(this, typeof(PictureBox), placev: Gui.Place.One);
-            new Field(ltype: typeof(PictureBox), lplacev: Place.One).draw(this, true);
-            //Gui.draw(this, typeof(LinkLabel), text: "Forgot password",
-            //    linkLabelLinkClickedEventHandler: new LinkLabelLinkClickedEventHandler(linkLabel1_LinkClicked),
-            //    placev: Gui.Place.Seven);
-            new Field(ltype: typeof(LinkLabel), ltext: "Forgot password", linkEventHandler: new LinkLabelLinkClickedEventHandler(linkLabel1_LinkClicked), lplacev: Place.Seven).draw(this, true);
-            //Gui.draw(this, typeof(Button), text: "Login", eventHandler: new EventHandler(buttonLogin_Click), placev: Gui.Place.End);
-            new Field(ltype: typeof(Button), ltext: "Login", buttonEventHandler: new EventHandler(buttonLogin_Click), lplacev: Place.End).draw(this, true);
-            //richTextBox1 = Gui.draw(this, typeof(RichTextBox), text: "Username", width: Gui.DefaultWidthLarge, placev: Gui.Place.Three) as RichTextBox;
-            //fUsername = new Field(type: typeof(RichTextBox), text: "Username", width: Gui.DefaultWidthLarge, placev: Gui.Place.Three);
-            //fUsername.draw(this, Gui.DefaultText);
-            //richTextBox2 = Gui.draw(this, typeof(RichTextBox), text: "Password", eventHandler: richTextBoxPassword_TextChanged, width: Gui.DefaultWidthLarge, placev: Gui.Place.Five) as RichTextBox;
-            //new Field(type: typeof(RichTextBox), text: "Password", textEventHandler: richTextBoxPassword_TextChanged, width: Gui.DefaultWidthLarge, placev: Gui.Place.Five).draw(this, Gui.DefaultText);
-            //fPassword = new Field(type: typeof(TextBox), text: "Password", width: Gui.DefaultWidthLarge, placev: Gui.Place.Five);
-            //fPassword.draw(this, Gui.DefaultText);
-            drawFields(login, false);
-        }
-
-        //private void richTextBoxPassword_SelectionChanged(object sender, EventArgs e)
+        //private void screenLoginShow()
         //{
-        //    RichTextBox richTextBox = sender as RichTextBox;
-        //    if ((richTextBox != null) && (password != null))
-        //    {
-        //        if (richTextBox.SelectedText != string.Empty)
-        //        {
-        //            password.TakeWhile(c => c != password.ElementAt(richTextBox.SelectionStart)).Skip(1);
-        //        }
-        //    }
-        //}
-
-        //private void richTextBoxPassword_TextChanged(object sender, EventArgs e)
-        //{
-        //    RichTextBox richTextBox = sender as RichTextBox;
-        //    if (richTextBox != null)
-        //    {
-        //        if ((richTextBox.Text.Length == 0) || (richTextBox.Text.Length == 1))
-        //        {
-        //            password = string.Empty;
-        //        }
-        //        if (richTextBox.Text.Length > 0)
-        //        {
-        //            char c = richTextBox.Text.Last();
-        //            if (c == '*')
-        //            {
-        //                if (password.Length > 0)
-        //                    password = password.Remove(password.IndexOf(password.Last()));
-        //            }
-        //            else
-        //                password += c;
-        //            richTextBox.Text = new string(richTextBox.Text.Select(c => c = '*').ToArray());
-        //            richTextBox.SelectionStart = richTextBox.TextLength;
-        //        }
-        //    }
+        //    new Field(ltype: typeof(PictureBox), lplacev: Place.One).draw(this, true);
+        //    login.drawFields(this);
+        //    //drawFields(login);
+        //    new Field(ltype: typeof(LinkLabel), ltext: "Forgot password", linkEventHandler: linkLabel1_LinkClicked, lplacev: Place.Seven).draw(this, true);
+        //    new Field(ltype: typeof(Button), ltext: "Login", buttonEventHandler: buttonLogin_Click, lplacev: Place.End).draw(this, true);
         //}
 
         private async void buttonLogin_Click(object sender, EventArgs e)
         {
             ErrCode errcode = ErrCode.ERROR;
 
-            allControlsDisable();
-            //login = new LoginJson()
-            //{
-            //    email = fUsername.getText(),
-            //    //fUsername.control.Text.Trim(),
-            //    //"yael@gmail.com",
-            //    password = fPassword.getText(),
-            //    //fPassword.control.Text.Trim(),
-            //    //"yael123",
-            //    //password,
-            //    tablet = TabletNo
-            //};
+            //allControlsDisable();
+            login.disableControls();
 
-            updateParams(login);
+            //updateParams(login);
+            login.updateParams();
 
             login.email = "yael@gmail.com";
             login.password = "yael123";
@@ -239,22 +182,13 @@ namespace WinAMBurner
                         (Const.FARM_TYPE != null) && (Const.BREED_TYPE != null) && (Const.MILKING_SETUP_TYPE != null) &&
                         (Const.LOCATION_OF_TREATMENT_TYPE != null) && (Const.CONTRACT_TYPE != null))
                     {
-                        Field.hide(this);
+                        //Field.hide(this);
+                        login.hide();
                         screenActionShow();
                         errcode = ErrCode.OK;
                     }
                     else
                         errcode = ErrCode.EPARAM;
-                    //{
-                    //    // if failed
-                    //    FormNotify formNotify = new FormNotify(new List<string>() {
-                    //    "Login failed Check your username and password,",
-                    //    "make sure your tablet is connected to the internet"},
-                    //        NotifyButtons.OK, caption: "Login Failed");
-                    //    formNotify.ShowDialog();
-                    //    formNotify.Dispose();
-                    //    allControlsEnable();
-                    //}
                 }
                 else
                     errcode = ErrCode.EPARAM;
@@ -282,61 +216,47 @@ namespace WinAMBurner
             formNotify.Dispose();
         }
 
-        //private string GetBIOSSerNo()
-        //{
-        //    ManagementObjectSearcher searcher = new ManagementObjectSearcher("root\\CIMV2", "SELECT * FROM Win32_BIOS");
-        //    foreach (ManagementObject wmi in searcher.Get())
-        //    {
-        //        try
-        //        {
-        //            return wmi.GetPropertyValue("SerialNumber").ToString();
-        //        }
-        //        catch { }
-        //    }
-        //    return "BIOS Serial Number: Unknown";
-        //}
-
         private void screenActionShow()
         {
-            //Gui.draw(this, typeof(PictureBox), placev: Gui.Place.One);
             new Field(ltype: typeof(PictureBox), lplacev: Place.One).draw(this, true);
-            //Gui.draw(this, typeof(Label), text: "Welcome distributor", font: Gui.DefaultFontLarge, placev: Gui.Place.Two);
             new Field(ltype: typeof(Label), ltext: "Welcome distributor", font: Field.DefaultFontLarge, lplacev: Place.Two).draw(this, true);
-            //Gui.draw(this, typeof(Label), text: "Choose Action: ", placev: Gui.Place.Four);
             new Field(ltype: typeof(Label), ltext: "Choose Action: ", lplacev: Place.Four).draw(this, true);
-            //Gui.draw(this, typeof(Button), text: "Update AM", eventHandler: new EventHandler(buttonUpdateAM_Click), placev: Gui.Place.Five);
-            new Field(ltype: typeof(Button), ltext: "Update AM", buttonEventHandler: new EventHandler(buttonUpdateAM_Click), lplacev: Place.Five).draw(this, true);
-            //Gui.draw(this, typeof(Button), text: "Manage Farms", eventHandler: new EventHandler(buttonFarm_Click), placev: Gui.Place.Six);
-            new Field(ltype: typeof(Button), ltext: "Manage Farms", buttonEventHandler: new EventHandler(buttonFarm_Click), lplacev: Place.Six).draw(this, true);
-            //Gui.draw(this, typeof(Button), text: "Manage Service provider", eventHandler: new EventHandler(buttonService_Click), placev: Gui.Place.Seven);
-            new Field(ltype: typeof(Button), ltext: "Manage Service provider", buttonEventHandler: new EventHandler(buttonService_Click), lplacev: Place.Seven).draw(this, true);
-            //Gui.draw(this, typeof(Button), text: "Logout", eventHandler: new EventHandler(buttonLogout_Click), placev: Gui.Place.End);
-            new Field(ltype: typeof(Button), ltext: "Logout", buttonEventHandler: new EventHandler(buttonLogout_Click), lplacev: Place.End).draw(this, true);
-            //Gui.draw(this, typeof(LinkLabel), text: "Calculate your farm’s profits with APT",
-            //    linkLabelLinkClickedEventHandler: new LinkLabelLinkClickedEventHandler(linkLabel2_LinkClicked),
-            //    placev: Gui.Place.Nine);
+            new Field(ltype: typeof(Button), ltext: "Update AM", buttonEventHandler: buttonUpdateAM_Click, lplacev: Place.Five).draw(this, true);
+            new Field(ltype: typeof(Button), ltext: "Manage Farms", buttonEventHandler: buttonFarm_Click, lplacev: Place.Six).draw(this, true);
+            new Field(ltype: typeof(Button), ltext: "Manage Service provider", buttonEventHandler: buttonService_Click, lplacev: Place.Seven).draw(this, true);
             new Field(ltype: typeof(LinkLabel), ltext: "Calculate your farm’s profits with APT",
-                linkEventHandler: new LinkLabelLinkClickedEventHandler(linkLabel2_LinkClicked), lplacev: Place.Nine).draw(this, true);
+                linkEventHandler: linkLabel2_LinkClicked, lplacev: Place.Nine).draw(this, true);
+            new Field(ltype: typeof(Button), ltext: "Logout", buttonEventHandler: buttonLogout_Click, lplacev: Place.End).draw(this, true);
+        }
+
+        public void hide()
+        {
+            while (Controls.Count > 0)
+                Controls[0].Dispose();
         }
 
         private void buttonLogout_Click(object sender, EventArgs e)
         {
             logout();
-            Field.hide(this);
-            screenLoginShow();
+            //Field.hide(this);
+            hide();
+            login.drawFields(this);
+            //screenLoginShow();
         }
 
         private void buttonUpdateAM_Click(object sender, EventArgs e)
         {
             allControlsDisable();
-            Field.hide(this);
-            screenConnectShow(); 
+            //Field.hide(this);
+            hide();
+            screenConnectShow();
         }
 
         private async void buttonFarm_Click(object sender, EventArgs e)
         {
             allControlsDisable();
-            Field.hide(this);
+            //Field.hide(this);
+            hide();
             //FarmTableGet();
             //farmTable = entityTableGet(farms.Cast<Entity>().ToList());
             screenFarmShow();
@@ -345,7 +265,8 @@ namespace WinAMBurner
         private async void buttonService_Click(object sender, EventArgs e)
         {
             allControlsDisable();
-            Field.hide(this);
+            //Field.hide(this);
+            hide();
             //serviceTableGet();
             //serviceTable = entityTableGet(services.Cast<Entity>().ToList());
             screenServiceShow();
@@ -381,37 +302,6 @@ namespace WinAMBurner
             return entityTable;
         }
 
-        //private void FarmTableGet()
-        //{
-        //    //farms = await web.farmsGet();
-        //    if (farms != null)
-        //    {
-        //        farmTable = new DataTable();
-        //        farmTable.Columns.AddRange(new List<DataColumn>(){new DataColumn("Farm Name"),
-        //                            new DataColumn("Country / State"),
-        //                            new DataColumn("City"),
-        //                            new DataColumn("Address")}.ToArray());
-        //        //foreach (var f in farms.Select(f => new { f.name, f.country, f.city, f.address }).ToArray())
-        //        foreach (var farm in farms.Select(f => entityToRow(f)))
-        //            farmTable.Rows.Add(farm.ToArray<string>());
-        //    }
-        //}
-
-        //private void serviceTableGet()
-        //{
-        //    //services = await web.servicesGet();
-        //    if (services != null)
-        //    {
-        //        serviceTable = new DataTable();
-        //        serviceTable.Columns.AddRange(new List<DataColumn>(){new DataColumn("Name"),
-        //                            new DataColumn("Country / State"),
-        //                            new DataColumn("City"),
-        //                            new DataColumn("Address")}.ToArray());
-        //        foreach (var service in services.Select(s => entityToRow(s)))
-        //            serviceTable.Rows.Add(service.ToArray<string>());
-        //    }
-        //}
-
         private List<string> entityToRow(Entity e)
         {
             List<string> l = null;
@@ -442,21 +332,12 @@ namespace WinAMBurner
 
         private void screenConnectShow()
         {
-            //Gui.draw(this, typeof(PictureBox), placev: Gui.Place.One);
             new Field(ltype: typeof(PictureBox), lplacev: Place.One).draw(this, true);
-            //Gui.draw(this, typeof(Label), text: "Welcome distributor", font: Gui.DefaultFontLarge, placev: Gui.Place.Two);
             new Field(ltype: typeof(Label), ltext: "Welcome distributor", font: Field.DefaultFontLarge, lplacev: Place.Two).draw(this, true);
-            //Gui.draw(this, typeof(Label), text: "Please make sure the AM is connected to your tablet before continue", placev: Gui.Place.Four);
             new Field(ltype: typeof(Label), ltext: "Please make sure the AM is connected to your tablet before continue", lplacev: Place.Four).draw(this, true);
-            //label1 = Gui.draw(this, typeof(Label), text: "", placev: Gui.Place.Six) as Label;
-            label1 = new Field(ltype: typeof(Label), ltext: "", lplacev: Place.Six).draw(this, true) as Label;
-            //progressBar1 = Gui.draw(this, typeof(ProgressBar), width: Gui.DefaultWidthLarge, height: Gui.DefaultHeightSmall, placev: Gui.Place.Ten) as ProgressBar;
+            label1 = new Field(ltype: typeof(Label), lplacev: Place.Six).draw(this, true) as Label;
             progressBar1 = new Field(ltype: typeof(ProgressBar), width: Field.DefaultWidthLarge, height: Field.DefaultHeightSmall, lplacev: Place.Ten).draw(this, true) as ProgressBar;
-            //button1 = Gui.draw(this, typeof(Button), text: "Check AM present", eventHandler: new EventHandler(buttonCheckAM_Click), placeh: Gui.Place.Five, placev: Gui.Place.End) as Button;
-            //button1 = new Field(ltype: typeof(Button), ltext: "Check AM present", buttonEventHandler: new EventHandler(buttonCheckAM_Click), lplaceh: Gui.Place.Five, lplacev: Gui.Place.End).draw(this, true) as Button;
-            button1 = new Field(ltype: typeof(Button), ltext: "Check AM present", buttonEventHandler: new EventHandler(buttonCheckAM_Click), lplacev: Place.End).draw(this, true) as Button;
-            //button2 = Gui.draw(this, typeof(Button), text: "Forward", eventHandler: new EventHandler(buttonConnectForward_Click), placeh: Gui.Place.Two, placev: Gui.Place.End) as Button;
-            //button2 = new Field(ltype: typeof(Button), ltext: "Forward", buttonEventHandler: new EventHandler(buttonConnectForward_Click), lplaceh: Gui.Place.Two, lplacev: Gui.Place.End).draw(this, true) as Button;
+            button1 = new Field(ltype: typeof(Button), ltext: "Check AM present", buttonEventHandler: buttonCheckAM_Click, lplacev: Place.End).draw(this, true) as Button;
             if (AMConnected)
                 AMConnectedShow();
             else
@@ -474,20 +355,19 @@ namespace WinAMBurner
             button1.Enabled = false;
             //button2.Enabled = false;
             progressBar1.Visible = true;
-            am.serialPortProgressEvent += new EventHandler(progressBar_Callback);
-            //progressBar1.Maximum = 60;
+            am.serialPortProgressEvent += progressBar_Callback;
             progressBar1.Value = progressBar1.Minimum;
             ErrCode errcode = await am.AMDataCheckConnect();
             if (errcode >= ErrCode.OK)
                 errcode = await am.AMDataRead();
             progressBar1.Value = progressBar1.Maximum;
-            //progressBar1.Value = progressBar1.Minimum;
             if (errcode == ErrCode.OK)
             {
                 //if ok
                 AMConnected = true;
                 //AMConnectedShow();
-                Field.hide(this);
+                //Field.hide(this);
+                hide();
                 screenInfoShow();
             }
             else
@@ -510,8 +390,6 @@ namespace WinAMBurner
 
         private void AMDisconnectedShow()
         {
-            //label1 = Gui.draw(this, typeof(Label), text: "AM not found – make sure AM is connected using USB cable", color: Color.Red,
-            //    placeh: Gui.Place.Center, placev: Gui.Place.Six) as Label;
             label1 = new Field(ltype: typeof(Label), ltext: "AM not found – make sure AM is connected using USB cable", color: Color.Red,
                 lplaceh: Place.Center, lplacev: Place.Six).draw(this, true) as Label;
             //button2.Enabled = false;
@@ -519,8 +397,6 @@ namespace WinAMBurner
 
         private void AMConnectedShow()
         {
-            //label1 = Gui.draw(this, typeof(Label), text: "AM found – connected to AM", color: Color.Green,
-            //    placeh: Gui.Place.Center, placev: Gui.Place.Six) as Label;
             label1 = new Field(ltype: typeof(Label), text: "AM found – connected to AM", color: Color.Green,
                 placeh: Place.Center, placev: Place.Six).draw(this, true) as Label;
             //button2.Enabled = true;
@@ -528,72 +404,54 @@ namespace WinAMBurner
 
         private void buttonConnectForward_Click(object sender, EventArgs e)
         {
-            Field.hide(this);
+            //Field.hide(this);
+            hide();
             screenInfoShow();
         }
 
         private void screenInfoShow()
         {
-            //Gui.draw(this, typeof(PictureBox), placev: Gui.Place.One);
             new Field(ltype: typeof(PictureBox), lplacev: Place.One).draw(this, true);
-            //Gui.draw(this, typeof(Label), text: "Welcome distributor", font: Gui.DefaultFontLarge, placev: Gui.Place.Two);
             new Field(ltype: typeof(Label), ltext: "Welcome distributor", font: Field.DefaultFontLarge, lplacev: Place.Two).draw(this, true);
-            //Gui.draw(this, typeof(Label), text: "AM identified with SN: " + am.SNum, placev: Gui.Place.Four);
             new Field(ltype: typeof(Label), ltext: "AM identified with SN: " + am.SNum, lplacev: Place.Four).draw(this, true);
-            //Gui.draw(this, typeof(Label), text: "Current available treatments: " + am.Maxi / settings.number_of_pulses_per_treatment, placev: Gui.Place.Six);
             new Field(ltype: typeof(Label), ltext: "Current available treatments: " + am.Maxi / settings.number_of_pulses_per_treatment, lplacev: Place.Six).draw(this, true);
-            //Gui.draw(this, typeof(Button), text: "Back", eventHandler: new EventHandler(buttonInfoBack_Click), placeh: Gui.Place.Five, placev: Gui.Place.End);
-            new Field(ltype: typeof(Button), ltext: "Back", buttonEventHandler: new EventHandler(buttonInfoBack_Click), lplaceh: Place.Five, lplacev: Place.End).draw(this, true);
-            //Gui.draw(this, typeof(Button), text: "Continue", eventHandler: new EventHandler(buttonInfoContinue_Click), placeh: Gui.Place.Two, placev: Gui.Place.End);
-            new Field(ltype: typeof(Button), ltext: "Continue", buttonEventHandler: new EventHandler(buttonInfoContinue_Click), lplaceh: Place.Two, lplacev: Place.End).draw(this, true);
+            new Field(ltype: typeof(Button), ltext: "Back", buttonEventHandler: buttonInfoBack_Click, lplaceh: Place.Five, lplacev: Place.End).draw(this, true);
+            new Field(ltype: typeof(Button), ltext: "Continue", buttonEventHandler: buttonInfoContinue_Click, lplaceh: Place.Two, lplacev: Place.End).draw(this, true);
         }
 
         private void buttonInfoBack_Click(object sender, EventArgs e)
         {
-            Field.hide(this);
+            //Field.hide(this);
+            hide();
             screenConnectShow();
         }
 
         private void buttonInfoContinue_Click(object sender, EventArgs e)
         {
-            Field.hide(this);
-            screenTreatShow();
+            //Field.hide(this);
+            hide();
+            //screenTreatShow();
+            (action = new Action(am, TabletNo, 
+                comboBoxAction_SelectedIndexChanged, radioButton_CheckedChanged, 
+                buttonTreatCansel_Click, buttonTreatApprove_Click)).drawFields(this);
         }
 
-        private void screenTreatShow()
-        {
-            //Gui.draw(this, typeof(PictureBox), placev: Gui.Place.One);
-            new Field(ltype: typeof(PictureBox), lplacev: Place.One).draw(this, true);
-            //Gui.draw(this, typeof(Label), text: "Welcome distributor", font: Gui.DefaultFontLarge, placev: Gui.Place.Two);
-            new Field(ltype: typeof(Label), ltext: "Welcome distributor", font: Field.DefaultFontLarge, lplacev: Place.Two).draw(this, true);
-            //radioButton1 = Gui.draw(this, typeof(RadioButton), text: "Farm", eventHandler: radioButton_CheckedChanged, placeh: Gui.Place.Two, placev: Gui.Place.Five) as RadioButton;
-            radioButton1 = new Field(ltype: typeof(RadioButton), ltext: "Farm", radioEventHandler: radioButton_CheckedChanged, lplaceh: Place.Two, lplacev: Place.Five).draw(this, true) as RadioButton;
-            //radioButton2 = Gui.draw(this, typeof(RadioButton), text: "Service provider", eventHandler: radioButton_CheckedChanged, placeh: Gui.Place.Two, placev: Gui.Place.Six) as RadioButton;
-            radioButton2 = new Field(ltype: typeof(RadioButton), ltext: "Service provider", radioEventHandler: radioButton_CheckedChanged, lplaceh: Place.Two, lplacev: Place.Six).draw(this, true) as RadioButton;
-            //Gui.draw(this, typeof(Label), text: "Select Farm / Service provider", placev: Gui.Place.Four);
-            //new Field(ltype: typeof(Label), ltext: "Select Farm / Service provider", lplacev: Gui.Place.Four).draw(this, true);
-            //comboBox1 = Gui.draw(this, typeof(ComboBox), eventHandler: comboBox_SelectedIndexChanged, placev: Gui.Place.Five) as ComboBox;
-            //comboBox1 = new Field(type: typeof(ComboBox), comboEventHandler: comboBox_SelectedIndexChanged, placev: Gui.Place.Five).draw(this) as ComboBox;
-            //Gui.draw(this, typeof(Label), text: "Add treatments to AM – SN" + am.SNum, placev: Gui.Place.Seven);
-            //new Field(ltype: typeof(Label), ltext: "Add treatments to AM – SN" + am.SNum, lplacev: Gui.Place.Seven).draw(this, true);
-            //comboBox2 = Gui.draw(this, typeof(ComboBox), placev: Gui.Place.Eight) as ComboBox;
-            //comboBox2 = new Field(type: typeof(ComboBox), placev: Gui.Place.Eight).draw(this) as ComboBox;
-            //treatmentPackage = new TreatmentPackage();
-            //comboBox2 = drawField(treatmentPackage.PartNumber, false) as ComboBox;
-            //treatmentPackage.PartNumber.lcontrol.Text += am.SNum;
-            action = new Action(am, TabletNo, comboBox_SelectedIndexChanged);
-            drawFields(action,false);
-            //progressBar1 = Gui.draw(this, typeof(ProgressBar), width: Gui.DefaultWidthLarge, height: Gui.DefaultHeightSmall, placev: Gui.Place.Ten) as ProgressBar;
-            progressBar1 = new Field(ltype: typeof(ProgressBar), width: Field.DefaultWidthLarge, height: Field.DefaultHeightSmall, lplacev: Place.Ten).draw(this, true) as ProgressBar;
-            //Gui.draw(this, typeof(Button), text: "Cancel", eventHandler: new EventHandler(buttonTreatCansel_Click), placeh: Gui.Place.Five, placev: Gui.Place.End);
-            new Field(ltype: typeof(Button), ltext: "Cancel", buttonEventHandler: new EventHandler(buttonTreatCansel_Click), lplaceh: Place.Five, lplacev: Place.End).draw(this, true);
-            //Gui.draw(this, typeof(Button), text: "Approve", eventHandler: new EventHandler(buttonTreatApprove_Click), placeh: Gui.Place.Two, placev: Gui.Place.End);
-            new Field(ltype: typeof(Button), ltext: "Approve", buttonEventHandler: new EventHandler(buttonTreatApprove_Click), lplaceh: Place.Two, lplacev: Place.End).draw(this, true);
-            radioButton1.Checked = true;
-            progressBar1.Visible = false;
-        }
+        //private void screenTreatShow()
+        //{
+        //    new Field(ltype: typeof(PictureBox), lplacev: Place.One).draw(this, true);
+        //    new Field(ltype: typeof(Label), ltext: "Welcome distributor", font: Field.DefaultFontLarge, lplacev: Place.Two).draw(this, true);
+        //    radioButton1 = new Field(ltype: typeof(RadioButton), ltext: "Farm", radioEventHandler: radioButton_CheckedChanged, lplaceh: Place.Two, lplacev: Place.Five).draw(this, true) as RadioButton;
+        //    radioButton2 = new Field(ltype: typeof(RadioButton), ltext: "Service provider", radioEventHandler: radioButton_CheckedChanged, lplaceh: Place.Two, lplacev: Place.Six).draw(this, true) as RadioButton;
+        //    action = new Action(am, TabletNo, comboBoxAction_SelectedIndexChanged);
+        //    drawFields(action);
+        //    progressBar1 = new Field(ltype: typeof(ProgressBar), width: Field.DefaultWidthLarge, height: Field.DefaultHeightSmall, lplacev: Place.Ten).draw(this, true) as ProgressBar;
+        //    new Field(ltype: typeof(Button), ltext: "Cancel", buttonEventHandler: buttonTreatCansel_Click, lplaceh: Place.Five, lplacev: Place.End).draw(this, true);
+        //    new Field(ltype: typeof(Button), ltext: "Approve", buttonEventHandler: buttonTreatApprove_Click, lplaceh: Place.Two, lplacev: Place.End).draw(this, true);
+        //    radioButton1.Checked = true;
+        //    progressBar1.Visible = false;
+        //}
 
-        private void comboBox_SelectedIndexChanged(object sender, EventArgs e)
+        private void comboBoxAction_SelectedIndexChanged(object sender, EventArgs e)
         {
             ComboBox comboBoxId = sender as ComboBox;
             ComboBox comboBoxPN = action.PartNumber.control as ComboBox;
@@ -616,21 +474,23 @@ namespace WinAMBurner
         private void radioButton_CheckedChanged(object sender, EventArgs e)
         {
             RadioButton radioButton = sender as RadioButton;
+            RadioButton radioFarm = action.RadioFarm.lcontrol as RadioButton;
+            RadioButton radioService = action.RadioService.lcontrol as RadioButton;
             ComboBox comboBoxId = action.Farm.control as ComboBox;
             ComboBox comboBoxPN = action.PartNumber.control as ComboBox;
-            if ((radioButton != null) && (radioButton1 != null) && (radioButton2 != null) && (comboBoxId != null) && (comboBoxPN != null))
+            if ((radioButton != null) && (radioFarm != null) && (radioService != null) && (comboBoxId != null) && (comboBoxPN != null))
             {
                 if (radioButton.Checked)
                 {
-                    if (radioButton == radioButton1)
+                    if (radioButton == radioFarm)
                     {
-                        radioButton2.Checked = false;
+                        radioService.Checked = false;
                         addItems(comboBoxId, action.Farm, farms.ToArray());
                         //comboBoxId.Items.AddRange(farms.ToArray());
                     }
-                    if (radioButton == radioButton2)
+                    if (radioButton == radioService)
                     {
-                        radioButton1.Checked = false;
+                        radioFarm.Checked = false;
                         addItems(comboBoxId, action.Farm, services.ToArray());
                     }
                 }
@@ -662,16 +522,17 @@ namespace WinAMBurner
 
         private void progressBar_Callback(object sender, EventArgs e)
         {
-            if (progressBar1 != null)
+            ProgressBar progressBar = action.Progress.lcontrol as ProgressBar;
+            if (progressBar != null)
             {
                 SerialPortEventArgs args = e as SerialPortEventArgs;
                 if (args != null)
                 {
                     if (args.progress == 0)
-                        progressBar1.Maximum = progressBar1.Value + args.maximum * 2;
-                    
-                    if ((progressBar1.Value + args.progress) <= progressBar1.Maximum)
-                        progressBar1.Value += args.progress;
+                        progressBar.Maximum = progressBar.Value + args.maximum * 2;
+
+                    if ((progressBar.Value + args.progress) <= progressBar.Maximum)
+                        progressBar.Value += args.progress;
                 }
             }
         }
@@ -684,10 +545,7 @@ namespace WinAMBurner
             formNotify.ShowDialog();
             if (formNotify.DialogResult == DialogResult.Yes)
             {
-                //logout();
-                //Gui.hide(this);
-                //screenLoginShow();
-                Field.hide(this);
+                action.hide();
                 clearAM();
                 screenActionShow();
             }
@@ -698,59 +556,33 @@ namespace WinAMBurner
         {
             ErrCode errcode = ErrCode.ERROR;
 
-            allControlsDisable();
+            //allControlsDisable();
+            action.disableControls();
 
-            //Farm farm = null;
-            //int? farmId = null;
-            //Service service = null;
-            //int? serviceId = null;
-            //ComboBox comboBoxId = action.Farm.control as ComboBox;
             ComboBox comboBoxPN = action.PartNumber.control as ComboBox;
-            //if ((comboBoxId != null) && (comboBoxPN != null))
             TreatmentPackage treatmentPackage = null;
             if (comboBoxPN != null)
-                //{
-                //    if (radioButton1.Checked)
-                //    {
-                //        farm = comboBoxId.SelectedItem as Farm;
-                //        if (farm != null)
-                //            farmId = farm.Id;
-                //    }
-                //    else if (radioButton2.Checked)
-                //    {
-                //        service = comboBoxId.SelectedItem as Service;
-                //        if (service != null)
-                //            serviceId = service.Id;
-                //    }
                 treatmentPackage = comboBoxPN.SelectedItem as TreatmentPackage;
-            //    
-            //    if ((farm != null) || (service != null) && (treatmentPackage != null))
-            //    {
-            updateParams(action);
-            if ((errcode = checkParams(action)) == ErrCode.OK)
+            //updateParams(action);
+            action.updateParams();
+            //if ((errcode = checkParams(action)) == ErrCode.OK)
+            if ((errcode = action.checkParams()) == ErrCode.OK)
             {
                 am.MaxiSet = (uint)(treatmentPackage.amount_of_treatments * settings.number_of_pulses_per_treatment);
                 uint maxi = am.Maxi;
                 if ((am.Maxi + am.MaxiSet) < settings.max_am_pulses)
                 {
-                    progressBar1.Visible = true;
+                    ProgressBar progressBar = action.Progress.lcontrol as ProgressBar;
+                    if (progressBar != null)
+                        progressBar.Visible = true;
                     am.serialPortProgressEvent += new EventHandler(progressBar_Callback);
-                    progressBar1.Value = progressBar1.Minimum;
+                    if (progressBar != null)
+                        progressBar.Value = progressBar.Minimum;
 
                     if ((errcode = await am.AMDataWrite()) == ErrCode.OK)
                     {
                         if ((errcode = await am.AMDataRead()) == ErrCode.OK)
                         {
-                            //ActionJson act = new ActionJson()
-                            //{
-                            //    aptx_id = string.Format("{0:x} {1:x} {2:x}", am.AptxId[0], am.AptxId[1], am.AptxId[2]),
-                            //    am_id = am.SNum.ToString(),
-                            //    part_number = treatmentPackage.part_number,
-                            //    tablet = TabletNo,
-                            //    farm = farmId,
-                            //    service_provider = serviceId
-                            //};
-
                             JsonDocument jsonDocument = await web.entityAdd<ActionJson>(action, "api/p/actions/");
                             if ((jsonDocument != null) && ((errcode = responseParse<ActionJson>(jsonDocument)) == ErrCode.OK))
                             {
@@ -760,7 +592,8 @@ namespace WinAMBurner
                                     string.Format("The treatments available on AM - SN {1}: {0}", am.Maxi / settings.number_of_pulses_per_treatment, am.SNum),
                                                   "please disconnect the AM"},
                                     NotifyButtons.OK, "Approve Success");
-                                Field.hide(this);
+                                //Field.hide(this);
+                                action.hide();
                                 clearAM();
                                 screenActionShow();
                             }
@@ -772,7 +605,8 @@ namespace WinAMBurner
                                 errcode = ErrCode.EPARAM;
                                 notify(new List<string>() { "Restoring AM" }, NotifyButtons.OK, "Approve Fail");
                                 am.MaxiSet = 0;
-                                progressBar1.Value = progressBar1.Minimum;
+                                if (progressBar != null)
+                                    progressBar.Value = progressBar.Minimum;
                                 if ((errcode = await am.AMDataWrite()) == ErrCode.OK)
                                     if ((errcode = await am.AMDataRead()) == ErrCode.OK)
                                         errcode = ErrCode.EFAIL;
@@ -797,27 +631,23 @@ namespace WinAMBurner
                     "the maximum number of treatments reached,",
                     "please choose a smaller number of treatments" });
             else if (errcode == ErrCode.ERASE)
-                screenTreatError(new List<string>() { 
+                screenTreatError(new List<string>() {
                     "The operation failed,",
                     "AM sucsessfully restored to original values" });
             else if (errcode == ErrCode.EFAIL)
-                screenTreatError(new List<string>() {"Failed to restore AM" });
+                screenTreatError(new List<string>() { "Failed to restore AM" });
             else if (errcode == ErrCode.ERROR)
                 screenTreatError(new List<string>() { "The operation failed, the treatments were not added" });
         }
 
-        //private void notify(List<string> text, NotifyButtons notifyButtons, string caption = "Error")
-        //{
-        //    FormNotify formNotify = new FormNotify(text, notifyButtons, caption);
-        //    formNotify.ShowDialog();
-        //    formNotify.Dispose();
-        //}
-
         private void screenTreatError(List<string> text)
         {
             notify(text, NotifyButtons.OK, "Approve Fail");
-            progressBar1.Visible = false;
-            allControlsEnable();
+            ProgressBar progressBar = action.Progress.lcontrol as ProgressBar;
+            if (progressBar != null)
+                progressBar.Visible = false;
+            //allControlsEnable();
+            action.enableControls();
         }
 
         //
@@ -834,7 +664,7 @@ namespace WinAMBurner
                 new EventHandler(this.buttonFarmAdd_Click),
                 new EventHandler(richTextBoxFarmSearch_TextChanged),
                 new EventHandler(this.buttonBackToAction_Click));
-         
+
             dataGridView1.DataSource = entityTableGet(farms.Cast<Entity>().ToList());
         }
 
@@ -885,56 +715,59 @@ namespace WinAMBurner
 
         private void screenDataGridShow(string dataName, EventHandler eventHandlerButton1, EventHandler eventHandlerButton2, EventHandler eventHandlerButton3, EventHandler eventHandlerButton4)
         {
-            //Gui.draw(this, typeof(PictureBox), placev: Gui.Place.One);
             new Field(ltype: typeof(PictureBox), lplacev: Place.One).draw(this, true);
-            //Gui.draw(this, typeof(Label), text: dataName, placev: Gui.Place.Two);
             new Field(ltype: typeof(Label), ltext: dataName, lplacev: Place.Two).draw(this, true);
-            //Gui.draw(this, typeof(Button), text: "Back", eventHandler: eventHandlerButton4, placeh: Gui.Place.Four, placev: Gui.Place.Three);
             new Field(ltype: typeof(Button), ltext: "Back", buttonEventHandler: eventHandlerButton4, lplaceh: Place.Four, lplacev: Place.Three).draw(this, true);
-            //Gui.draw(this, typeof(RichTextBox), text: "Search", eventHandler: eventHandlerButton3, placeh: Gui.Place.Six, placev: Gui.Place.Three);
-            new Field(type: typeof(RichTextBox), text: "Search", textEventHandler: eventHandlerButton3, placeh: Place.Six, placev: Place.Three).draw(this);
-            //Gui.draw(this, typeof(Button), text: "Edit", eventHandler: eventHandlerButton1, placeh: Gui.Place.One, placev: Gui.Place.Three);
+            new Field(type: typeof(RichTextBox), text: "Search", textEventHandler: eventHandlerButton3, placeh: Place.Six, placev: Place.Three).draw(this, false);
             new Field(ltype: typeof(Button), ltext: "Edit", buttonEventHandler: eventHandlerButton1, lplaceh: Place.One, lplacev: Place.Three).draw(this, true);
-            //Gui.draw(this, typeof(Button), text: "Add New", eventHandler: eventHandlerButton2, placeh: Gui.Place.Three, placev: Gui.Place.Three);
             new Field(ltype: typeof(Button), ltext: "Add New", buttonEventHandler: eventHandlerButton2, lplaceh: Place.Three, lplacev: Place.Three).draw(this, true);
-            //Gui.dataGridDraw(this, ref dataGridView1, placev: Gui.Place.Four);
             Field.dataGridDraw(this, ref dataGridView1, placev: Place.Four);
         }
 
         private void buttonBackToAction_Click(object sender, EventArgs e)
         {
-            Field.hide(this);
+            //Field.hide(this);
+            hide();
             screenActionShow();
         }
 
         private void buttonFarmAdd_Click(object sender, EventArgs e)
         {
-            Field.hide(this);
-            screenFarmAddShow();
+            //Field.hide(this);
+            hide();
+            //screenFarmAddShow();
+            (farm = new Farm(false, comboBoxCountry_SelectedIndexChanged, buttonFarmCancel_Click, buttonFarmAddSubmit_Click)).drawFields(this);
+
         }
 
         private void buttonServiceAdd_Click(object sender, EventArgs e)
         {
-            Field.hide(this);
-            screenServiceAddShow();
+            //Field.hide(this);
+            hide();
+            //screenServiceAddShow();
+            (service = new Service(false, comboBoxCountry_SelectedIndexChanged, buttonServiceCancel_Click, buttonServiceAddSubmit_Click)).drawFields(this);
         }
 
         private void screenFarmAddShow()
         {
             farm = new Farm();
-            screenUpdateShow(farm, false, buttonFarmCancel_Click);
+            farm.Country.comboEventHandler = comboBoxCountry_SelectedIndexChanged;
+            //farm.ContractType.view = true;
+            screenUpdateShow(farm, buttonFarmCancel_Click);
             //Gui.draw(this, typeof(Label), text: "Add Farm", font: Gui.DefaultFontLarge, placev: Gui.Place.Two);
             new Field(ltype: typeof(Label), ltext: "Add Farm", font: Field.DefaultFontLarge, lplacev: Place.Two).draw(this, true);
             //Gui.draw(this, typeof(Button), text: "Submit", eventHandler: new EventHandler(buttonFarmAddSubmit_Click),
             //    placeh: Gui.Place.Three, placev: Gui.Place.Eleven);
-            new Field(ltype: typeof(Button), ltext: "Submit", buttonEventHandler: new EventHandler(buttonFarmAddSubmit_Click),
+            new Field(ltype: typeof(Button), ltext: "Submit", buttonEventHandler: buttonFarmAddSubmit_Click,
                 lplaceh: Place.Three, lplacev: Place.Eleven).draw(this, true);
         }
 
         private void screenServiceAddShow()
         {
             service = new Service();
-            screenUpdateShow(service, false, buttonServiceCancel_Click);
+            service.Country.comboEventHandler = comboBoxCountry_SelectedIndexChanged;
+            service.ContractType.view = true;
+            screenUpdateShow(service, buttonServiceCancel_Click);
             //Gui.draw(this, typeof(Label), text: "Add Service provider", font: Gui.DefaultFontLarge, placev: Gui.Place.Two);
             new Field(ltype: typeof(Label), ltext: "Add Service provider", font: Field.DefaultFontLarge, lplacev: Place.Two).draw(this, true);
             //Gui.draw(this, typeof(Button), text: "Submit", eventHandler: new EventHandler(buttonServiceAddSubmit_Click),
@@ -943,9 +776,9 @@ namespace WinAMBurner
                 lplaceh: Place.Three, lplacev: Place.Eleven).draw(this, true);
         }
 
-        private void screenUpdateShow<T>(T entity, bool edit, EventHandler eventHandler)
+        private void screenUpdateShow<T>(T entity, EventHandler eventHandler)
         {
-            drawFields(entity, edit);
+            drawFields(entity);
             //Gui.draw(this, typeof(PictureBox), placev: Gui.Place.One);
             new Field(ltype: typeof(PictureBox), lplacev: Place.One).draw(this, true);
             //Gui.draw(this, typeof(Button), text: "Cancel", eventHandler: eventHandler,
@@ -954,11 +787,8 @@ namespace WinAMBurner
                 lplaceh: Place.Six, lplacev: Place.Eleven).draw(this, true);
         }
 
-        private void drawFields<T>(T entity, bool edit)
+        private void drawFields<T>(T entity)
         {
-            Field country = null;
-            Field state = null;
-
             foreach (PropertyInfo prop in typeof(T).GetProperties())
             {
                 //Console.WriteLine("{0} = {1}", prop.Name, prop.GetValue(user, null));
@@ -966,34 +796,30 @@ namespace WinAMBurner
                 Field field = prop.GetValue(entity) as Field;
                 if (field != null)
                 {
-                    if (edit && field.ltext.Contains("Contract"))
-                        continue;
-
-                    drawField(field, edit);
-
-                    if (prop.Name == "Country")
-                        country = field;
-                    if (prop.Name == "State")
-                        state = field;
+                    //if (edit && field.ltext.Contains("Contract"))
+                    //    continue;
+                    if (field.view)
+                    {
+                        field.draw(this, false);
+                        field.draw(this, true);
+                    }
                 }
             }
-            if (country != null)
-                country.depend = state;
         }
 
-        private Control drawField(Field field, bool edit)
-        {
-            //string dflt = null;
-            //if (edit)
-            //    dflt = field.text;
-            //else
-            //    dflt = Gui.DefaultText;
-            //field.control = Gui.draw(this, field.type, text: field.val, name: defaultText, items: field.items, eventHandler: field.comboEventHandler, placeh: field.placeh, placev: field.placev);
-            //field.lcontrol = Gui.draw(this, typeof(Label), text: field.text, autoSize: false, placeh: field.lplaceh, placev: field.placev);
-            Control control = field.draw(this);
-            field.draw(this, false);
-            return control;
-        }
+        //private Control drawField(Field field, bool edit)
+        //{
+        //    //string dflt = null;
+        //    //if (edit)
+        //    //    dflt = field.text;
+        //    //else
+        //    //    dflt = Gui.DefaultText;
+        //    //field.control = Gui.draw(this, field.type, text: field.val, name: defaultText, items: field.items, eventHandler: field.comboEventHandler, placeh: field.placeh, placev: field.placev);
+        //    //field.lcontrol = Gui.draw(this, typeof(Label), text: field.text, autoSize: false, placeh: field.lplaceh, placev: field.placev);
+        //    Control control = field.draw(this);
+        //    field.draw(this, false);
+        //    return control;
+        //}
 
         private void buttonFarmEdit_Click(object sender, EventArgs e)
         {
@@ -1002,8 +828,12 @@ namespace WinAMBurner
             {
                 farm = getCurrentEntity(farms.Cast<Entity>().ToList()) as Farm;
                 //farmRow = getCurrentRow(farmTable);
-                Field.hide(this);
-                screenFarmEditShow(farm);
+                //Field.hide(this);
+                hide();
+                //screenFarmEditShow(farm);
+                farm.initFields(true, comboBoxCountry_SelectedIndexChanged, buttonFarmCancel_Click, buttonFarmAddSubmit_Click);
+                //farm.ContractType.view = false;
+                farm.drawFields(this);
             }
         }
 
@@ -1025,14 +855,20 @@ namespace WinAMBurner
             {
                 service = getCurrentEntity(services.Cast<Entity>().ToList()) as Service;
                 //serviceRow = getCurrentRow(serviceTable);
-                Field.hide(this);
-                screenServiceEditShow(service);
+                //Field.hide(this);
+                hide();
+                //screenServiceEditShow(service);
+                service.initFields(true, comboBoxCountry_SelectedIndexChanged, buttonServiceCancel_Click, buttonServiceAddSubmit_Click);
+                //service.ContractType.view = false;
+                service.drawFields(this);
             }
         }
 
         private void screenFarmEditShow(Farm farm)
         {
-            screenUpdateShow(farm, true, buttonFarmCancel_Click);
+            farm.Country.comboEventHandler = comboBoxCountry_SelectedIndexChanged;
+            farm.ContractType.view = false;
+            screenUpdateShow(farm, buttonFarmCancel_Click);
             //Gui.draw(this, typeof(Label), text: "Edit Farm", font: Gui.DefaultFontLarge, placev: Gui.Place.Two);
             new Field(ltype: typeof(Label), ltext: "Edit Farm", font: Field.DefaultFontLarge, lplacev: Place.Two).draw(this, true);
             //Gui.draw(this, typeof(Button), text: "Submit", eventHandler: new EventHandler(buttonFarmEditSubmit_Click),
@@ -1043,24 +879,54 @@ namespace WinAMBurner
 
         private void screenServiceEditShow(Service service)
         {
-            screenUpdateShow(service, true, buttonServiceCancel_Click);
+            service.Country.comboEventHandler = comboBoxCountry_SelectedIndexChanged;
+            service.ContractType.view = false;
+            screenUpdateShow(service, buttonServiceCancel_Click);
             //Gui.draw(this, typeof(Label), text: "Edit Service provider", font: Gui.DefaultFontLarge, placev: Gui.Place.Two);
             new Field(ltype: typeof(Label), ltext: "Edit Service provider", font: Field.DefaultFontLarge, lplacev: Place.Two).draw(this, true);
             //Gui.draw(this, typeof(Button), text: "Submit", eventHandler: new EventHandler(buttonServiceEditSubmit_Click),
             //    placeh: Gui.Place.Three, placev: Gui.Place.Eleven);
-            new Field(ltype: typeof(Button), ltext: "Submit", buttonEventHandler: new EventHandler(buttonServiceEditSubmit_Click),
+            new Field(ltype: typeof(Button), ltext: "Submit", buttonEventHandler: buttonServiceEditSubmit_Click,
                 lplaceh: Place.Three, lplacev: Place.Eleven).draw(this, true);
+        }
+
+        private void comboBoxCountry_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            ComboBox comboBox = sender as ComboBox;
+            if (comboBox != null)
+            {
+                Entity entity = null;
+                if (farm != null)
+                {
+                    if (comboBox == farm.Country.control)
+                        entity = farm;
+                }
+                if (service != null)
+                {
+                    if (comboBox == service.Country.control)
+                        entity = service;
+                }
+                if (entity != null)
+                {
+                    if (entity.Country.control.Text.Contains("United States of America"))
+                        entity.State.control.Enabled = true;
+                    else
+                        entity.State.control.Enabled = false;
+                }
+            }
         }
 
         private void buttonFarmCancel_Click(object sender, EventArgs e)
         {
-            Field.hide(this);
+            //Field.hide(this);
+            farm.hide();
             screenFarmShow();
         }
 
         private void buttonServiceCancel_Click(object sender, EventArgs e)
         {
-            Field.hide(this);
+            //Field.hide(this);
+            service.hide();
             screenServiceShow();
         }
 
@@ -1069,7 +935,7 @@ namespace WinAMBurner
             ErrCode errCode = ErrCode.ERROR;
 
             allControlsDisable();
-            
+
             updateParams(farm);
             if ((errCode = checkParams(farm)) == ErrCode.OK)
             {
@@ -1081,7 +947,8 @@ namespace WinAMBurner
                         farms.Add(farm);
                         //farmTable.Rows.Add(entityToRow(farm).ToArray<string>());
 
-                        Field.hide(this);
+                        //Field.hide(this);
+                        hide();
                         screenFarmShow();
                         errCode = ErrCode.OK;
                     }
@@ -1112,7 +979,8 @@ namespace WinAMBurner
                         services.Add(service);
                         //serviceTable.Rows.Add(entityToRow(service).ToArray<string>());
 
-                        Field.hide(this);
+                        //Field.hide(this);
+                        hide();
                         screenServiceShow();
                         errCode = ErrCode.OK;
                     }
@@ -1144,16 +1012,16 @@ namespace WinAMBurner
                     //    texts.Add(text);
                     JsonElement jsonElement;
                     if (jsonDocument.RootElement.TryGetProperty(prop.Name, out jsonElement))
-                        if(jsonElement.ValueKind == JsonValueKind.Array )
+                        if (jsonElement.ValueKind == JsonValueKind.Array)
                             //errors.Add(jsonElement.EnumerateArray().ElementAt(0).ToString());
                             errors.AddRange(jsonElement.EnumerateArray().Select(e => e.ToString()));
-                            //errors.Add(jsonElement.ToString());
+                    //errors.Add(jsonElement.ToString());
                 }
                 errCode = ErrCode.OK;
             }
             else
             {
-                FormNotify formNotify = new FormNotify(new List<string>() { "Error occured while processing", "the entry by the server"}, NotifyButtons.OK);
+                FormNotify formNotify = new FormNotify(new List<string>() { "Error occured while processing", "the entry by the server" }, NotifyButtons.OK);
                 formNotify.ShowDialog();
                 formNotify.Dispose();
                 errCode = ErrCode.ERROR;
@@ -1195,11 +1063,8 @@ namespace WinAMBurner
                 Field field = prop.GetValue(entity) as Field;
                 if (field != null)
                 {
-                    //if ((field.text == string.Empty) || (field.text == ErrCode.EPARAM.ToString()))
                     if (field.error == ErrCode.EPARAM)
                     {
-                        //if ((field.text == string.Empty) && (prop.Name == "State"))
-                        //    continue;
                         if (field.control != null)
                         {
                             field.control.ForeColor = Color.Red;
@@ -1212,17 +1077,6 @@ namespace WinAMBurner
             }
             return errCode;
         }
-
-        //public void updateField(Field field)
-        //{
-        //    if (field.control != null)
-        //    {
-        //        if (field.control.Name == Gui.DefaultText)
-        //            field.text = string.Empty;
-        //        else
-        //            field.text = field.control.Text;
-        //    }
-        //}
 
         private async void buttonFarmEditSubmit_Click(object sender, EventArgs e)
         {
@@ -1241,7 +1095,8 @@ namespace WinAMBurner
                         updateParams(farm);
                         //farmRow.ItemArray = entityToRow(farm).ToArray<string>();
 
-                        Field.hide(this);
+                        //Field.hide(this);
+                        hide();
                         screenFarmShow();
                         errCode = ErrCode.OK;
                     }
@@ -1277,7 +1132,8 @@ namespace WinAMBurner
                         updateParams(service);
                         //serviceRow.ItemArray = entityToRow(service).ToArray<string>();
 
-                        Field.hide(this);
+                        //Field.hide(this);
+                        hide();
                         screenServiceShow();
                         errCode = ErrCode.OK;
                     }
