@@ -158,7 +158,8 @@ namespace WinAMBurner
             login.email = "yael@gmail.com";
             login.password = "yael123";
 
-            if ((login.email != string.Empty) && (login.password != string.Empty))
+            //if ((login.email != string.Empty) && (login.password != string.Empty))
+            if ((errcode = login.checkParams()) == ErrCode.OK)
             {
                 LoginResponseJson loginResponse = await web.login(login);
                 if ((loginResponse != null) && (loginResponse.token != null))
@@ -431,9 +432,18 @@ namespace WinAMBurner
             //Field.hide(this);
             hide();
             //screenTreatShow();
-            (action = new Action(am, TabletNo, 
-                comboBoxAction_SelectedIndexChanged, radioButton_CheckedChanged, 
-                buttonTreatCansel_Click, buttonTreatApprove_Click)).drawFields(this);
+            action = new Action(am, TabletNo, farms.ToArray(), services.ToArray(), 
+                comboBoxFarm_SelectedIndexChanged, radioButton_CheckedChanged, 
+                buttonTreatCansel_Click, buttonTreatApprove_Click);
+
+            action.drawFields(this);
+            
+            RadioButton radioButton = action.RadioFarm.lcontrol as RadioButton;
+            if (radioButton != null)
+                radioButton.Checked = true;
+            ProgressBar progressBar = action.Progress.lcontrol as ProgressBar;
+            if (progressBar != null)
+                progressBar.Visible = false;
         }
 
         //private void screenTreatShow()
@@ -451,13 +461,14 @@ namespace WinAMBurner
         //    progressBar1.Visible = false;
         //}
 
-        private void comboBoxAction_SelectedIndexChanged(object sender, EventArgs e)
+        private void comboBoxFarm_SelectedIndexChanged(object sender, EventArgs e)
         {
             ComboBox comboBoxId = sender as ComboBox;
             ComboBox comboBoxPN = action.PartNumber.control as ComboBox;
             if ((comboBoxId != null) && (comboBoxId.SelectedItem != null) && (comboBoxPN != null) && (treatmentPackages != null))
             {
-                removeItems(comboBoxPN, action.PartNumber);
+                //removeItems(comboBoxPN, action.PartNumber);
+                action.PartNumber.removeItems();
                 Farm farm = comboBoxId.SelectedItem as Farm;
                 Service service = comboBoxId.SelectedItem as Service;
                 Entity entity = null;
@@ -467,62 +478,86 @@ namespace WinAMBurner
                     entity = service;
                 if (entity != null)
                     //comboBoxPN.Items.AddRange(treatmentPackages.Where(t => t.contract_type == entity.contract_type).ToArray());
-                    addItems(comboBoxPN, action.PartNumber, treatmentPackages.Where(t => t.contract_type == entity.contract_type).ToArray());
+                    //addItems(comboBoxPN, action.PartNumber, treatmentPackages.Where(t => t.contract_type == entity.contract_type).ToArray());
+                    action.PartNumber.addItems(treatmentPackages.Where(t => t.contract_type == entity.contract_type).ToArray());
             }
         }
 
         private void radioButton_CheckedChanged(object sender, EventArgs e)
         {
             RadioButton radioButton = sender as RadioButton;
-            RadioButton radioFarm = action.RadioFarm.lcontrol as RadioButton;
-            RadioButton radioService = action.RadioService.lcontrol as RadioButton;
-            ComboBox comboBoxId = action.Farm.control as ComboBox;
-            ComboBox comboBoxPN = action.PartNumber.control as ComboBox;
-            if ((radioButton != null) && (radioFarm != null) && (radioService != null) && (comboBoxId != null) && (comboBoxPN != null))
+            if (action != null)
             {
-                if (radioButton.Checked)
+                RadioButton radioFarm = action.RadioFarm.lcontrol as RadioButton;
+                RadioButton radioService = action.RadioService.lcontrol as RadioButton;
+                //ComboBox comboBoxId = action.Farm.control as ComboBox;
+                //ComboBox comboBoxPN = action.PartNumber.control as ComboBox;
+                //if ((radioButton != null) && (radioFarm != null) && (radioService != null) && (comboBoxId != null) && (comboBoxPN != null))
+                if ((radioButton != null) && (radioFarm != null) && (radioService != null))
                 {
-                    if (radioButton == radioFarm)
+                    if (radioButton.Checked)
                     {
-                        radioService.Checked = false;
-                        addItems(comboBoxId, action.Farm, farms.ToArray());
-                        //comboBoxId.Items.AddRange(farms.ToArray());
+                        if (radioButton == radioFarm)
+                        {
+                            radioService.Checked = false;
+                            //addItems(comboBoxId, action.Farm, farms.ToArray());
+                            action.Farm.removeItems();
+                            action.Farm.addItems(farms.ToArray());
+                            action.Farm.items = farms.ToArray();
+                            //comboBoxId.Items.AddRange(farms.ToArray());
+                        }
+                        if (radioButton == radioService)
+                        {
+                            radioFarm.Checked = false;
+                            //addItems(comboBoxId, action.Farm, services.ToArray());
+                            action.Farm.removeItems();
+                            action.Farm.addItems(services.ToArray());
+                            action.Farm.items = services.ToArray();
+                        }
                     }
-                    if (radioButton == radioService)
-                    {
-                        radioFarm.Checked = false;
-                        addItems(comboBoxId, action.Farm, services.ToArray());
-                    }
+                    else
+                        action.PartNumber.removeItems();
+                    //{
+                    //    //removeItems(comboBoxId, action.Farm);
+                    //    action.Farm.removeItems();
+                    //}
+                    ////removeItems(comboBoxPN, action.PartNumber);
+                    //action.PartNumber.removeItems();
                 }
-                else
-                {
-                    removeItems(comboBoxId, action.Farm);
-                }
-                removeItems(comboBoxPN, action.PartNumber);
             }
         }
 
-        private void addItems(ComboBox comboBox, Field field, object[] items)
-        {
-            field.items = items.Select(s => s.ToString()).ToArray();
-            comboBox.Items.AddRange(items);
-        }
-
-        private void removeItems(ComboBox comboBox, Field field)
-        {
-            if (comboBox != null)
-            {
-                field.setDefault();
-                comboBox.Text = field.dtext;
-                while (comboBox.Items.Count > 0)
-                    comboBox.Items.RemoveAt(0);
-                field.items = null;
-            }
-        }
+        //private void addItems(ComboBox comboBox, Field field, object[] items)
+        //{
+        //    //field.items = items.Select(s => s.ToString()).ToArray();
+        //    field.dflag = true;
+        //    field.items = items;
+        //    //field.setDefault();
+        //    comboBox.Items.AddRange(items);
+        //    //comboBox.Text = field.dtext;
+        //}
+        
+        //private void removeItems(ComboBox comboBox, Field field)
+        //{
+        //    if (comboBox != null)
+        //    {
+        //        //field.setDefault();
+        //        field.dflag = true;
+        //        field.items = null;
+        //        while (comboBox.Items.Count > 0)
+        //            comboBox.Items.RemoveAt(0);
+        //        //comboBox.Text = field.dtext;
+        //    }
+        //}
 
         private void progressBar_Callback(object sender, EventArgs e)
         {
-            ProgressBar progressBar = action.Progress.lcontrol as ProgressBar;
+            ProgressBar progressBar;
+            if (action != null)
+                progressBar = action.Progress.lcontrol as ProgressBar;
+            else
+                progressBar = progressBar1;
+
             if (progressBar != null)
             {
                 SerialPortEventArgs args = e as SerialPortEventArgs;
@@ -584,7 +619,8 @@ namespace WinAMBurner
                         if ((errcode = await am.AMDataRead()) == ErrCode.OK)
                         {
                             JsonDocument jsonDocument = await web.entityAdd<ActionJson>(action, "api/p/actions/");
-                            if ((jsonDocument != null) && ((errcode = responseParse<ActionJson>(jsonDocument)) == ErrCode.OK))
+                            //if ((jsonDocument != null) && ((errcode = responseParse<ActionJson>(jsonDocument)) == ErrCode.OK))
+                            if ((jsonDocument != null) && ((errcode = responseParse(action, jsonDocument)) == ErrCode.OK))
                             {
                                 notify(new List<string>() {
                                     string.Format("The original amount of treatments: {0}", maxi / settings.number_of_pulses_per_treatment),
@@ -748,64 +784,64 @@ namespace WinAMBurner
             (service = new Service(false, comboBoxCountry_SelectedIndexChanged, buttonServiceCancel_Click, buttonServiceAddSubmit_Click)).drawFields(this);
         }
 
-        private void screenFarmAddShow()
-        {
-            farm = new Farm();
-            farm.Country.comboEventHandler = comboBoxCountry_SelectedIndexChanged;
-            //farm.ContractType.view = true;
-            screenUpdateShow(farm, buttonFarmCancel_Click);
-            //Gui.draw(this, typeof(Label), text: "Add Farm", font: Gui.DefaultFontLarge, placev: Gui.Place.Two);
-            new Field(ltype: typeof(Label), ltext: "Add Farm", font: Field.DefaultFontLarge, lplacev: Place.Two).draw(this, true);
-            //Gui.draw(this, typeof(Button), text: "Submit", eventHandler: new EventHandler(buttonFarmAddSubmit_Click),
-            //    placeh: Gui.Place.Three, placev: Gui.Place.Eleven);
-            new Field(ltype: typeof(Button), ltext: "Submit", buttonEventHandler: buttonFarmAddSubmit_Click,
-                lplaceh: Place.Three, lplacev: Place.Eleven).draw(this, true);
-        }
+        //private void screenFarmAddShow()
+        //{
+        //    farm = new Farm();
+        //    farm.Country.comboEventHandler = comboBoxCountry_SelectedIndexChanged;
+        //    //farm.ContractType.view = true;
+        //    screenUpdateShow(farm, buttonFarmCancel_Click);
+        //    //Gui.draw(this, typeof(Label), text: "Add Farm", font: Gui.DefaultFontLarge, placev: Gui.Place.Two);
+        //    new Field(ltype: typeof(Label), ltext: "Add Farm", font: Field.DefaultFontLarge, lplacev: Place.Two).draw(this, true);
+        //    //Gui.draw(this, typeof(Button), text: "Submit", eventHandler: new EventHandler(buttonFarmAddSubmit_Click),
+        //    //    placeh: Gui.Place.Three, placev: Gui.Place.Eleven);
+        //    new Field(ltype: typeof(Button), ltext: "Submit", buttonEventHandler: buttonFarmAddSubmit_Click,
+        //        lplaceh: Place.Three, lplacev: Place.Eleven).draw(this, true);
+        //}
 
-        private void screenServiceAddShow()
-        {
-            service = new Service();
-            service.Country.comboEventHandler = comboBoxCountry_SelectedIndexChanged;
-            service.ContractType.view = true;
-            screenUpdateShow(service, buttonServiceCancel_Click);
-            //Gui.draw(this, typeof(Label), text: "Add Service provider", font: Gui.DefaultFontLarge, placev: Gui.Place.Two);
-            new Field(ltype: typeof(Label), ltext: "Add Service provider", font: Field.DefaultFontLarge, lplacev: Place.Two).draw(this, true);
-            //Gui.draw(this, typeof(Button), text: "Submit", eventHandler: new EventHandler(buttonServiceAddSubmit_Click),
-            //    placeh: Gui.Place.Three, placev: Gui.Place.Eleven);
-            new Field(ltype: typeof(Button), ltext: "Submit", buttonEventHandler: new EventHandler(buttonServiceAddSubmit_Click),
-                lplaceh: Place.Three, lplacev: Place.Eleven).draw(this, true);
-        }
+        //private void screenServiceAddShow()
+        //{
+        //    service = new Service();
+        //    service.Country.comboEventHandler = comboBoxCountry_SelectedIndexChanged;
+        //    service.ContractType.view = true;
+        //    screenUpdateShow(service, buttonServiceCancel_Click);
+        //    //Gui.draw(this, typeof(Label), text: "Add Service provider", font: Gui.DefaultFontLarge, placev: Gui.Place.Two);
+        //    new Field(ltype: typeof(Label), ltext: "Add Service provider", font: Field.DefaultFontLarge, lplacev: Place.Two).draw(this, true);
+        //    //Gui.draw(this, typeof(Button), text: "Submit", eventHandler: new EventHandler(buttonServiceAddSubmit_Click),
+        //    //    placeh: Gui.Place.Three, placev: Gui.Place.Eleven);
+        //    new Field(ltype: typeof(Button), ltext: "Submit", buttonEventHandler: new EventHandler(buttonServiceAddSubmit_Click),
+        //        lplaceh: Place.Three, lplacev: Place.Eleven).draw(this, true);
+        //}
 
-        private void screenUpdateShow<T>(T entity, EventHandler eventHandler)
-        {
-            drawFields(entity);
-            //Gui.draw(this, typeof(PictureBox), placev: Gui.Place.One);
-            new Field(ltype: typeof(PictureBox), lplacev: Place.One).draw(this, true);
-            //Gui.draw(this, typeof(Button), text: "Cancel", eventHandler: eventHandler,
-            //    placeh: Gui.Place.Six, placev: Gui.Place.Eleven);
-            new Field(ltype: typeof(Button), ltext: "Cancel", buttonEventHandler: eventHandler,
-                lplaceh: Place.Six, lplacev: Place.Eleven).draw(this, true);
-        }
+        //private void screenUpdateShow<T>(T entity, EventHandler eventHandler)
+        //{
+        //    drawFields(entity);
+        //    //Gui.draw(this, typeof(PictureBox), placev: Gui.Place.One);
+        //    new Field(ltype: typeof(PictureBox), lplacev: Place.One).draw(this, true);
+        //    //Gui.draw(this, typeof(Button), text: "Cancel", eventHandler: eventHandler,
+        //    //    placeh: Gui.Place.Six, placev: Gui.Place.Eleven);
+        //    new Field(ltype: typeof(Button), ltext: "Cancel", buttonEventHandler: eventHandler,
+        //        lplaceh: Place.Six, lplacev: Place.Eleven).draw(this, true);
+        //}
 
-        private void drawFields<T>(T entity)
-        {
-            foreach (PropertyInfo prop in typeof(T).GetProperties())
-            {
-                //Console.WriteLine("{0} = {1}", prop.Name, prop.GetValue(user, null));
-                //PropertyInfo prop = props.ElementAt(controls.IndexOf(control));
-                Field field = prop.GetValue(entity) as Field;
-                if (field != null)
-                {
-                    //if (edit && field.ltext.Contains("Contract"))
-                    //    continue;
-                    if (field.view)
-                    {
-                        field.draw(this, false);
-                        field.draw(this, true);
-                    }
-                }
-            }
-        }
+        //private void drawFields<T>(T entity)
+        //{
+        //    foreach (PropertyInfo prop in typeof(T).GetProperties())
+        //    {
+        //        //Console.WriteLine("{0} = {1}", prop.Name, prop.GetValue(user, null));
+        //        //PropertyInfo prop = props.ElementAt(controls.IndexOf(control));
+        //        Field field = prop.GetValue(entity) as Field;
+        //        if (field != null)
+        //        {
+        //            //if (edit && field.ltext.Contains("Contract"))
+        //            //    continue;
+        //            if (field.view)
+        //            {
+        //                field.draw(this, false);
+        //                field.draw(this, true);
+        //            }
+        //        }
+        //    }
+        //}
 
         //private Control drawField(Field field, bool edit)
         //{
@@ -831,7 +867,7 @@ namespace WinAMBurner
                 //Field.hide(this);
                 hide();
                 //screenFarmEditShow(farm);
-                farm.initFields(true, comboBoxCountry_SelectedIndexChanged, buttonFarmCancel_Click, buttonFarmAddSubmit_Click);
+                farm.initFields(true, comboBoxCountry_SelectedIndexChanged, buttonFarmCancel_Click, buttonFarmEditSubmit_Click);
                 //farm.ContractType.view = false;
                 farm.drawFields(this);
             }
@@ -858,37 +894,37 @@ namespace WinAMBurner
                 //Field.hide(this);
                 hide();
                 //screenServiceEditShow(service);
-                service.initFields(true, comboBoxCountry_SelectedIndexChanged, buttonServiceCancel_Click, buttonServiceAddSubmit_Click);
+                service.initFields(true, comboBoxCountry_SelectedIndexChanged, buttonServiceCancel_Click, buttonServiceEditSubmit_Click);
                 //service.ContractType.view = false;
                 service.drawFields(this);
             }
         }
 
-        private void screenFarmEditShow(Farm farm)
-        {
-            farm.Country.comboEventHandler = comboBoxCountry_SelectedIndexChanged;
-            farm.ContractType.view = false;
-            screenUpdateShow(farm, buttonFarmCancel_Click);
-            //Gui.draw(this, typeof(Label), text: "Edit Farm", font: Gui.DefaultFontLarge, placev: Gui.Place.Two);
-            new Field(ltype: typeof(Label), ltext: "Edit Farm", font: Field.DefaultFontLarge, lplacev: Place.Two).draw(this, true);
-            //Gui.draw(this, typeof(Button), text: "Submit", eventHandler: new EventHandler(buttonFarmEditSubmit_Click),
-            //    placeh: Gui.Place.Three, placev: Gui.Place.Eleven);
-            new Field(ltype: typeof(Button), ltext: "Submit", buttonEventHandler: new EventHandler(buttonFarmEditSubmit_Click),
-                lplaceh: Place.Three, lplacev: Place.Eleven).draw(this, true);
-        }
+        //private void screenFarmEditShow(Farm farm)
+        //{
+        //    farm.Country.comboEventHandler = comboBoxCountry_SelectedIndexChanged;
+        //    farm.ContractType.view = false;
+        //    screenUpdateShow(farm, buttonFarmCancel_Click);
+        //    //Gui.draw(this, typeof(Label), text: "Edit Farm", font: Gui.DefaultFontLarge, placev: Gui.Place.Two);
+        //    new Field(ltype: typeof(Label), ltext: "Edit Farm", font: Field.DefaultFontLarge, lplacev: Place.Two).draw(this, true);
+        //    //Gui.draw(this, typeof(Button), text: "Submit", eventHandler: new EventHandler(buttonFarmEditSubmit_Click),
+        //    //    placeh: Gui.Place.Three, placev: Gui.Place.Eleven);
+        //    new Field(ltype: typeof(Button), ltext: "Submit", buttonEventHandler: new EventHandler(buttonFarmEditSubmit_Click),
+        //        lplaceh: Place.Three, lplacev: Place.Eleven).draw(this, true);
+        //}
 
-        private void screenServiceEditShow(Service service)
-        {
-            service.Country.comboEventHandler = comboBoxCountry_SelectedIndexChanged;
-            service.ContractType.view = false;
-            screenUpdateShow(service, buttonServiceCancel_Click);
-            //Gui.draw(this, typeof(Label), text: "Edit Service provider", font: Gui.DefaultFontLarge, placev: Gui.Place.Two);
-            new Field(ltype: typeof(Label), ltext: "Edit Service provider", font: Field.DefaultFontLarge, lplacev: Place.Two).draw(this, true);
-            //Gui.draw(this, typeof(Button), text: "Submit", eventHandler: new EventHandler(buttonServiceEditSubmit_Click),
-            //    placeh: Gui.Place.Three, placev: Gui.Place.Eleven);
-            new Field(ltype: typeof(Button), ltext: "Submit", buttonEventHandler: buttonServiceEditSubmit_Click,
-                lplaceh: Place.Three, lplacev: Place.Eleven).draw(this, true);
-        }
+        //private void screenServiceEditShow(Service service)
+        //{
+        //    service.Country.comboEventHandler = comboBoxCountry_SelectedIndexChanged;
+        //    service.ContractType.view = false;
+        //    screenUpdateShow(service, buttonServiceCancel_Click);
+        //    //Gui.draw(this, typeof(Label), text: "Edit Service provider", font: Gui.DefaultFontLarge, placev: Gui.Place.Two);
+        //    new Field(ltype: typeof(Label), ltext: "Edit Service provider", font: Field.DefaultFontLarge, lplacev: Place.Two).draw(this, true);
+        //    //Gui.draw(this, typeof(Button), text: "Submit", eventHandler: new EventHandler(buttonServiceEditSubmit_Click),
+        //    //    placeh: Gui.Place.Three, placev: Gui.Place.Eleven);
+        //    new Field(ltype: typeof(Button), ltext: "Submit", buttonEventHandler: buttonServiceEditSubmit_Click,
+        //        lplaceh: Place.Three, lplacev: Place.Eleven).draw(this, true);
+        //}
 
         private void comboBoxCountry_SelectedIndexChanged(object sender, EventArgs e)
         {
@@ -906,9 +942,11 @@ namespace WinAMBurner
                     if (comboBox == service.Country.control)
                         entity = service;
                 }
-                if (entity != null)
+                if ((entity != null) && (entity.State.control != null))
                 {
-                    if (entity.Country.control.Text.Contains("United States of America"))
+                    entity.State.dflag = true;
+                    entity.State.control.Text = entity.State.dtext;
+                    if (comboBox.Text.Contains("United States of America"))
                         entity.State.control.Enabled = true;
                     else
                         entity.State.control.Enabled = false;
@@ -934,21 +972,22 @@ namespace WinAMBurner
         {
             ErrCode errCode = ErrCode.ERROR;
 
-            allControlsDisable();
+            //allControlsDisable();
+            farm.disableControls();
 
-            updateParams(farm);
-            if ((errCode = checkParams(farm)) == ErrCode.OK)
+            //updateParams(farm);
+            farm.updateParams();
+            //if ((errCode = checkParams(farm)) == ErrCode.OK)
+            if ((errCode = farm.checkParams()) == ErrCode.OK)
             {
                 JsonDocument jsonDocument = await web.entityAdd<FarmJson>(farm, "api/p/farms/");
                 if (jsonDocument != null)
                 {
-                    if ((errCode = responseParse<ServiceJson>(jsonDocument)) == ErrCode.OK)
+                    //if ((errCode = responseParse<FarmJson>(jsonDocument)) == ErrCode.OK)
+                    if ((errCode = responseParse(farm, jsonDocument)) == ErrCode.OK)
                     {
                         farms.Add(farm);
-                        //farmTable.Rows.Add(entityToRow(farm).ToArray<string>());
-
-                        //Field.hide(this);
-                        hide();
+                        farm.hide();
                         screenFarmShow();
                         errCode = ErrCode.OK;
                     }
@@ -966,21 +1005,22 @@ namespace WinAMBurner
         {
             ErrCode errCode = ErrCode.ERROR;
 
-            allControlsDisable();
+            //allControlsDisable();
+            service.disableControls();
 
-            updateParams(service);
-            if ((errCode = checkParams(service)) == ErrCode.OK)
+            //updateParams(service);
+            service.updateParams();
+            //if ((errCode = checkParams(service)) == ErrCode.OK)
+            if ((errCode = service.checkParams()) == ErrCode.OK)
             {
                 JsonDocument jsonDocument = await web.entityAdd<ServiceJson>(service, "api/p/service_providers/");
                 if (jsonDocument != null)
                 {
-                    if ((errCode = responseParse<ServiceJson>(jsonDocument)) == ErrCode.OK)
+                    //if ((errCode = responseParse<ServiceJson>(jsonDocument)) == ErrCode.OK)
+                    if ((errCode = responseParse(service, jsonDocument)) == ErrCode.OK)
                     {
                         services.Add(service);
-                        //serviceTable.Rows.Add(entityToRow(service).ToArray<string>());
-
-                        //Field.hide(this);
-                        hide();
+                        service.hide();
                         screenServiceShow();
                         errCode = ErrCode.OK;
                     }
@@ -994,37 +1034,20 @@ namespace WinAMBurner
                     "make sure all the fields are filled with valid values"}, "Submit Failed");
         }
 
-        private ErrCode responseParse<T>(JsonDocument jsonDocument)
+        private ErrCode responseParse<T>(T entity, JsonDocument jsonDocument)
         {
-            ErrCode errCode = ErrCode.EPARAM;
+            ErrCode errcode = ErrCode.EPARAM;
             List<string> errors = new List<string>();
+            Gui gui = entity as Gui;
 
-            if (jsonDocument != null)
-            {
-                foreach (PropertyInfo prop in typeof(T).GetProperties())
-                {
-                    //Console.WriteLine("{0} = {1}", prop.Name, prop.GetValue(user, null));
-                    //string text = jsonDocument.RootElement.GetProperty(prop.Name).ToString();
-                    //string text = "";
-                    //try { text = jsonDocument.RootElement.GetProperty(prop.Name).EnumerateArray().ElementAt(0).ToString(); }
-                    //catch { }
-                    //if (text != "")
-                    //    texts.Add(text);
-                    JsonElement jsonElement;
-                    if (jsonDocument.RootElement.TryGetProperty(prop.Name, out jsonElement))
-                        if (jsonElement.ValueKind == JsonValueKind.Array)
-                            //errors.Add(jsonElement.EnumerateArray().ElementAt(0).ToString());
-                            errors.AddRange(jsonElement.EnumerateArray().Select(e => e.ToString()));
-                    //errors.Add(jsonElement.ToString());
-                }
-                errCode = ErrCode.OK;
-            }
-            else
+            if(gui != null)
+                errcode = gui.responseParse(jsonDocument, errors);
+
+            if(errcode != ErrCode.OK)
             {
                 FormNotify formNotify = new FormNotify(new List<string>() { "Error occured while processing", "the entry by the server" }, NotifyButtons.OK);
                 formNotify.ShowDialog();
                 formNotify.Dispose();
-                errCode = ErrCode.ERROR;
             }
 
             if (errors.Count > 0)
@@ -1032,71 +1055,113 @@ namespace WinAMBurner
                 FormNotify formNotify = new FormNotify(errors, NotifyButtons.OK);
                 formNotify.ShowDialog();
                 formNotify.Dispose();
-                errCode = ErrCode.ERROR;
+                errcode = ErrCode.EPARAM;
             }
-            return errCode;
+
+            return errcode;
         }
 
-        private void updateParams<T>(T entity)
-        {
-            //PropertyInfo [] props = typeof(T).GetProperties();
-            foreach (PropertyInfo prop in typeof(T).GetProperties())
-            {
-                //Console.WriteLine("{0} = {1}", prop.Name, prop.GetValue(user, null));
-                Field field = prop.GetValue(entity) as Field;
-                if (field != null)
-                {
-                    field.updateField();
-                    prop.SetValue(entity, field);
-                }
-                //prop.SetValue(entity, control.Text);
-            }
-        }
+        //private ErrCode responseParse<T>(JsonDocument jsonDocument)
+        //{
+        //    ErrCode errCode = ErrCode.EPARAM;
+        //    List<string> errors = new List<string>();
+        //
+        //    if (jsonDocument != null)
+        //    {
+        //        foreach (PropertyInfo prop in typeof(T).GetProperties())
+        //        {
+        //            //Console.WriteLine("{0} = {1}", prop.Name, prop.GetValue(user, null));
+        //            JsonElement jsonElement;
+        //            if (jsonDocument.RootElement.TryGetProperty(prop.Name, out jsonElement))
+        //                if (jsonElement.ValueKind == JsonValueKind.Array)
+        //                    errors.AddRange(jsonElement.EnumerateArray().Select(e => e.ToString()));
+        //        }
+        //        errCode = ErrCode.OK;
+        //    }
+        //    else
+        //    {
+        //        FormNotify formNotify = new FormNotify(new List<string>() { "Error occured while processing", "the entry by the server" }, NotifyButtons.OK);
+        //        formNotify.ShowDialog();
+        //        formNotify.Dispose();
+        //        errCode = ErrCode.ERROR;
+        //    }
+        //
+        //    if (errors.Count > 0)
+        //    {
+        //        FormNotify formNotify = new FormNotify(errors, NotifyButtons.OK);
+        //        formNotify.ShowDialog();
+        //        formNotify.Dispose();
+        //        errCode = ErrCode.ERROR;
+        //    }
+        //    return errCode;
+        //}
 
-        private ErrCode checkParams<T>(T entity)
-        {
-            ErrCode errCode = ErrCode.OK;
-            //PropertyInfo [] props = typeof(T).GetProperties();
-            foreach (PropertyInfo prop in typeof(T).GetProperties())
-            {
-                //Console.WriteLine("{0} = {1}", prop.Name, prop.GetValue(user, null));
-                Field field = prop.GetValue(entity) as Field;
-                if (field != null)
-                {
-                    if (field.error == ErrCode.EPARAM)
-                    {
-                        if (field.control != null)
-                        {
-                            field.control.ForeColor = Color.Red;
-                            field.control.Text = field.dtext;
-                            field.dflag = true;
-                        }
-                        errCode = ErrCode.EPARAM;
-                    }
-                }
-            }
-            return errCode;
-        }
+        //private void updateParams<T>(T entity)
+        //{
+        //    //PropertyInfo [] props = typeof(T).GetProperties();
+        //    foreach (PropertyInfo prop in typeof(T).GetProperties())
+        //    {
+        //        //Console.WriteLine("{0} = {1}", prop.Name, prop.GetValue(user, null));
+        //        Field field = prop.GetValue(entity) as Field;
+        //        if (field != null)
+        //        {
+        //            field.updateField();
+        //            prop.SetValue(entity, field);
+        //        }
+        //        //prop.SetValue(entity, control.Text);
+        //    }
+        //}
+
+        //private ErrCode checkParams<T>(T entity)
+        //{
+        //    ErrCode errCode = ErrCode.OK;
+        //    //PropertyInfo [] props = typeof(T).GetProperties();
+        //    foreach (PropertyInfo prop in typeof(T).GetProperties())
+        //    {
+        //        //Console.WriteLine("{0} = {1}", prop.Name, prop.GetValue(user, null));
+        //        Field field = prop.GetValue(entity) as Field;
+        //        if (field != null)
+        //        {
+        //            if (field.error == ErrCode.EPARAM)
+        //            {
+        //                if (field.control != null)
+        //                {
+        //                    field.control.ForeColor = Color.Red;
+        //                    field.control.Text = field.dtext;
+        //                    field.dflag = true;
+        //                }
+        //                errCode = ErrCode.EPARAM;
+        //            }
+        //        }
+        //    }
+        //    return errCode;
+        //}
 
         private async void buttonFarmEditSubmit_Click(object sender, EventArgs e)
         {
             ErrCode errCode = ErrCode.ERROR;
 
-            allControlsDisable();
+            //allControlsDisable();
+            farm.disableControls();
+
             Farm f = farm.clone() as Farm;
-            updateParams(f);
-            if ((errCode = checkParams(f)) == ErrCode.OK)
+            //updateParams(f);
+            f.updateParams();
+            //if ((errCode = checkParams(f)) == ErrCode.OK)
+            if ((errCode = f.checkParams()) == ErrCode.OK)
             {
                 JsonDocument jsonDocument = await web.entityEdit<FarmJson>(f, "api/p/farms/" + farm.Id + "/");
                 if (jsonDocument != null)
                 {
-                    if ((errCode = responseParse<ServiceJson>(jsonDocument)) == ErrCode.OK)
+                    //if ((errCode = responseParse<FarmJson>(jsonDocument)) == ErrCode.OK)
+                    if ((errCode = responseParse(farm, jsonDocument)) == ErrCode.OK)
                     {
-                        updateParams(farm);
+                        //updateParams(farm);
+                        farm.updateParams();
                         //farmRow.ItemArray = entityToRow(farm).ToArray<string>();
 
                         //Field.hide(this);
-                        hide();
+                        farm.hide();
                         screenFarmShow();
                         errCode = ErrCode.OK;
                     }
@@ -1116,24 +1181,24 @@ namespace WinAMBurner
         {
             ErrCode errCode = ErrCode.ERROR;
 
-            allControlsDisable();
+            //allControlsDisable();
+            service.disableControls();
 
             Service s = service.clone() as Service;
-            updateParams(s);
-            if ((errCode = checkParams(s)) == ErrCode.OK)
+            //updateParams(s);
+            s.updateParams();
+            //if ((errCode = checkParams(s)) == ErrCode.OK)
+            if ((errCode = s.checkParams()) == ErrCode.OK)
             {
                 JsonDocument jsonDocument = await web.entityEdit<ServiceJson>(s, "api/p/service_providers/" + service.Id + "/");
                 if (jsonDocument != null)
                 {
-                    if ((errCode = responseParse<ServiceJson>(jsonDocument)) == ErrCode.OK)
+                    //if ((errCode = responseParse<ServiceJson>(jsonDocument)) == ErrCode.OK)
+                    if ((errCode = responseParse(service, jsonDocument)) == ErrCode.OK)
                     {
-                        //serviceTable.Rows.Remove(serviceRow);
-                        //serviceTable.Rows.Add(entityToRow(service).ToArray<string>());
-                        updateParams(service);
-                        //serviceRow.ItemArray = entityToRow(service).ToArray<string>();
-
-                        //Field.hide(this);
-                        hide();
+                        //updateParams(service);
+                        service.updateParams();
+                        service.hide();
                         screenServiceShow();
                         errCode = ErrCode.OK;
                     }

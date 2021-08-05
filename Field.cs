@@ -32,7 +32,8 @@ namespace WinAMBurner
         public string ltext;
         public string dtext;
         public bool dflag;
-        public string[] items;
+        //public string[] items;
+        public object[] items;
         public Control control;
         public Control lcontrol;
         public Type type;
@@ -58,7 +59,7 @@ namespace WinAMBurner
         public delegate bool pCheck(string param);
         public pCheck pcheck;
 
-        public Field(Type type = null, Type ltype = null, string text = null, string ltext = null, string[] items = null,
+        public Field(Type type = null, Type ltype = null, string text = null, string ltext = null, object[] items = null,
             LinkLabelLinkClickedEventHandler linkEventHandler = null,
             EventHandler comboEventHandler = null,
             EventHandler buttonEventHandler = null,
@@ -184,15 +185,17 @@ namespace WinAMBurner
 
         public void updateField()
         {
+            //if (view)
+            //{
             if (control != null)
             {
                 Farm farm = null;
                 Service service = null;
                 TreatmentPackage treatmentPackage = null;
+                ComboBox comboBox = control as ComboBox;
 
-                if (type == typeof(ComboBox))
+                if (comboBox != null)
                 {
-                    ComboBox comboBox = control as ComboBox;
                     farm = comboBox.SelectedItem as Farm;
                     service = comboBox.SelectedItem as Service;
                     treatmentPackage = comboBox.SelectedItem as TreatmentPackage;
@@ -216,6 +219,7 @@ namespace WinAMBurner
                     }
                 }
             }
+            //}
         }
 
         //public string getText()
@@ -228,10 +232,10 @@ namespace WinAMBurner
         //    return null;
         //}
 
-        public void setDefault()
-        {
-            dflag = true;
-        }
+        //public void setDefault()
+        //{
+        //    dflag = true;
+        //}
 
         //private void comboBox_SelectedIndexChanged(object sender, EventArgs e)
         //{
@@ -361,8 +365,8 @@ namespace WinAMBurner
                         if (comboEventHandler != null)
                             comboBox.SelectedIndexChanged += comboEventHandler;
                         comboBox.TextUpdate += comboBox_TextUpdate;
-                        comboBox.KeyPress += comboBox_KeyPress;
-                        comboBox.EnabledChanged += comboBox_EnabledChanged;
+                        //comboBox.KeyPress += comboBox_KeyPress;
+                        //comboBox.EnabledChanged += comboBox_EnabledChanged;
                         //comboBox.DisplayMember = type.Name;
                         //comboBox.TextUpdate += comboBox_TextChanged;
                         defaultText(control);
@@ -491,44 +495,106 @@ namespace WinAMBurner
         private void comboBox_TextUpdate(object sender, EventArgs e)
         {
             ComboBox comboBox = sender as ComboBox;
-            if ((comboBox != null) && (comboBox.Text != null) && (comboBox.Items != null) && (items != null))
-            {
-                //comboBox.SelectedItem = comboBox.Items.Cast<string>().Where(s => s.ToLower().StartsWith(comboBox.Text.ToLower())).FirstOrDefault();
-                removeItems(comboBox);
-                comboBox.Items.AddRange(items.Where(s => s.ToLower().StartsWith(comboBox.Text.ToLower())).ToArray());
-            }
-        }
-
-        private void comboBox_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            ComboBox comboBox = sender as ComboBox;
-            if ((comboBox != null) && (comboBox.Text != null) && (comboBox.Items != null) && (items != null))
-            {
-                //if (comboBox.Text != string.Empty)
-                comboBox.DroppedDown = true;
-                //clearComboBox(comboBox);
-                //comboBox.Items.AddRange(items.Where(s => s.ToLower().StartsWith((comboBox.Text + e.KeyChar).ToLower())).ToArray());
-            }
-        }
-
-        private void comboBox_EnabledChanged(object sender, EventArgs e)
-        {
-            ComboBox comboBox = sender as ComboBox;
+            //if ((comboBox != null) && (comboBox.Text != null) && (comboBox.Items != null) && (items != null))
             if ((comboBox != null) && (items != null))
             {
-                if (comboBox.Enabled)
-                    comboBox.Items.AddRange(items);
-                else
-                    removeItems(comboBox);
+                string text = comboBox.Text;
+                removeItems();
+                //addItems(items.Where(s => s.ToString().ToLower().StartsWith(comboBox.Text.ToLower())).ToArray());
+                addItems(items.Where(s => s.ToString().ToLower().StartsWith(text.ToLower())).ToArray());
+                comboBox.DroppedDown = true;
+                comboBox.Text = text;
             }
         }
 
-        private void removeItems(ComboBox comboBox)
+        //private void comboBox_KeyPress(object sender, KeyPressEventArgs e)
+        //{
+        //    ComboBox comboBox = sender as ComboBox;
+        //    if (comboBox != null)
+        //        comboBox.DroppedDown = true;
+        //}
+
+        //private void comboBox_EnabledChanged(object sender, EventArgs e)
+        //{
+        //    ComboBox comboBox = sender as ComboBox;
+        //    if ((comboBox != null) && (items != null))
+        //    {
+        //        //if (comboBox.Enabled)
+        //        //    //comboBox.Items.AddRange(items);
+        //        //    addItems(items);
+        //        //else
+        //        //    removeItems();
+        //    }
+        //}
+
+        //private void addComboItems(object[] items)
+        //{
+        //    ComboBox comboBox = control as ComboBox;
+        //    if (comboBox != null)
+        //    {
+        //        //field.items = items.Select(s => s.ToString()).ToArray();
+        //        dflag = true;
+        //        //items = items;
+        //        //field.setDefault();
+        //        comboBox.Items.AddRange(items);
+        //        //comboBox.Text = dtext;
+        //    }
+        //}
+
+        //private void removeComboItems()
+        //{
+        //    ComboBox comboBox = control as ComboBox;
+        //    if (comboBox != null)
+        //    {
+        //        //while (comboBox.Items.Count > 0)
+        //        //    comboBox.Items.RemoveAt(0);
+        //        dflag = true;
+        //        //items = null;
+        //        while (comboBox.Items.Count > 0)
+        //            comboBox.Items.RemoveAt(0);
+        //        //comboBox.Text = dtext;
+        //    }
+        //}
+
+        public void addItems()
         {
+            ComboBox comboBox = control as ComboBox;
             if (comboBox != null)
             {
+                //field.items = items.Select(s => s.ToString()).ToArray();
+                dflag = true;
+                //items = items;
+                //field.setDefault();
+                comboBox.Items.AddRange(items);
+                //comboBox.Text = field.dtext;
+            }
+        }
+
+        public void addItems(object[] items)
+        {
+            ComboBox comboBox = control as ComboBox;
+            if (comboBox != null)
+            {
+                //field.items = items.Select(s => s.ToString()).ToArray();
+                dflag = true;
+                //items = items;
+                //field.setDefault();
+                comboBox.Items.AddRange(items);
+                //comboBox.Text = field.dtext;
+            }
+        }
+
+        public void removeItems()
+        {
+            ComboBox comboBox = control as ComboBox;
+            if (comboBox != null)
+            {
+                //field.setDefault();
+                dflag = true;
+                //items = null;
                 while (comboBox.Items.Count > 0)
                     comboBox.Items.RemoveAt(0);
+                //comboBox.Text = field.dtext;
             }
         }
 

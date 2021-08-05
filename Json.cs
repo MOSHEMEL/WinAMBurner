@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Reflection;
+using System.Text.Json;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace WinAMBurner
@@ -273,6 +275,28 @@ namespace WinAMBurner
             return errCode;
         }
 
+        public ErrCode responseParse(JsonDocument jsonDocument, List<string> errors)
+        {
+            ErrCode errcode = ErrCode.EPARAM;
+
+            if (jsonDocument != null)
+            {
+                foreach (PropertyInfo prop in GetType().GetProperties())
+                {
+                    //Console.WriteLine("{0} = {1}", prop.Name, prop.GetValue(user, null));
+                    JsonElement jsonElement;
+                    if (jsonDocument.RootElement.TryGetProperty(prop.Name, out jsonElement))
+                        if (jsonElement.ValueKind == JsonValueKind.Array)
+                            errors.AddRange(jsonElement.EnumerateArray().Select(e => e.ToString()));
+                }
+                errcode = ErrCode.OK;
+            }
+            else
+                errcode = ErrCode.EPARAM;
+
+            return errcode;
+        }
+
         public void hide()
         {
             foreach (PropertyInfo prop in GetType().GetProperties())
@@ -289,6 +313,23 @@ namespace WinAMBurner
                 //prop.SetValue(entity, control.Text);
             }
         }
+
+        public async Task<ErrCode> edit(Web web, string url)
+        {
+            ErrCode errcode = ErrCode.ERROR;
+            List<string> errors = new List<string>();
+
+            disableControls();
+
+            updateParams();
+            
+            if ((errcode = checkParams()) == ErrCode.OK)
+            {
+                JsonDocument jsonDocument = await web.entityEdit(this, url);
+                errcode = responseParse(jsonDocument, errors);
+            }
+            return errcode;
+        }
     }
 
     class Login : Gui, LoginJson
@@ -299,11 +340,13 @@ namespace WinAMBurner
 
         public string pEmail { get { return email; } set { email = value; } }
         public Field fEmail;
-        public Field Email { get { fEmail.text = pEmail; return fEmail; } set { fEmail = value; pEmail = fEmail.text; } }
+        //public Field Email { get { fEmail.text = pEmail; return fEmail; } set { fEmail = value; pEmail = fEmail.text; } }
+        public Field Email { get { return Field.getField(fEmail, pEmail); } set { if (Field.setField(ref fEmail, value)) pEmail = fEmail.text; } }
 
         public string pPassword { get { return password; } set { password = value; } }
         public Field fPassword;
-        public Field Password { get { fPassword.text = pPassword; return fPassword; } set { fPassword = value; pPassword = fPassword.text; } }
+        //public Field Password { get { fPassword.text = pPassword; return fPassword; } set { fPassword = value; pPassword = fPassword.text; } }
+        public Field Password { get { return Field.getField(fPassword, pPassword); } set { if (Field.setField(ref fPassword, value)) pPassword = fPassword.text; } }
 
         public Field Forgot { get; set; }
 
@@ -879,20 +922,6 @@ namespace WinAMBurner
         private Field fFarm;
         public Field Farm { get { return Field.getField(fFarm, pFarm); } set { if (Field.setField(ref fFarm, value)) pFarm = fFarm.text; } }
 
-        //private string pServiceProvider
-        //{
-        //    get
-        //    {
-        //        return Gui.intToString(service_provider);
-        //    }
-        //    set
-        //    {
-        //        service_provider = Gui.stringToInt(value);
-        //    }
-        //}
-        //private Field fServiceProvider;
-        //public Field ServiceProvider { get { return Field.getField(fServiceProvider, pServiceProvider); } set { if (Field.setField(ref fServiceProvider, value)) pServiceProvider = fServiceProvider.text; } }
-
         public Field RadioFarm { get; set; }
         public Field RadioService { get; set; }
 
@@ -904,12 +933,12 @@ namespace WinAMBurner
         public Field Cancel { get; set; }
         public Field Approve { get; set; }
 
-        public Action(AM am, string tablet, EventHandler comboEventHandler, EventHandler radioEventHandler, EventHandler canselEventHandler, EventHandler approveEventHandler)
+        public Action(AM am, string tablet, object[] farms, object[] services, EventHandler comboEventHandler, EventHandler radioEventHandler, EventHandler canselEventHandler, EventHandler approveEventHandler)
         {
-            PartNumber = new Field(type: typeof(ComboBox), ltype: typeof(Label), text: "Part Number", ltext: "Add treatments to AM – SN", placev: Place.Eight, lplacev: Place.Seven);
+            PartNumber = new Field(type: typeof(ComboBox), ltype: typeof(Label), text: "Part Number", ltext: "Add treatments to AM – SN " + am.SNum.ToString(), placev: Place.Eight, lplacev: Place.Seven);
             //+ am.SNum
-            Farm = new Field(type: typeof(ComboBox), ltype: typeof(Label), text: "Farm / Service provider", ltext: "Select Farm / Service provider" + am.SNum.ToString(), comboEventHandler: comboEventHandler, placev: Place.Five, lplacev: Place.Four);
-            //ServiceProvider = Farm;
+            Farm = new Field(type: typeof(ComboBox), ltype: typeof(Label), text: "Farm / Service provider", ltext: "Select Farm / Service provider", items: farms, comboEventHandler: comboEventHandler, placev: Place.Five, lplacev: Place.Four);
+
             aptx_id = string.Format("{0:x} {1:x} {2:x}", am.AptxId[0], am.AptxId[1], am.AptxId[2]);
             am_id = am.SNum.ToString();
             this.tablet = tablet;
@@ -921,13 +950,6 @@ namespace WinAMBurner
             Progress = new Field(ltype: typeof(ProgressBar), width: Field.DefaultWidthLarge, height: Field.DefaultHeightSmall, lplacev: Place.Ten);
             Cancel = new Field(ltype: typeof(Button), ltext: "Cancel", buttonEventHandler: canselEventHandler, lplaceh: Place.Five, lplacev: Place.End);
             Approve = new Field(ltype: typeof(Button), ltext: "Approve", buttonEventHandler: approveEventHandler, lplaceh: Place.Two, lplacev: Place.End);
-
-            RadioButton radioButton = RadioFarm.lcontrol as RadioButton;
-            if (radioButton != null)
-                radioButton.Checked = true;
-            ProgressBar progressBar = Progress.lcontrol as ProgressBar;
-            if (progressBar != null)
-                progressBar.Visible = false;
         }
     }
 }
