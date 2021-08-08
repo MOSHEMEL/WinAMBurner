@@ -934,9 +934,9 @@ namespace WinAMBurner
             }
         }
         private Service ffService;
-        private Service pService { get { ffService.Id = ppService;  return ffService; } set { ffService = value; ppService = ffService.Id; } }
+        private Service pService { get { return Field.getObject(fService, ffService, ppService); } set { ffService = Field.setObject(ffService,value); ppService = Field.setParam(ffService, ppService); } }
         private Field fService;
-        public Field Service { get { fService.value = pService; return fService; } set { fService = value; pService = fService.value as Service; } }
+        public Field Service { get { return Field.getField(fService, pService); } set { fService = Field.setField(fService, value); pService = Field.setParam(fService, pService); } }
 
         public Field RadioFarm { get; set; }
         public Field RadioService { get; set; }
@@ -954,6 +954,7 @@ namespace WinAMBurner
             PartNumber = new Field(type: typeof(ComboBox), ltype: typeof(Label), text: "Part Number", ltext: "Add treatments to AM – SN " + am.SNum.ToString(), placev: Place.Eight, lplacev: Place.Seven);
             //+ am.SNum
             Farm = new Field(type: typeof(ComboBox), ltype: typeof(Label), text: "Farm / Service provider", ltext: "Select Farm / Service provider", items: farms, comboEventHandler: comboEventHandler, placev: Place.Five, lplacev: Place.Four);
+            Service = new Field(type: typeof(ComboBox), ltype: typeof(Label), text: "Service", val: new Service(), ltext: "Service", items: services, comboEventHandler: comboEventHandler, placeh: Place.Four, placev: Place.Five, lplaceh: Place.One, lplacev: Place.Four);
 
             aptx_id = string.Format("{0:x} {1:x} {2:x}", am.AptxId[0], am.AptxId[1], am.AptxId[2]);
             am_id = am.SNum.ToString();

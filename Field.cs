@@ -58,9 +58,9 @@ namespace WinAMBurner
         public fCheck fcheck;
         public delegate bool pCheck(string param);
         public pCheck pcheck;
-        public object value;
+        public object val;
 
-        public Field(Type type = null, Type ltype = null, string text = null, string ltext = null, object[] items = null,
+        public Field(Type type = null, Type ltype = null, string text = null, object val = null, string ltext = null, object[] items = null,
             LinkLabelLinkClickedEventHandler linkEventHandler = null,
             EventHandler comboEventHandler = null,
             EventHandler buttonEventHandler = null,
@@ -72,6 +72,7 @@ namespace WinAMBurner
             Place placeh = Place.Center, Place lplaceh = Place.Center, Place placev = Place.None, Place lplacev = Place.None)
         {
             this.dtext = text;
+            this.val = val;
             this.dflag = true;
             this.text = dtext;
             this.ltext = ltext;
@@ -135,6 +136,48 @@ namespace WinAMBurner
             return field;
         }
 
+        public static Field setField(Field field, Field value)
+        {
+            value.fcheck(value);
+            field = value;
+            return field;
+        }
+
+        public static T setParam<T>(Field field, T param)
+        {
+            param = (T)field.val;
+            checkType(field, param);
+            return param;
+        }
+
+        public static Field getField(Field field, object param)
+        {
+            field.val = param;
+            return field;
+        }
+        
+        public static Service setObject(Service entity, Service value)
+        {
+            entity = value; 
+            return entity;
+        }
+
+        public static string setParam(Service entity, string param)
+        {
+            param = entity.Id;
+            return param;
+        }
+
+        public static Service getObject(Field field, Service entity, string param)
+        {
+            if (field.pcheck(param))
+            {
+                entity.Id = param;
+                field.dflag = false;
+            }
+            return entity;
+        }
+
         public static string boolToString(bool bVal)
         {
             if (bVal)
@@ -184,6 +227,14 @@ namespace WinAMBurner
             return false;
         }
 
+        public static void checkType<T>(Field field, T param)
+        {
+            if (param != null)
+                field.error = ErrCode.OK;
+            else
+                field.error = ErrCode.EPARAM;
+        }
+
         public void updateField()
         {
             //if (view)
@@ -204,7 +255,16 @@ namespace WinAMBurner
                 if (farm != null)
                     text = farm.Id;
                 else if (service != null)
-                    text = service.Id;
+                //text = service.Id;
+                {
+                    if (dflag)
+                        text = string.Empty;
+                    else
+                    {
+                        val = comboBox.SelectedItem;
+                        text = comboBox.Text;
+                    }
+                }
                 else if (treatmentPackage != null)
                     text = treatmentPackage.PartNumber;
                 else
