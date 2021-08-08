@@ -432,12 +432,12 @@ namespace WinAMBurner
             //Field.hide(this);
             hide();
             //screenTreatShow();
-            action = new Action(am, TabletNo, farms.ToArray(), services.ToArray(), 
-                comboBoxFarm_SelectedIndexChanged, radioButton_CheckedChanged, 
+            action = new Action(am, TabletNo, farms.ToArray(), services.ToArray(),
+                comboBoxFarm_SelectedIndexChanged, radioButton_CheckedChanged,
                 buttonTreatCansel_Click, buttonTreatApprove_Click);
 
             action.drawFields(this);
-            
+
             RadioButton radioButton = action.RadioFarm.lcontrol as RadioButton;
             if (radioButton != null)
                 radioButton.Checked = true;
@@ -536,7 +536,7 @@ namespace WinAMBurner
         //    comboBox.Items.AddRange(items);
         //    //comboBox.Text = field.dtext;
         //}
-        
+
         //private void removeItems(ComboBox comboBox, Field field)
         //{
         //    if (comboBox != null)
@@ -594,64 +594,88 @@ namespace WinAMBurner
             //allControlsDisable();
             action.disableControls();
 
-            ComboBox comboBoxPN = action.PartNumber.control as ComboBox;
-            TreatmentPackage treatmentPackage = null;
-            if (comboBoxPN != null)
-                treatmentPackage = comboBoxPN.SelectedItem as TreatmentPackage;
+            //ComboBox comboBoxPN = action.PartNumber.control as ComboBox;
+            //TreatmentPackage treatmentPackage = null;
+            //if (comboBoxPN != null)
+            //    treatmentPackage = comboBoxPN.SelectedItem as TreatmentPackage;
             //updateParams(action);
             action.updateParams();
             //if ((errcode = checkParams(action)) == ErrCode.OK)
             if ((errcode = action.checkParams()) == ErrCode.OK)
             {
-                am.MaxiSet = (uint)(treatmentPackage.amount_of_treatments * settings.number_of_pulses_per_treatment);
-                uint maxi = am.Maxi;
-                if ((am.Maxi + am.MaxiSet) < settings.max_am_pulses)
+                Farm farm = farms.Find(f => f.id == action.farm);
+                Service service = services.Find(s => s.id == action.service_provider);
+                TreatmentPackage treatmentPackage = treatmentPackages.Find(t => t.part_number == action.part_number);
+                if (((farm != null) || (service != null)) && (treatmentPackage != null))
                 {
-                    ProgressBar progressBar = action.Progress.lcontrol as ProgressBar;
-                    if (progressBar != null)
-                        progressBar.Visible = true;
-                    am.serialPortProgressEvent += new EventHandler(progressBar_Callback);
-                    if (progressBar != null)
-                        progressBar.Value = progressBar.Minimum;
-
-                    if ((errcode = await am.AMDataWrite()) == ErrCode.OK)
+                    am.MaxiSet = (uint)(treatmentPackage.amount_of_treatments * settings.number_of_pulses_per_treatment);
+                    uint maxi = am.Maxi;
+                    if ((am.Maxi + am.MaxiSet) < settings.max_am_pulses)
                     {
-                        if ((errcode = await am.AMDataRead()) == ErrCode.OK)
+                        FormNotify formNotify = new FormNotify(new List<string>() {
+                                    string.Format("{0} treatments will beadded",am.MaxiSet / settings.number_of_pulses_per_treatment),
+                                    string.Format("to the AM - SN {0}", am.SNum),
+                                    (farm != null) ? string.Format("Farm {0}", farm.Name) :
+                                    ((service != null) ? string.Format("Service Provider {0}", service.Name) : string.Empty),
+                                    "Press the button to proceed"}, NotifyButtons.YesNo, caption: "Approve");
+                        formNotify.ShowDialog();
+                        if (formNotify.DialogResult == DialogResult.Yes)
                         {
-                            JsonDocument jsonDocument = await web.entityAdd<ActionJson>(action, "api/p/actions/");
-                            //if ((jsonDocument != null) && ((errcode = responseParse<ActionJson>(jsonDocument)) == ErrCode.OK))
-                            if ((jsonDocument != null) && ((errcode = responseParse(action, jsonDocument)) == ErrCode.OK))
+                            formNotify.Dispose();
+
+                            ProgressBar progressBar = action.Progress.lcontrol as ProgressBar;
+                            if (progressBar != null)
+                                progressBar.Visible = true;
+                            am.serialPortProgressEvent += new EventHandler(progressBar_Callback);
+                            if (progressBar != null)
+                                progressBar.Value = progressBar.Minimum;
+
+                            if ((errcode = await am.AMDataWrite()) == ErrCode.OK)
                             {
-                                notify(new List<string>() {
+                                if ((errcode = await am.AMDataRead()) == ErrCode.OK)
+                                {
+                                    JsonDocument jsonDocument = await web.entityAdd<ActionJson>(action, "api/p/actions/");
+                                    //if ((jsonDocument != null) && ((errcode = responseParse<ActionJson>(jsonDocument)) == ErrCode.OK))
+                                    if ((jsonDocument != null) && ((errcode = responseParse(action, jsonDocument)) == ErrCode.OK))
+                                    {
+                                        notify(new List<string>() {
                                     string.Format("The original amount of treatments: {0}", maxi / settings.number_of_pulses_per_treatment),
                                     string.Format("Added treatments: {0}",am.MaxiSet / settings.number_of_pulses_per_treatment),
                                     string.Format("The treatments available on AM - SN {1}: {0}", am.Maxi / settings.number_of_pulses_per_treatment, am.SNum),
                                                   "please disconnect the AM"},
-                                    NotifyButtons.OK, "Approve Success");
-                                //Field.hide(this);
-                                action.hide();
-                                clearAM();
-                                screenActionShow();
-                            }
-                            else
-                            {
-                                //
-                                // erase am needed
-                                //
-                                errcode = ErrCode.EPARAM;
-                                notify(new List<string>() { "Restoring AM" }, NotifyButtons.OK, "Approve Fail");
-                                am.MaxiSet = 0;
-                                if (progressBar != null)
-                                    progressBar.Value = progressBar.Minimum;
-                                if ((errcode = await am.AMDataWrite()) == ErrCode.OK)
-                                    if ((errcode = await am.AMDataRead()) == ErrCode.OK)
-                                        errcode = ErrCode.EFAIL;
+                                            NotifyButtons.OK, "Approve Success");
+                                        //Field.hide(this);
+                                        action.hide();
+                                        clearAM();
+                                        screenActionShow();
+                                    }
+                                    else
+                                    {
+                                        //
+                                        // erase am needed
+                                        //
+                                        errcode = ErrCode.EPARAM;
+                                        notify(new List<string>() { "Restoring AM" }, NotifyButtons.OK, "Approve Fail");
+                                        am.MaxiSet = 0;
+                                        if (progressBar != null)
+                                            progressBar.Value = progressBar.Minimum;
+                                        if ((errcode = await am.AMDataWrite()) == ErrCode.OK)
+                                            if ((errcode = await am.AMDataRead()) == ErrCode.OK)
+                                                errcode = ErrCode.EFAIL;
+                                    }
+                                }
                             }
                         }
+                        else
+                        {
+                            errcode = ErrCode.OK;
+                            action.enableControls();
+                        }
                     }
+                    else
+                        errcode = ErrCode.MAX;
                 }
-                else
-                    errcode = ErrCode.MAX;
+                errcode = ErrCode.EPARAM;
             }
             else
                 errcode = ErrCode.EPARAM;
@@ -1040,10 +1064,10 @@ namespace WinAMBurner
             List<string> errors = new List<string>();
             Gui gui = entity as Gui;
 
-            if(gui != null)
+            if (gui != null)
                 errcode = gui.responseParse(jsonDocument, errors);
 
-            if(errcode != ErrCode.OK)
+            if (errcode != ErrCode.OK)
             {
                 FormNotify formNotify = new FormNotify(new List<string>() { "Error occured while processing", "the entry by the server" }, NotifyButtons.OK);
                 formNotify.ShowDialog();

@@ -922,6 +922,22 @@ namespace WinAMBurner
         private Field fFarm;
         public Field Farm { get { return Field.getField(fFarm, pFarm); } set { if (Field.setField(ref fFarm, value)) pFarm = fFarm.text; } }
 
+        private string ppService
+        {
+            get
+            {
+                return Field.intToString(service_provider);
+            }
+            set
+            {
+                service_provider = Field.stringToInt(value);
+            }
+        }
+        private Service ffService;
+        private Service pService { get { ffService.Id = ppService;  return ffService; } set { ffService = value; ppService = ffService.Id; } }
+        private Field fService;
+        public Field Service { get { fService.value = pService; return fService; } set { fService = value; pService = fService.value as Service; } }
+
         public Field RadioFarm { get; set; }
         public Field RadioService { get; set; }
 

@@ -58,6 +58,7 @@ namespace WinAMBurner
         public fCheck fcheck;
         public delegate bool pCheck(string param);
         public pCheck pcheck;
+        public object value;
 
         public Field(Type type = null, Type ltype = null, string text = null, string ltext = null, object[] items = null,
             LinkLabelLinkClickedEventHandler linkEventHandler = null,
