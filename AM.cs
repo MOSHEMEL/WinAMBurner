@@ -154,7 +154,7 @@ namespace WinAMBurner
             }
             List<string> cmd = new List<string>();
             cmd.Add("getid,3#");
-            cmd.Add("debug#");
+            //cmd.Add("debug#");
 
             string dataRdStr = await serialReadWrite(cmd);
             //write to log
@@ -199,7 +199,7 @@ namespace WinAMBurner
             //cmd.Add("status2,3#");
             //cmd.Add("status1,3#");
             //cmd.Add("testread,3#");
-            cmd.Add("debug#");
+            //cmd.Add("debug#");
 
             string dataRdStr = await serialReadWrite(cmd);
             //write to log
@@ -238,9 +238,9 @@ namespace WinAMBurner
             }
             List<string> cmd = new List<string>();
             //cmd.Add("!!!WRITE COMPLETE!!!#");
-            cmd.Add(string.Format("wrt,3,0x0001008,00{0:x}#", aptxId[2]));
-            cmd.Add(string.Format("wrt,3,0x0001004,00{0:x}#", aptxId[1]));
-            cmd.Add(string.Format("wrt,3,0x0001000,00{0:x}#", aptxId[0]));
+            //cmd.Add(string.Format("wrt,3,0x0001008,00{0:x}#", aptxId[2]));
+            //cmd.Add(string.Format("wrt,3,0x0001004,00{0:x}#", aptxId[1]));
+            //cmd.Add(string.Format("wrt,3,0x0001000,00{0:x}#", aptxId[0]));
             cmd.Add(string.Format("snum,3,{0}#", snum));
             cmd.Add(string.Format("maxi,3,{0}#", maxi + maxiSet));
             Date = DateTime.Now;
@@ -251,20 +251,21 @@ namespace WinAMBurner
             //cmd.Add("scan,3,0#");
             for (int i = 0; i < 10; i++)
                 cmd.Add("NOP#");
-            cmd.Add("nuke,3#");
+            //cmd.Add("nuke,3#");
+            cmd.Add("erase,3,0xff000#");
             //erase
-            cmd.Add("set registers readonly#");
+            //cmd.Add("set registers readonly#");
             //cmd.Add("status2,3#");
             //cmd.Add("status1,3#");
             //cmd.Add("statusw,3,8001#");
-            cmd.Add("clear registers#");
+            //cmd.Add("clear registers#");
             //cmd.Add("status2,3#");
             //cmd.Add("status1,3#");
             //cmd.Add("statusw,3,0000#");
             //cmd.Add("status2,3#");
             //cmd.Add("status1,3#");
             //cmd.Add("testread,3#");
-            cmd.Add("debug#");
+            //cmd.Add("debug#");
 
             string dataRdStr = await serialReadWrite(cmd);
             //write to log
