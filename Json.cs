@@ -273,12 +273,9 @@ namespace WinAMBurner
                     //        errCode = ErrCode.EPARAM;
                     //    }
                     //}
-                    if (field.view)
-                    {
-                        ErrCode err = ErrCode.ERROR;
-                        if ((err = field.checkField()) != ErrCode.OK)
-                            errcode = err;
-                    }
+                    if (field.checkField() != ErrCode.OK)
+                        if (!field.clear)
+                            errcode = ErrCode.EPARAM;
                 }
             }
             return errcode;
@@ -456,7 +453,7 @@ namespace WinAMBurner
             }
             set
             {
-                country = Const.DCOUNTRY.FirstOrDefault(c => (c.Value == value)).Key;
+                country = Const.DCOUNTRY.FirstOrDefault(c => (c.Value == value.ToString())).Key;
             }
         }
         public Field fCountry;
@@ -471,7 +468,7 @@ namespace WinAMBurner
             }
             set
             {
-                state = Const.DSTATE.FirstOrDefault(c => (c.Value == value)).Key;
+                state = Const.DSTATE.FirstOrDefault(c => (c.Value == value.ToString())).Key;
             }
         }
         public Field fState;
@@ -508,7 +505,7 @@ namespace WinAMBurner
 
         public override string ToString()
         {
-            return Name.val as string;
+            return Name.val.ToString();
         }
     }
 
@@ -713,6 +710,8 @@ namespace WinAMBurner
                 Caption.ltext = "Add Farm";
                 ContractType.view = true;
             }
+            if (Country.val.ToString() != "United States of America")
+                State.enable = false;
             Cancel.buttonEventHandler = cancelHandler;
             Submit.buttonEventHandler = submitHandler;
             Country.comboEventHandler = countryHandler;
@@ -911,9 +910,12 @@ namespace WinAMBurner
 
     class Action : Gui, ActionJson
     {
+        public int id { get; set; }
+        public string added_date { get; set; }
         public string aptx_id { get; set; }
         public string am_id { get; set; }
         public string part_number { get; set; }
+        public int contact { get; set; }
         public string tablet { get; set; }
         public int? farm { get; set; }
         public int? service_provider { get; set; }
@@ -963,37 +965,48 @@ namespace WinAMBurner
         public Field Cancel { get; set; }
         public Field Approve { get; set; }
 
+        public Action()
+        {
+            initFields();
+        }
+
         public Action(AM am, string tablet, object[] farms, object[] services, EventHandler comboEventHandler, EventHandler radioEventHandler, EventHandler canselEventHandler, EventHandler approveEventHandler)
         {
-            PartNumber = new Field(type: typeof(ComboBox), ltype: typeof(Label), text: "Part Number", ltext: "Add treatments to AM – SN " + am.SNum.ToString(), placev: Place.Eight, lplacev: Place.Seven);
-            //+ am.SNum
-            Farm = new Field(type: typeof(ComboBox), ltype: typeof(Label), text: "Farm / Service provider", ltext: "Select Farm / Service provider", items: farms, comboEventHandler: comboEventHandler, placev: Place.Five, lplacev: Place.Four);
-            Service = new Field(type: typeof(ComboBox), ltype: typeof(Label), text: "Farm / Service provider", ltext: "Select Farm / Service provider", items: services, comboEventHandler: comboEventHandler, placev: Place.Five, lplacev: Place.Four);
-            //Service = new Field(type: typeof(ComboBox), ltype: typeof(Label), text: "Service", val: "Service", ltext: "Service", items: services, comboEventHandler: comboEventHandler, placeh: Place.Four, placev: Place.Five, lplaceh: Place.One, lplacev: Place.Four);
+            initFields();
+            initFields(am, tablet, farms, services, comboEventHandler, radioEventHandler, canselEventHandler, approveEventHandler);
+        }
+
+        private void initFields()
+        {
+            PartNumber = new Field(type: typeof(ComboBox), ltype: typeof(Label), text: "Part Number", ltext: "Add treatments to AM – SN ", placev: Place.Eight, lplacev: Place.Seven);
+            Farm = new Field(type: typeof(ComboBox), ltype: typeof(Label), text: "Farm / Service provider", ltext: "Select Farm / Service provider", placev: Place.Five, lplacev: Place.Four);
+            Service = new Field(type: typeof(ComboBox), ltype: typeof(Label), text: "Farm / Service provider", ltext: "Select Farm / Service provider", placev: Place.Five, lplacev: Place.Four);
+
+            Picture = new Field(ltype: typeof(PictureBox), lplacev: Place.One);
+            Welcome = new Field(ltype: typeof(Label), ltext: "Welcome distributor", font: Field.DefaultFontLarge, lplacev: Place.Two);
+            RadioFarm = new Field(ltype: typeof(RadioButton), ltext: "Farm", lplaceh: Place.Two, lplacev: Place.Five);
+            RadioService = new Field(ltype: typeof(RadioButton), ltext: "Service provider", lplaceh: Place.Two, lplacev: Place.Six);
+            Progress = new Field(ltype: typeof(ProgressBar), width: Field.DefaultWidthLarge, height: Field.DefaultHeightSmall, lplacev: Place.Ten);
+            Cancel = new Field(ltype: typeof(Button), ltext: "Cancel", lplaceh: Place.Five, lplacev: Place.End);
+            Approve = new Field(ltype: typeof(Button), ltext: "Approve", lplaceh: Place.Two, lplacev: Place.End);
+        }
+
+        private void initFields(AM am, string tablet, object[] farms, object[] services, EventHandler comboEventHandler, EventHandler radioEventHandler, EventHandler canselEventHandler, EventHandler approveEventHandler)
+        {
+            PartNumber.ltext += am.SNum.ToString();
+            Farm.items = farms;
+            Farm.comboEventHandler = comboEventHandler;
+            Service.items = services;
+            Service.comboEventHandler = comboEventHandler;
 
             aptx_id = string.Format("{0:x} {1:x} {2:x}", am.AptxId[0], am.AptxId[1], am.AptxId[2]);
             am_id = am.SNum.ToString();
             this.tablet = tablet;
 
-            Picture = new Field(ltype: typeof(PictureBox), lplacev: Place.One);
-            Welcome = new Field(ltype: typeof(Label), ltext: "Welcome distributor", font: Field.DefaultFontLarge, lplacev: Place.Two);
-            RadioFarm = new Field(ltype: typeof(RadioButton), ltext: "Farm", radioEventHandler: radioEventHandler, lplaceh: Place.Two, lplacev: Place.Five);
-            RadioService = new Field(ltype: typeof(RadioButton), ltext: "Service provider", radioEventHandler: radioEventHandler, lplaceh: Place.Two, lplacev: Place.Six);
-            Progress = new Field(ltype: typeof(ProgressBar), width: Field.DefaultWidthLarge, height: Field.DefaultHeightSmall, lplacev: Place.Ten);
-            Cancel = new Field(ltype: typeof(Button), ltext: "Cancel", buttonEventHandler: canselEventHandler, lplaceh: Place.Five, lplacev: Place.End);
-            Approve = new Field(ltype: typeof(Button), ltext: "Approve", buttonEventHandler: approveEventHandler, lplaceh: Place.Two, lplacev: Place.End);
-        }
-
-        public void clearService()
-        {
-            ppService = null;
-            ffService = null;
-        }
-
-        public void clearFarm()
-        {
-            ppFarm = null;
-            ffFarm = null;
+            RadioFarm.radioEventHandler = radioEventHandler;
+            RadioService.radioEventHandler = radioEventHandler;
+            Cancel.buttonEventHandler = canselEventHandler;
+            Approve.buttonEventHandler = approveEventHandler;
         }
     }
 }

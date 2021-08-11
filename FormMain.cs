@@ -75,11 +75,8 @@ namespace WinAMBurner
             ManagementObjectSearcher searcher = new ManagementObjectSearcher("root\\CIMV2", "SELECT * FROM Win32_BIOS");
             foreach (ManagementObject wmi in searcher.Get())
             {
-                try
-                {
-                    return wmi.GetPropertyValue("SerialNumber").ToString();
-                }
-                catch { }
+                try { return wmi.GetPropertyValue("SerialNumber").ToString(); }
+                catch (Exception ex) { LogFile.logWrite(ex.ToString()); }
             }
             return "BIOS Serial Number: Unknown";
         }
@@ -306,7 +303,7 @@ namespace WinAMBurner
         private List<string> entityToRow(Entity e)
         {
             List<string> l = null;
-            l = new List<string> { e.Name.val as string, e.Country.val.ToString() + ((e.State.val == string.Empty) ? string.Empty : " / ") + e.State.val.ToString(), e.City.val as string, e.Address.val as string, e.ContractType.val as string };
+            l = new List<string> { e.Name.val.ToString(), e.Country.val.ToString() + ((e.State.val.ToString() == string.Empty) ? string.Empty : " / ") + e.State.val.ToString(), e.City.val.ToString(), e.Address.val.ToString(), e.ContractType.val.ToString() };
 
             //if (typeof(T) == typeof(Farm))
             //{
@@ -480,6 +477,7 @@ namespace WinAMBurner
                     //comboBoxPN.Items.AddRange(treatmentPackages.Where(t => t.contract_type == entity.contract_type).ToArray());
                     //addItems(comboBoxPN, action.PartNumber, treatmentPackages.Where(t => t.contract_type == entity.contract_type).ToArray());
                     action.PartNumber.addItems(treatmentPackages.Where(t => t.contract_type == entity.contract_type).ToArray());
+                    action.PartNumber.items = treatmentPackages.Where(t => t.contract_type == entity.contract_type).ToArray();
             }
         }
 
@@ -505,12 +503,12 @@ namespace WinAMBurner
                             //action.Farm.addItems(farms.ToArray());
                             //action.Farm.items = farms.ToArray();
                             action.Farm.control.Visible = true;
-                            action.Farm.view = true;
+                            action.Farm.clear = false;
 
                             action.Service.control.Visible = false;
                             (action.Service.control as ComboBox).SelectedItem = null;
-                            action.Service.dflag = true;
-                            action.Service.view = false;
+                            action.Service.dflt = true;
+                            action.Service.clear = true;
                             //action.clearService();
                             //comboBoxId.Items.AddRange(farms.ToArray());
                         }
@@ -522,12 +520,12 @@ namespace WinAMBurner
                             //action.Farm.addItems(services.ToArray());
                             action.Farm.control.Visible = false;
                             (action.Farm.control as ComboBox).SelectedItem = null;
-                            action.Farm.dflag = true;
-                            action.Farm.view = false;
+                            action.Farm.dflt = true;
+                            action.Farm.clear = true;
                             //action.clearFarm();
 
                             action.Service.control.Visible = true;
-                            action.Service.view = true;
+                            action.Service.clear = false;
                             //action.Farm.items = services.ToArray();
                         }
                     }
@@ -631,10 +629,10 @@ namespace WinAMBurner
                     if ((am.Maxi + am.MaxiSet) < settings.max_am_pulses)
                     {
                         FormNotify formNotify = new FormNotify(new List<string>() {
-                                    string.Format("{0} treatments will beadded",am.MaxiSet / settings.number_of_pulses_per_treatment),
+                                    string.Format("{0} treatments will be added",am.MaxiSet / settings.number_of_pulses_per_treatment),
                                     string.Format("to the AM - SN {0}", am.SNum),
-                                    (farm != null) ? string.Format("Farm {0}", farm.Name.val as string) :
-                                    ((service != null) ? string.Format("Service Provider {0}", service.Name.val as string) : string.Empty),
+                                    (farm != null) ? string.Format("Farm {0}", farm.Name.val.ToString()) :
+                                    ((service != null) ? string.Format("Service Provider {0}", service.Name.val.ToString()) : string.Empty),
                                     "Press the button to proceed"}, NotifyButtons.YesNo, caption: "Approve");
                         formNotify.ShowDialog();
                         if (formNotify.DialogResult == DialogResult.Yes)
@@ -658,7 +656,8 @@ namespace WinAMBurner
                                     if (jsonDocument != null)
                                     {
                                         Action raction = null;
-                                        try { raction = JsonSerializer.Deserialize<Action>(jsonDocument.RootElement.ToString()); } catch { }
+                                        try { raction = JsonSerializer.Deserialize<Action>(jsonDocument.RootElement.ToString()); }
+                                        catch (Exception ex) { LogFile.logWrite(ex.ToString()); }
                                         if (raction != null)
                                         {
                                             notify(new List<string>() {
@@ -942,7 +941,7 @@ namespace WinAMBurner
         private Entity getCurrentEntity(List<Entity> entities)
         {
             //return entities.ElementAt(dataGridView1.CurrentCell.RowIndex);
-            return entities.Find(e => e.Name.val.ToString().Equals(dataGridView1.CurrentRow.Cells[0].Value));
+            return entities.Find(e => e.Name.val.ToString() == dataGridView1.CurrentRow.Cells[0].Value.ToString());
         }
 
         private void buttonServiceEdit_Click(object sender, EventArgs e)
@@ -1005,12 +1004,18 @@ namespace WinAMBurner
                 }
                 if ((entity != null) && (entity.State.control != null))
                 {
-                    entity.State.dflag = true;
+                    entity.State.dflt = true;
                     entity.State.control.Text = entity.State.dtext;
-                    if (comboBox.Text.Contains("United States of America"))
+                    if (comboBox.Text == "United States of America")
+                    {
+                        entity.State.enable = true;
                         entity.State.control.Enabled = true;
+                    }
                     else
+                    {
+                        entity.State.enable = false;
                         entity.State.control.Enabled = false;
+                    }
                 }
             }
         }
@@ -1046,7 +1051,8 @@ namespace WinAMBurner
                 {
                     //if ((errCode = responseParse<FarmJson>(jsonDocument)) == ErrCode.OK)
                     Farm rfarm = null;
-                    try { rfarm = JsonSerializer.Deserialize<Farm>(jsonDocument.RootElement.ToString()); } catch { }
+                    try { rfarm = JsonSerializer.Deserialize<Farm>(jsonDocument.RootElement.ToString()); }
+                    catch (Exception ex) { LogFile.logWrite(ex.ToString()); }
                     if (rfarm != null)
                     {
                         farms.Add(rfarm);
@@ -1092,7 +1098,8 @@ namespace WinAMBurner
                 if (jsonDocument != null)
                 {
                     Service rservice = null;
-                    try { rservice = JsonSerializer.Deserialize<Service>(jsonDocument.RootElement.ToString()); } catch { }
+                    try { rservice = JsonSerializer.Deserialize<Service>(jsonDocument.RootElement.ToString()); }
+                    catch (Exception ex) { LogFile.logWrite(ex.ToString()); }
                     if (rservice != null)
                     {
                         services.Add(rservice);
@@ -1245,7 +1252,8 @@ namespace WinAMBurner
                 if (jsonDocument != null)
                 {
                     Farm rfarm = null;
-                    try { rfarm = JsonSerializer.Deserialize<Farm>(jsonDocument.RootElement.ToString()); } catch { }
+                    try { rfarm = JsonSerializer.Deserialize<Farm>(jsonDocument.RootElement.ToString()); }
+                    catch (Exception ex) { LogFile.logWrite(ex.ToString()); }
                     if (rfarm != null)
                     {
                         farms.Insert(farms.IndexOf(farm), rfarm);
@@ -1300,7 +1308,8 @@ namespace WinAMBurner
                 if (jsonDocument != null)
                 {
                     Service rservice = null;
-                    try { rservice = JsonSerializer.Deserialize<Service>(jsonDocument.RootElement.ToString()); } catch { }
+                    try { rservice = JsonSerializer.Deserialize<Service>(jsonDocument.RootElement.ToString()); }
+                    catch (Exception ex) { LogFile.logWrite(ex.ToString()); }
                     if (rservice != null)
                     {
                         services.Insert(services.IndexOf(service), rservice);

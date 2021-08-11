@@ -32,7 +32,7 @@ namespace WinAMBurner
         public object val;
         public string ltext;
         public string dtext;
-        public bool dflag;
+        public bool dflt;
         //public string[] items;
         public object[] items;
         public Control control;
@@ -44,7 +44,6 @@ namespace WinAMBurner
         private int width;
         private int height;
         private bool autosize;
-        public bool view;
         private Place placeh;
         private Place lplaceh;
         private Place placev;
@@ -53,13 +52,16 @@ namespace WinAMBurner
         public EventHandler comboEventHandler;
         private EventHandler textEventHandler;
         public LinkLabelLinkClickedEventHandler linkEventHandler;
-        private EventHandler radioEventHandler;
+        public EventHandler radioEventHandler;
         public EventHandler buttonEventHandler;
         public delegate bool fCheck(Field field);
         public fCheck fcheck;
         //public delegate bool pCheck(string param);
         public delegate bool pCheck(object param);
         public pCheck pcheck;
+        public bool view;
+        public bool clear;
+        public bool enable;
 
         private string combotext;
 
@@ -76,7 +78,7 @@ namespace WinAMBurner
         {
             this.dtext = text;
             this.val = dtext;
-            this.dflag = true;
+            this.dflt = true;
             //this.text = dtext;
             this.ltext = ltext;
             this.items = items;
@@ -87,7 +89,6 @@ namespace WinAMBurner
             this.width = width;
             this.height = height;
             this.autosize = autosize;
-            this.view = true;
             this.placeh = placeh;
             this.lplaceh = lplaceh;
             this.placev = placev;
@@ -110,6 +111,9 @@ namespace WinAMBurner
                 this.pcheck = pcheck;
             else
                 this.pcheck += checkValid;
+            this.view = true;
+            this.clear = false;
+            this.enable = true;
         }
 
         //public static bool setField(ref Field field, Field value)
@@ -182,19 +186,24 @@ namespace WinAMBurner
         //    }
         //    return param;
         //}
-        
+
         public static object setField(ref Field field, Field value, object param)
         {
             if (value != null)
             {
                 field = value;
+                field.error = ErrCode.EPARAM;
                 if (value.fcheck(value))
                 {
                     object p = field.val;
-                    if (checkType(field, p))
+                    //if (checkType(field, p))
+                    if (value.pcheck(p))
+                    {
                         param = p;
+                        field.error = ErrCode.OK;
+                    }
                 }
-                else if (!field.view)
+                if (field.clear)
                     param = null;
             }
             return param;
@@ -207,7 +216,7 @@ namespace WinAMBurner
                 if (field.pcheck(param))
                 {
                     field.val = param;
-                    field.dflag = false;
+                    field.dflt = false;
                 }
             }
             return field;
@@ -219,21 +228,55 @@ namespace WinAMBurner
             {
                 if (field.pcheck(value))
                 {
-                    entity = value;
-                    Farm farm = entity as Farm;
-                    Service service = entity as Service;
-                    TreatmentPackage treatmentPackage = entity as TreatmentPackage;
+                    Farm farm;
+                    Service service;
+                    TreatmentPackage treatmentPackage;
+
+                    //if (value.GetType() == typeof(string))
+                    //{
+                    //if(field.items.Cast<Farm>())
+                    //entity = field.items.ToList().Find(i => i as Farm != null ? (i as Farm).Name.val == value :
+                    //i as Service != null ? (i as Service).Name.val == value :
+                    //i as TreatmentPackage != null ? (i as TreatmentPackage).description == value : false);
+                    farm = field.items.FirstOrDefault() as Farm;
+                    service = field.items.FirstOrDefault() as Service;
+                    treatmentPackage = field.items.FirstOrDefault() as TreatmentPackage;
                     if (farm != null)
-                        param = farm.Id;
+                    {
+                        farm = field.items.Cast<Farm>().ToList().Find(i => i.Name.val.ToString() == field.val.ToString());
+                        if (farm != null)
+                            param = farm.Id;
+                    }
                     if (service != null)
-                        param = service.Id;
+                    {
+                        service = field.items.Cast<Service>().ToList().Find(i => i.Name.val.ToString() == field.val.ToString());
+                        if (service != null)
+                            param = service.Id;
+                    }
                     if (treatmentPackage != null)
+                    {
+                        treatmentPackage = field.items.Cast<TreatmentPackage>().ToList().Find(i => i.description == field.val.ToString());
                         param = treatmentPackage.part_number;
-                }
-                else if(!field.view)
-                {
-                    entity = value;
-                    param = null;
+
+                        //}
+
+                        //entity = value;
+                        //
+                        //farm = entity as Farm;
+                        //service = entity as Service;
+                        //treatmentPackage = entity as TreatmentPackage;
+                        //if (farm != null)
+                        //    param = farm.Id;
+                        //if (service != null)
+                        //    param = service.Id;
+                        //if (treatmentPackage != null)
+                        //    param = treatmentPackage.part_number;
+                    }
+                    if (field.clear)
+                    {
+                        entity = value;
+                        param = null;
+                    }
                 }
             }
             return param;
@@ -263,12 +306,12 @@ namespace WinAMBurner
         {
             //if ((field.text != null) && (field.text != field.dtext) && (field.text != string.Empty))
             //if ((field != null) && (field.text != null) && (field.text != string.Empty) && (!field.dflag))
-            if ((field != null) && (field.val != null) && (field.val != string.Empty) && (!field.dflag))
+            if ((field != null) && (field.val != null) && (field.val.ToString() != string.Empty) && (!field.dflt))
             {
-                field.error = ErrCode.OK;
+                //field.error = ErrCode.OK;
                 return true;
             }
-            field.error = ErrCode.EPARAM;
+            //field.error = ErrCode.EPARAM;
             return false;
         }
 
@@ -293,19 +336,19 @@ namespace WinAMBurner
             return false;
         }
 
-        public static bool checkType(Field field, object param)
-        {
-            if ((field != null) && (param != null))
-            {
-                field.error = ErrCode.OK;
-                return true;
-            }
-            else
-            {
-                field.error = ErrCode.EPARAM;
-                return false;
-            }
-        }
+        //public static bool checkType(Field field, object param)
+        //{
+        //    if ((field != null) && (param != null))
+        //    {
+        //        field.error = ErrCode.OK;
+        //        return true;
+        //    }
+        //    else
+        //    {
+        //        field.error = ErrCode.EPARAM;
+        //        return false;
+        //    }
+        //}
 
         //public static Service getObject(Field field, Service entity, string param)
         //{
@@ -473,42 +516,32 @@ namespace WinAMBurner
 
         public void updateField()
         {
-            //if (view)
-            //{
             if (control != null)
             {
-                ComboBox comboBox = control as ComboBox;
+                control.Text = control.Text.Trim();
+                val = control.Text;
 
-                if (comboBox != null)
-                    val = comboBox.SelectedItem;
-                else
-                {
-                    control.Text = control.Text.Trim();
-                    val = control.Text;
-                }
+                //ComboBox comboBox = control as ComboBox;
+                //if ((comboBox != null) && (comboBox.SelectedItem != null))
+                //{
+                //    val = comboBox.SelectedItem;
+                //}
             }
-            //}
         }
 
         public ErrCode checkField()
         {
-            ErrCode errcode = ErrCode.ERROR;
-            //if (view)
-            //{
-            if (error == ErrCode.EPARAM)
+            if (control != null)
             {
-                if (control != null)
+                if (error == ErrCode.EPARAM)
                 {
                     control.ForeColor = Color.Red;
                     control.Text = dtext;
-                    dflag = true;
+                    dflt = true;
+                    return ErrCode.EPARAM;
                 }
-                errcode = ErrCode.EPARAM;
             }
-            else
-                errcode = ErrCode.OK;
-            //}
-            return errcode;
+            return ErrCode.OK;
         }
 
     //public string getText()
@@ -672,6 +705,7 @@ namespace WinAMBurner
                 }
 
                 control.Location = placeCalc(thisForm, control, placeh: placeh, placev: placev);
+                control.Enabled = enable;
             }
             return control;
         }
@@ -684,7 +718,7 @@ namespace WinAMBurner
             //{
             //if (control.Text == dflt)
             //if (text == dtext)
-            if (dflag)
+            if (dflt)
                 control.ForeColor = Color.Silver;
             else
                 control.ForeColor = Color.Black;
@@ -751,7 +785,7 @@ namespace WinAMBurner
             {
                 //if (control.Name == DefaultText)
                 //if (control.Text == dtext)
-                if (dflag)
+                if (dflt)
                 {
                     //    string dflt = control.Text;
                     control.Text = string.Empty;
@@ -759,7 +793,7 @@ namespace WinAMBurner
                     control.ForeColor = Color.Black;
                     if (textBox != null)
                         textBox.PasswordChar = '*';
-                    dflag = false;
+                    dflt = false;
                 }
             }
         }
@@ -778,7 +812,7 @@ namespace WinAMBurner
                     control.ForeColor = Color.Silver;
                     if (textBox != null)
                         textBox.PasswordChar = '\0';
-                    dflag = true;
+                    dflt = true;
                 }
             }
         }
@@ -863,7 +897,7 @@ namespace WinAMBurner
             if (comboBox != null)
             {
                 //field.items = items.Select(s => s.ToString()).ToArray();
-                dflag = true;
+                dflt = true;
                 //items = items;
                 //field.setDefault();
                 comboBox.Items.AddRange(items);
@@ -877,7 +911,7 @@ namespace WinAMBurner
             if (comboBox != null)
             {
                 //field.items = items.Select(s => s.ToString()).ToArray();
-                dflag = true;
+                dflt = true;
                 //items = items;
                 //field.setDefault();
                 comboBox.Items.AddRange(items);
@@ -891,7 +925,7 @@ namespace WinAMBurner
             if (comboBox != null)
             {
                 //field.setDefault();
-                dflag = true;
+                dflt = true;
                 //items = null;
                 while (comboBox.Items.Count > 0)
                     comboBox.Items.RemoveAt(0);
