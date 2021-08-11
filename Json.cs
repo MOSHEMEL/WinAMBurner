@@ -39,6 +39,7 @@ namespace WinAMBurner
         public string email { get; set; }
         public string first_name { get; set; }
         public string last_name { get; set; }
+        public bool is_password_changed { get; set; }
 
         //public override string ToString()
         //{
@@ -63,6 +64,12 @@ namespace WinAMBurner
         //{
         //    return Const.entityToString(this);
         //}
+    }
+
+    interface PasswordJson
+    {
+        public string new_password1 { get; set; }
+        public string new_password2 { get; set; }
     }
 
     class ContactJson
@@ -366,6 +373,31 @@ namespace WinAMBurner
             Picture = new Field(ltype: typeof(PictureBox), lplacev: Place.One);
             Forgot = new Field(ltype: typeof(LinkLabel), ltext: "Forgot password", linkEventHandler: linkEventHandler, lplacev: Place.Seven);
             Press = new Field(ltype: typeof(Button), ltext: "Login", buttonEventHandler: buttonEventHandler, lplacev: Place.End);
+        }
+    }
+
+    class Password : Gui, PasswordJson
+    {
+        public string new_password1 { get; set; }
+        public string new_password2 { get; set; }
+
+        public object pPassword1{ get { return new_password1; } set { new_password1 = value as string; } }
+        public Field fPassword1;
+        public Field Password1 { get { return Field.getField(fPassword1, pPassword1); } set { pPassword1 = Field.setField(ref fPassword1, value, pPassword1); } }
+
+        public object pPassword2 { get { return new_password2; } set { new_password2 = value as string; } }
+        public Field fPassword2;
+        public Field Password2 { get { return Field.getField(fPassword2, pPassword2); } set { pPassword2 = Field.setField(ref fPassword2, value, pPassword2); } }
+
+        public Field ChangePassword { get; set; }
+        
+        public Password(EventHandler buttonEventHandler)
+        {
+            Picture = new Field(ltype: typeof(PictureBox), lplacev: Place.One);
+            Password1 = new Field(type: typeof(RichTextBox), ltype: typeof(Label), text: "Password", ltext: "Please enter a new password: ", width: Field.DefaultWidthLarge, placev: Place.Five, lplacev: Place.Four);
+            Password2 = new Field(type: typeof(RichTextBox), text: "Confirm Password", width: Field.DefaultWidthLarge, placev: Place.Six);
+            ChangePassword = new Field(ltype: typeof(Button), ltext: "OK", buttonEventHandler: buttonEventHandler, lplacev: Place.End);
+
         }
     }
 

@@ -55,6 +55,7 @@ namespace WinAMBurner
 
         //private TreatmentPackage treatmentPackage;
         private Action action;
+        private Password password;
 
         //private string password = null;
         //private Field fUsername;
@@ -152,8 +153,11 @@ namespace WinAMBurner
             //updateParams(login);
             login.updateParams();
 
-            login.email = "yael@gmail.com";
-            login.password = "yael123";
+            //login.email = "yael@gmail.com";
+            //login.password = "yael123";
+            login.email = "yaelv@armentavet.com";
+            login.password = "vU6pdsNXHR";
+            login.tablet = "kjh1g234123";
 
             //if ((login.email != string.Empty) && (login.password != string.Empty))
             if ((errcode = login.checkParams()) == ErrCode.OK)
@@ -163,6 +167,13 @@ namespace WinAMBurner
                 {
                     // if ok
                     user = loginResponse.user;
+                    if (!user.is_password_changed)
+                    {
+                        login.hide();
+                        password = new Password(buttonChangePassword_Click);
+                        password.drawFields(this);
+                        return;
+                    }
                     JsonDocument jsonDocument = await web.getConstants();
                     if (jsonDocument != null)
                         Const.parseConstants(jsonDocument);
@@ -182,7 +193,13 @@ namespace WinAMBurner
                     {
                         //Field.hide(this);
                         login.hide();
+                        //if (user.is_password_changed)
                         screenActionShow();
+                        //else
+                        //{
+                        //    password = new Password(buttonChangePassword_Click);
+                        //    password.drawFields(this);
+                        //}
                         errcode = ErrCode.OK;
                     }
                     else
@@ -212,6 +229,42 @@ namespace WinAMBurner
             FormNotify formNotify = new FormNotify(text, notifyButtons, caption);
             formNotify.ShowDialog();
             formNotify.Dispose();
+        }
+
+        private async void buttonChangePassword_Click(object sender, EventArgs e)
+        {
+            ErrCode errcode = ErrCode.ERROR;
+
+            password.disableControls();
+            password.updateParams();
+            if ((errcode = password.checkParams()) == ErrCode.OK)
+            {
+                JsonDocument jsonDocument = await web.entityAdd<PasswordJson>(password, "api/p/password/change/");
+                if (jsonDocument != null)
+                {
+                    //if ((errCode = responseParse<FarmJson>(jsonDocument)) == ErrCode.OK)
+                    Password rpassword = null;
+                    try { rpassword = JsonSerializer.Deserialize<Password>(jsonDocument.RootElement.ToString()); }
+                    catch (Exception ex) { LogFile.logWrite(ex.ToString()); }
+                    if (rpassword != null)
+                    {
+                        password.hide();
+                        login.drawFields(this);
+                        errcode = ErrCode.OK;
+                    }
+                    else
+                    {
+                        responseParse(password, jsonDocument);
+                        errcode = ErrCode.EPARAM;
+                    }
+                }
+            }
+
+            if (errcode != ErrCode.OK)
+            {
+                screenError(new List<string>() { "Change password failed,",
+                    "please enter a valid values"}, "Change Password Failed");
+            }
         }
 
         private void screenActionShow()
@@ -1036,7 +1089,7 @@ namespace WinAMBurner
 
         private async void buttonFarmAddSubmit_Click(object sender, EventArgs e)
         {
-            ErrCode errCode = ErrCode.ERROR;
+            ErrCode errcode = ErrCode.ERROR;
 
             //allControlsDisable();
             farm.disableControls();
@@ -1044,7 +1097,7 @@ namespace WinAMBurner
             //updateParams(farm);
             farm.updateParams();
             //if ((errCode = checkParams(farm)) == ErrCode.OK)
-            if ((errCode = farm.checkParams()) == ErrCode.OK)
+            if ((errcode = farm.checkParams()) == ErrCode.OK)
             {
                 JsonDocument jsonDocument = await web.entityAdd<FarmJson>(farm, "api/p/farms/");
                 if (jsonDocument != null)
@@ -1058,7 +1111,7 @@ namespace WinAMBurner
                         farms.Add(rfarm);
                         farm.hide();
                         screenFarmShow();
-                        errCode = ErrCode.OK;
+                        errcode = ErrCode.OK;
                         //if ((errCode = responseParse(farm, jsonDocument)) == ErrCode.OK)
                         //{
                         //    farms.Add(farm);
@@ -1070,14 +1123,14 @@ namespace WinAMBurner
                     else
                     {
                         responseParse(farm, jsonDocument);
-                        errCode = ErrCode.EPARAM;
+                        errcode = ErrCode.EPARAM;
                     }
                 }
                 else
-                    errCode = ErrCode.EPARAM;
+                    errcode = ErrCode.EPARAM;
             }
 
-            if (errCode != ErrCode.OK)
+            if (errcode != ErrCode.OK)
                 screenError(new List<string>() { "Submit failed, can't add empty or negative fields,",
                     "make sure all the fields are filled with valid values"}, "Submit Failed");
         }
