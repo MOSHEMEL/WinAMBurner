@@ -56,6 +56,7 @@ namespace WinAMBurner
         //private TreatmentPackage treatmentPackage;
         private Action action;
         private Password password;
+        private Reset reset;
 
         //private string password = null;
         //private Field fUsername;
@@ -92,9 +93,60 @@ namespace WinAMBurner
             this.Font = new Font("Segoe UI", Field.DefaultFont, FontStyle.Regular, GraphicsUnit.Point);
             //pictureBoxTitle.Scale(new SizeF(Misc.ScaleFactor, Misc.ScaleFactor));
 
-            (login = new Login(linkLabel1_LinkClicked, buttonLogin_Click) { tablet = TabletNo }).drawFields(this);
+            login = new Login(forgot_Click, buttonLogin_Click) { tablet = TabletNo };
+            login.drawFields(this);
 
             //screenLoginShow();
+        }
+
+        private void forgot_Click(object sender, EventArgs e)
+        {
+            login.hide();
+            reset = new Reset(buttonResetPassword_Click);
+            reset.drawFields(this);
+        }
+
+        private async void buttonResetPassword_Click(object sender, EventArgs e)
+        {
+            ErrCode errcode = ErrCode.ERROR;
+            List<string> errors = new List<string>();
+            List<string> messages = new List<string>();
+
+            reset.disableControls();
+            reset.updateParams();
+
+            if ((errcode = reset.checkParams()) == ErrCode.OK)
+            {
+                JsonDocument jsonDocument = await web.entityAdd<ResetJson>(reset, "api/p/password/reset/");
+                if (jsonDocument != null)
+                {
+                    errcode = responseParse(reset, jsonDocument, errors, messages);
+
+                    Reset rreset = null;
+                    try { rreset = JsonSerializer.Deserialize<Reset>(jsonDocument.RootElement.ToString()); }
+                    catch (Exception ex) { LogFile.logWrite(ex.ToString()); }
+
+                    if (rreset != null)
+                        errcode = ErrCode.OK;
+                }
+            }
+
+            if (errcode == ErrCode.EPARAM)
+            {
+                screenError(errors, "Reset Password Failed");
+            }
+            else if (errcode == ErrCode.ERROR)
+            {
+                screenError(new List<string>() { "Reset password failed,",
+                    "please enter a valid values"}, "Reset Password Failed");
+            }
+            else if (errcode == ErrCode.OK)
+            {
+                screenError(messages, "Success");
+                reset.hide();
+                login = new Login(forgot_Click, buttonLogin_Click) { tablet = TabletNo };
+                login.drawFields(this);
+            }
         }
 
         private void logout()
@@ -120,7 +172,8 @@ namespace WinAMBurner
             settings = null;
 
             //login = null;
-            login = new Login(linkLabel1_LinkClicked, buttonLogin_Click) { tablet = TabletNo };
+            //login = new Login(linkLabel1_LinkClicked, buttonLogin_Click) { tablet = TabletNo };
+            login = new Login(forgot_Click, buttonLogin_Click) { tablet = TabletNo };
             user = null;
 
             //amData.SNum = 0;
@@ -156,7 +209,7 @@ namespace WinAMBurner
             //login.email = "yael@gmail.com";
             //login.password = "yael123";
             login.email = "yaelv@armentavet.com";
-            login.password = "vU6pdsNXHR";
+            login.password = "Yyyaeeel123";
             login.tablet = "kjh1g234123";
 
             //if ((login.email != string.Empty) && (login.password != string.Empty))
@@ -167,6 +220,7 @@ namespace WinAMBurner
                 {
                     // if ok
                     user = loginResponse.user;
+                    user.is_password_changed = false;
                     if (!user.is_password_changed)
                     {
                         login.hide();
@@ -226,44 +280,58 @@ namespace WinAMBurner
 
         private void notify(List<string> text, NotifyButtons notifyButtons, string caption)
         {
-            FormNotify formNotify = new FormNotify(text, notifyButtons, caption);
-            formNotify.ShowDialog();
-            formNotify.Dispose();
+            if (text.Count > 0)
+            {
+                FormNotify formNotify = new FormNotify(text, notifyButtons, caption);
+                formNotify.ShowDialog();
+                formNotify.Dispose();
+            }
         }
 
         private async void buttonChangePassword_Click(object sender, EventArgs e)
         {
             ErrCode errcode = ErrCode.ERROR;
+            List<string> errors = new List<string>();
+            List<string> messages = new List<string>();
 
             password.disableControls();
             password.updateParams();
+
+            password.new_password1 = "Yyyaeeel123";
+            password.new_password2 = "Yyyaeeel123";
+
             if ((errcode = password.checkParams()) == ErrCode.OK)
             {
                 JsonDocument jsonDocument = await web.entityAdd<PasswordJson>(password, "api/p/password/change/");
                 if (jsonDocument != null)
                 {
-                    //if ((errCode = responseParse<FarmJson>(jsonDocument)) == ErrCode.OK)
+                    errcode = responseParse(password, jsonDocument, errors, messages);
+
                     Password rpassword = null;
                     try { rpassword = JsonSerializer.Deserialize<Password>(jsonDocument.RootElement.ToString()); }
                     catch (Exception ex) { LogFile.logWrite(ex.ToString()); }
+
                     if (rpassword != null)
-                    {
-                        password.hide();
-                        login.drawFields(this);
                         errcode = ErrCode.OK;
-                    }
-                    else
-                    {
-                        responseParse(password, jsonDocument);
-                        errcode = ErrCode.EPARAM;
-                    }
                 }
             }
 
-            if (errcode != ErrCode.OK)
+            if (errcode == ErrCode.EPARAM)
+            {
+                screenError(errors, "Change Password Failed");
+            }
+            else if (errcode == ErrCode.ERROR)
             {
                 screenError(new List<string>() { "Change password failed,",
                     "please enter a valid values"}, "Change Password Failed");
+            }
+            else if (errcode == ErrCode.OK)
+            {
+                screenError(messages, "Success");
+                password.hide();
+                //login.Password.updateField(null);
+                login.password = null;
+                login.drawFields(this);
             }
         }
 
@@ -356,7 +424,7 @@ namespace WinAMBurner
         private List<string> entityToRow(Entity e)
         {
             List<string> l = null;
-            l = new List<string> { e.Name.val.ToString(), e.Country.val.ToString() + ((e.State.val.ToString() == string.Empty) ? string.Empty : " / ") + e.State.val.ToString(), e.City.val.ToString(), e.Address.val.ToString(), e.ContractType.val.ToString() };
+            l = new List<string> { e.Name.val as string, e.Country.val as string + ((e.State.val as string == string.Empty) ? string.Empty : " / ") + e.State.val as string, e.City.val as string, e.Address.val as string, e.ContractType.val as string };
 
             //if (typeof(T) == typeof(Farm))
             //{
@@ -448,7 +516,7 @@ namespace WinAMBurner
 
         private void AMConnectedShow()
         {
-            label1 = new Field(ltype: typeof(Label), text: "AM found – connected to AM", color: Color.Green,
+            label1 = new Field(ltype: typeof(Label), dtext: "AM found – connected to AM", color: Color.Green,
                 placeh: Place.Center, placev: Place.Six).draw(this, true) as Label;
             //button2.Enabled = true;
         }
@@ -556,12 +624,13 @@ namespace WinAMBurner
                             //action.Farm.addItems(farms.ToArray());
                             //action.Farm.items = farms.ToArray();
                             action.Farm.control.Visible = true;
-                            action.Farm.clear = false;
+                            //action.Farm.clear = false;
 
                             action.Service.control.Visible = false;
-                            (action.Service.control as ComboBox).SelectedItem = null;
-                            action.Service.dflt = true;
-                            action.Service.clear = true;
+                            //(action.Service.control as ComboBox).SelectedItem = null;
+                            //action.Service.dflt = true;
+                            action.service_provider = null;
+                            //action.Service.clear = true;
                             //action.clearService();
                             //comboBoxId.Items.AddRange(farms.ToArray());
                         }
@@ -572,13 +641,14 @@ namespace WinAMBurner
                             //action.Farm.removeItems();
                             //action.Farm.addItems(services.ToArray());
                             action.Farm.control.Visible = false;
-                            (action.Farm.control as ComboBox).SelectedItem = null;
-                            action.Farm.dflt = true;
-                            action.Farm.clear = true;
+                            //(action.Farm.control as ComboBox).SelectedItem = null;
+                            //action.Farm.dflt = true;
+                            action.farm = null;
+                            //action.Farm.clear = true;
                             //action.clearFarm();
 
                             action.Service.control.Visible = true;
-                            action.Service.clear = false;
+                            //action.Service.clear = false;
                             //action.Farm.items = services.ToArray();
                         }
                     }
@@ -657,6 +727,8 @@ namespace WinAMBurner
         private async void buttonTreatApprove_Click(object sender, EventArgs e)
         {
             ErrCode errcode = ErrCode.ERROR;
+            List<string> errors = new List<string>();
+            List<string> messages = new List<string>();
 
             //allControlsDisable();
             action.disableControls();
@@ -684,8 +756,8 @@ namespace WinAMBurner
                         FormNotify formNotify = new FormNotify(new List<string>() {
                                     string.Format("{0} treatments will be added",am.MaxiSet / settings.number_of_pulses_per_treatment),
                                     string.Format("to the AM - SN {0}", am.SNum),
-                                    (farm != null) ? string.Format("Farm {0}", farm.Name.val.ToString()) :
-                                    ((service != null) ? string.Format("Service Provider {0}", service.Name.val.ToString()) : string.Empty),
+                                    (farm != null) ? string.Format("Farm {0}", farm.Name.val as string) :
+                                    ((service != null) ? string.Format("Service Provider {0}", service.Name.val as string) : string.Empty),
                                     "Press the button to proceed"}, NotifyButtons.YesNo, caption: "Approve");
                         formNotify.ShowDialog();
                         if (formNotify.DialogResult == DialogResult.Yes)
@@ -711,6 +783,7 @@ namespace WinAMBurner
                                         Action raction = null;
                                         try { raction = JsonSerializer.Deserialize<Action>(jsonDocument.RootElement.ToString()); }
                                         catch (Exception ex) { LogFile.logWrite(ex.ToString()); }
+                                        //if ((errcode = responseParse(action, jsonDocument, errors, messages)) == ErrCode.OK)
                                         if (raction != null)
                                         {
                                             notify(new List<string>() {
@@ -729,7 +802,9 @@ namespace WinAMBurner
                                             //
                                             // erase am needed
                                             //
-                                            responseParse(action, jsonDocument);
+                                            //responseParse(action, jsonDocument);
+                                            errcode = responseParse(action, jsonDocument, errors, messages);
+                                            notify(errors, NotifyButtons.OK, "Approve Fail");
                                             errcode = ErrCode.ERASE;
                                         }
                                     }
@@ -759,12 +834,12 @@ namespace WinAMBurner
                 screenTreatError(new List<string>() {
                     "Wrong parameters,",
                     "please choose the Farm / Service provider",
-                    "and the number of treatments" });
+                    "and the number of treatments" }, "Approve Fail");
             else if (errcode == ErrCode.MAX)
                 screenTreatError(new List<string>() {
                     "Wrong part number,",
                     "the maximum number of treatments reached,",
-                    "please choose a smaller number of treatments" });
+                    "please choose a smaller number of treatments" }, "Approve Fail");
             else if (errcode == ErrCode.ERASE)
             {
                 notify(new List<string>() { "Restoring AM" }, NotifyButtons.OK, "Approve Fail");
@@ -777,25 +852,26 @@ namespace WinAMBurner
 
                 screenTreatError(new List<string>() {
                     "Approve failed,",
-                    "AM sucsessfully restored to original values" });
+                    "AM sucsessfully restored to original values" }, "Approve Fail");
 
             }
             else if (errcode == ErrCode.EFAIL)
-                screenTreatError(new List<string>() { "Failed to restore AM" });
+                screenTreatError(new List<string>() { "Failed to restore AM" }, "Approve Fail");
             else if (errcode == ErrCode.ERROR)
-                screenTreatError(new List<string>() { "The operation failed, the treatments were not added" });
+                screenTreatError(new List<string>() { "The operation failed, the treatments were not added" }, "Approve Fail");
             else if (errcode == ErrCode.OK)
                 action.enableControls();
         }
 
-        private void screenTreatError(List<string> text)
+        private void screenTreatError(List<string> text, string caption)
         {
-            notify(text, NotifyButtons.OK, "Approve Fail");
+            //notify(text, NotifyButtons.OK, "Approve Fail");
             ProgressBar progressBar = action.Progress.lcontrol as ProgressBar;
             if (progressBar != null)
                 progressBar.Visible = false;
             //allControlsEnable();
-            action.enableControls();
+            //action.enableControls();
+            screenError(text, caption);
         }
 
         //
@@ -855,7 +931,7 @@ namespace WinAMBurner
                 //if ((richTextBox.Text != null) && (richTextBox.Name != Gui.DefaultText))
                 //{
                 //table = entityTableGet(entities.Where(e => e.Name.text.ToLower().Contains(richTextBox.Text.ToLower())).ToList());
-                table = entityTableGet(entities.Where(e => e.Name.val.ToString().ToLower().Contains(richTextBox.Text.ToLower())).ToList());
+                table = entityTableGet(entities.Where(e => (e.Name.val as string != null) && ((e.Name.val as string).ToLower().Contains(richTextBox.Text.ToLower()))).ToList());
                 dataGridView1.DataSource = table;
                 //}
             }
@@ -867,7 +943,7 @@ namespace WinAMBurner
             new Field(ltype: typeof(PictureBox), lplacev: Place.One).draw(this, true);
             new Field(ltype: typeof(Label), ltext: dataName, lplacev: Place.Two).draw(this, true);
             new Field(ltype: typeof(Button), ltext: "Back", buttonEventHandler: eventHandlerButton4, lplaceh: Place.Four, lplacev: Place.Three).draw(this, true);
-            new Field(type: typeof(RichTextBox), text: "Search", textEventHandler: eventHandlerButton3, placeh: Place.Six, placev: Place.Three).draw(this, false);
+            new Field(type: typeof(RichTextBox), dtext: "Search", textEventHandler: eventHandlerButton3, placeh: Place.Six, placev: Place.Three).draw(this, false);
             new Field(ltype: typeof(Button), ltext: "Edit", buttonEventHandler: eventHandlerButton1, lplaceh: Place.One, lplacev: Place.Three).draw(this, true);
             new Field(ltype: typeof(Button), ltext: "Add New", buttonEventHandler: eventHandlerButton2, lplaceh: Place.Three, lplacev: Place.Three).draw(this, true);
             Field.dataGridDraw(this, ref dataGridView1, placev: Place.Four);
@@ -994,7 +1070,7 @@ namespace WinAMBurner
         private Entity getCurrentEntity(List<Entity> entities)
         {
             //return entities.ElementAt(dataGridView1.CurrentCell.RowIndex);
-            return entities.Find(e => e.Name.val.ToString() == dataGridView1.CurrentRow.Cells[0].Value.ToString());
+            return entities.Find(e => e.Name.val as string == dataGridView1.CurrentRow.Cells[0].Value as string);
         }
 
         private void buttonServiceEdit_Click(object sender, EventArgs e)
@@ -1090,6 +1166,8 @@ namespace WinAMBurner
         private async void buttonFarmAddSubmit_Click(object sender, EventArgs e)
         {
             ErrCode errcode = ErrCode.ERROR;
+            List<string> errors = new List<string>();
+            List<string> messages = new List<string>();
 
             //allControlsDisable();
             farm.disableControls();
@@ -1121,23 +1199,26 @@ namespace WinAMBurner
                         //}
                     }
                     else
-                    {
-                        responseParse(farm, jsonDocument);
-                        errcode = ErrCode.EPARAM;
-                    }
+                        //{
+                        //responseParse(farm, jsonDocument);
+                        //errcode = ErrCode.EPARAM;
+                        //}
+                        errcode = responseParse(farm, jsonDocument, errors, messages);
                 }
-                else
-                    errcode = ErrCode.EPARAM;
             }
 
-            if (errcode != ErrCode.OK)
+            if (errcode == ErrCode.EPARAM)
+                screenError(errors, "Submit Failed");
+            else if (errcode != ErrCode.OK)
                 screenError(new List<string>() { "Submit failed, can't add empty or negative fields,",
                     "make sure all the fields are filled with valid values"}, "Submit Failed");
         }
 
         private async void buttonServiceAddSubmit_Click(object sender, EventArgs e)
         {
-            ErrCode errCode = ErrCode.ERROR;
+            ErrCode errcode = ErrCode.ERROR;
+            List<string> errors = new List<string>();
+            List<string> messages = new List<string>();
 
             //allControlsDisable();
             service.disableControls();
@@ -1145,7 +1226,7 @@ namespace WinAMBurner
             //updateParams(service);
             service.updateParams();
             //if ((errCode = checkParams(service)) == ErrCode.OK)
-            if ((errCode = service.checkParams()) == ErrCode.OK)
+            if ((errcode = service.checkParams()) == ErrCode.OK)
             {
                 JsonDocument jsonDocument = await web.entityAdd<ServiceJson>(service, "api/p/service_providers/");
                 if (jsonDocument != null)
@@ -1158,7 +1239,7 @@ namespace WinAMBurner
                         services.Add(rservice);
                         service.hide();
                         screenServiceShow();
-                        errCode = ErrCode.OK;
+                        errcode = ErrCode.OK;
                         //if ((errCode = responseParse<ServiceJson>(jsonDocument)) == ErrCode.OK)
                         //if ((errCode = responseParse(service, jsonDocument)) == ErrCode.OK)
                         //{
@@ -1169,30 +1250,32 @@ namespace WinAMBurner
                         //}
                     }
                     else
-                    {
-                        responseParse(service, jsonDocument);
-                        errCode = ErrCode.EPARAM;
-                    }
+                    //{
+                    //    responseParse(service, jsonDocument);
+                    //    errCode = ErrCode.EPARAM;
+                    //}
+                        errcode = responseParse(service, jsonDocument, errors, messages);
                 }
-                else
-                    errCode = ErrCode.EPARAM;
             }
 
-            if (errCode != ErrCode.OK)
+            if (errcode == ErrCode.EPARAM)
+                screenError(errors, "Submit Failed");
+            else if (errcode != ErrCode.OK)
                 screenError(new List<string>() { "Submit failed, can't add empty or negative fields,",
                     "make sure all the fields are filled with valid values"}, "Submit Failed");
         }
 
         //private ErrCode responseParse<T>(T entity, JsonDocument jsonDocument)
-        private void responseParse<T>(T entity, JsonDocument jsonDocument)
+        private ErrCode responseParse<T>(T entity, JsonDocument jsonDocument, List<string> errors, List<string> messages)
         {
-            //ErrCode errcode = ErrCode.EPARAM;
-            List<string> errors = new List<string>();
+            ErrCode errcode = ErrCode.ERROR;
+            //List<string> errors = new List<string>();
+            //List<string> messages = new List<string>();
             Gui gui = entity as Gui;
 
             if (gui != null)
                 //errcode = gui.responseParse(jsonDocument, errors);
-                gui.responseParse(jsonDocument, errors);
+                errcode = gui.responseParse(jsonDocument, errors, messages);
 
             //if (errcode != ErrCode.OK)
             //{
@@ -1201,15 +1284,15 @@ namespace WinAMBurner
             //    formNotify.Dispose();
             //}
 
-            if (errors.Count > 0)
-            {
-                FormNotify formNotify = new FormNotify(errors, NotifyButtons.OK);
-                formNotify.ShowDialog();
-                formNotify.Dispose();
-                //errcode = ErrCode.EPARAM;
-            }
+            //if (errors.Count > 0)
+            //{
+            //    FormNotify formNotify = new FormNotify(errors, NotifyButtons.OK);
+            //    formNotify.ShowDialog();
+            //    formNotify.Dispose();
+            //    //errcode = ErrCode.EPARAM;
+            //}
 
-            //return errcode;
+            return errcode;
         }
 
         //private ErrCode responseParse<T>(JsonDocument jsonDocument)
@@ -1290,7 +1373,9 @@ namespace WinAMBurner
 
         private async void buttonFarmEditSubmit_Click(object sender, EventArgs e)
         {
-            ErrCode errCode = ErrCode.ERROR;
+            ErrCode errcode = ErrCode.ERROR;
+            List<string> errors = new List<string>();
+            List<string> messages = new List<string>();
 
             //allControlsDisable();
             farm.disableControls();
@@ -1299,7 +1384,7 @@ namespace WinAMBurner
             //updateParams(f);
             ufarm.updateParams();
             //if ((errCode = checkParams(f)) == ErrCode.OK)
-            if ((errCode = ufarm.checkParams()) == ErrCode.OK)
+            if ((errcode = ufarm.checkParams()) == ErrCode.OK)
             {
                 JsonDocument jsonDocument = await web.entityEdit<FarmJson>(ufarm, "api/p/farms/" + farm.Id + "/");
                 if (jsonDocument != null)
@@ -1313,7 +1398,7 @@ namespace WinAMBurner
                         farms.Remove(farm);
                         farm.hide();
                         screenFarmShow();
-                        errCode = ErrCode.OK;
+                        errcode = ErrCode.OK;
                         //if ((errCode = responseParse<FarmJson>(jsonDocument)) == ErrCode.OK)
                         //if ((errCode = responseParse(farm, jsonDocument)) == ErrCode.OK)
                         //{
@@ -1328,16 +1413,17 @@ namespace WinAMBurner
                         //}
                     }
                     else
-                    {
-                        responseParse(ufarm, jsonDocument);
-                        errCode = ErrCode.EPARAM;
-                    }
+                    //{
+                    //    responseParse(ufarm, jsonDocument);
+                    //    errCode = ErrCode.EPARAM;
+                    //}
+                        errcode = responseParse(ufarm, jsonDocument, errors, messages);
                 }
-                else
-                    errCode = ErrCode.EPARAM;
             }
 
-            if (errCode != ErrCode.OK)
+            if (errcode == ErrCode.EPARAM)
+                screenError(errors, "Submit Failed");
+            if (errcode != ErrCode.OK)
             {
                 screenError(new List<string>() { "Submit failed, can't add empty or negative fields,",
                     "make sure all the fields are filled with valid values"}, "Submit Failed");
@@ -1346,7 +1432,9 @@ namespace WinAMBurner
 
         private async void buttonServiceEditSubmit_Click(object sender, EventArgs e)
         {
-            ErrCode errCode = ErrCode.ERROR;
+            ErrCode errcode = ErrCode.ERROR;
+            List<string> errors = new List<string>();
+            List<string> messages = new List<string>();
 
             //allControlsDisable();
             service.disableControls();
@@ -1355,7 +1443,7 @@ namespace WinAMBurner
             //updateParams(s);
             uservice.updateParams();
             //if ((errCode = checkParams(s)) == ErrCode.OK)
-            if ((errCode = uservice.checkParams()) == ErrCode.OK)
+            if ((errcode = uservice.checkParams()) == ErrCode.OK)
             {
                 JsonDocument jsonDocument = await web.entityEdit<ServiceJson>(uservice, "api/p/service_providers/" + service.Id + "/");
                 if (jsonDocument != null)
@@ -1369,7 +1457,7 @@ namespace WinAMBurner
                         services.Remove(service);
                         service.hide();
                         screenServiceShow();
-                        errCode = ErrCode.OK;
+                        errcode = ErrCode.OK;
                         //if ((errCode = responseParse<ServiceJson>(jsonDocument)) == ErrCode.OK)
                         //if ((errCode = responseParse(service, jsonDocument)) == ErrCode.OK)
                         //{
@@ -1381,16 +1469,17 @@ namespace WinAMBurner
                         //}
                     }
                     else
-                    {
-                        responseParse(uservice, jsonDocument);
-                        errCode = ErrCode.EPARAM;
-                    }
+                    //{
+                    //    responseParse(uservice, jsonDocument);
+                    //    errCode = ErrCode.EPARAM;
+                    //}
+                        errcode = responseParse(uservice, jsonDocument, errors, messages);
                 }
-                else
-                    errCode = ErrCode.EPARAM;
             }
 
-            if (errCode != ErrCode.OK)
+            if (errcode == ErrCode.EPARAM)
+                screenError(errors, "Submit Failed");
+            if (errcode != ErrCode.OK)
                 screenError(new List<string>() { "Submit failed, can't add empty or negative fields,",
                     "make sure all the fields are filled with valid values"}, "Submit Failed");
         }
