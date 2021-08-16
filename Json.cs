@@ -219,7 +219,7 @@ namespace WinAMBurner
                 //Console.WriteLine("{0} = {1}", prop.Name, prop.GetValue(user, null));
                 //PropertyInfo prop = props.ElementAt(controls.IndexOf(control));
                 Field field = prop.GetValue(this) as Field;
-                if (field != null)
+                if ((field != null) && field.enable)
                 {
                     if (field.control != null)
                         field.control.Enabled = true;
@@ -270,7 +270,7 @@ namespace WinAMBurner
             {
                 //Console.WriteLine("{0} = {1}", prop.Name, prop.GetValue(user, null));
                 Field field = prop.GetValue(this) as Field;
-                if (field != null)
+                if ((field != null) && field.view)
                 {
                     //if (field.error == ErrCode.EPARAM)
                     //{
@@ -313,7 +313,7 @@ namespace WinAMBurner
                 }
                 //errcode = ErrCode.OK;
             }
-            
+
             if (errors.Count == 0)
                 errcode = ErrCode.OK;
             else
@@ -339,23 +339,38 @@ namespace WinAMBurner
             }
         }
 
-        public async Task<ErrCode> edit(Web web, string url)
-        {
-            ErrCode errcode = ErrCode.ERROR;
-            List<string> errors = new List<string>();
-            List<string> messages = new List<string>();
+        //public ErrCode presend()
+        //{
+        //    ErrCode errcode = ErrCode.ERROR;
+        //
+        //    disableControls();
+        //
+        //    updateParams();
+        //
+        //    errcode = checkParams();
+        //
+        //    return errcode;
+        //}
 
-            disableControls();
-
-            updateParams();
-
-            if ((errcode = checkParams()) == ErrCode.OK)
-            {
-                JsonDocument jsonDocument = await web.entityEdit(this, url);
-                //responseParse(jsonDocument, errors, messages);
-            }
-            return errcode;
-        }
+        //public async Task<JsonDocument> add<TJson, T>(Web web, TJson jentity, T entity, string url)
+        //{
+        //    JsonDocument jsonDocument = await web.entityAdd(jentity, url);
+        //    if (jsonDocument != null)
+        //    {
+        //        T rentity = Type;
+        //        try { rentity = JsonSerializer.Deserialize<T>(jsonDocument.RootElement.ToString()); }
+        //        catch (Exception ex) { LogFile.logWrite(ex.ToString()); }
+        //        if (rentity != null)
+        //        {
+        //            farms.Add(rfarm);
+        //            farm.hide();
+        //            screenFarmShow();
+        //            errcode = ErrCode.OK;
+        //
+        //        }
+        //    }
+        //    return jsonDocument;
+        //}
     }
 
     class Login : Gui, LoginJson
@@ -381,8 +396,8 @@ namespace WinAMBurner
         //public Login(LinkLabelLinkClickedEventHandler linkEventHandler, EventHandler buttonEventHandler)
         public Login(EventHandler forgotEventHandler, EventHandler buttonEventHandler)
         {
-            Email = new Field(type: typeof(RichTextBox), dtext: "Username", width: Field.DefaultWidthLarge, placev: Place.Three);
-            Password = new Field(type: typeof(TextBox), dtext: "Password", width: Field.DefaultWidthLarge, placev: Place.Five);
+            Email = new Field(type: typeof(RichTextBox), dflt: "Username", width: Field.DefaultWidthLarge, placev: Place.Three);
+            Password = new Field(type: typeof(TextBox), dflt: "Password", width: Field.DefaultWidthLarge, placev: Place.Five);
             Picture = new Field(ltype: typeof(PictureBox), lplacev: Place.One);
             //Forgot = new Field(ltype: typeof(LinkLabel), ltext: "Forgot password", linkEventHandler: linkEventHandler, lplacev: Place.Seven);
             Forgot = new Field(ltype: typeof(LinkLabel), ltext: "Forgot password", buttonEventHandler: forgotEventHandler, lplacev: Place.Seven);
@@ -420,8 +435,8 @@ namespace WinAMBurner
         private void initFields()
         {
             Picture = new Field(ltype: typeof(PictureBox), lplacev: Place.One);
-            Password1 = new Field(type: typeof(TextBox), ltype: typeof(Label), dtext: "Password", ltext: "Please enter a new password: ", width: Field.DefaultWidthLarge, placev: Place.Five, lplacev: Place.Four);
-            Password2 = new Field(type: typeof(TextBox), dtext: "Confirm Password", width: Field.DefaultWidthLarge, placev: Place.Six);
+            Password1 = new Field(type: typeof(TextBox), ltype: typeof(Label), dflt: "Password", ltext: "Please enter a new password: ", width: Field.DefaultWidthLarge, placev: Place.Five, lplacev: Place.Four);
+            Password2 = new Field(type: typeof(TextBox), dflt: "Confirm Password", width: Field.DefaultWidthLarge, placev: Place.Six);
             ChangePassword = new Field(ltype: typeof(Button), ltext: "Change Password", width: Field.DefaultWidthLarge, lplacev: Place.End);
         }
 
@@ -456,7 +471,7 @@ namespace WinAMBurner
         private void initFields()
         {
             Picture = new Field(ltype: typeof(PictureBox), lplacev: Place.One);
-            Email = new Field(type: typeof(RichTextBox), ltype: typeof(Label), dtext: "Email@email.com", ltext: "The password will be reseted, please enter an email to send a temporary password:", width: Field.DefaultWidthLarge, placev: Place.Six, lplacev: Place.Four);
+            Email = new Field(type: typeof(RichTextBox), ltype: typeof(Label), dflt: "Email@email.com", ltext: "The password will be reseted, please enter an email to send a temporary password:", width: Field.DefaultWidthLarge, placev: Place.Six, lplacev: Place.Four);
             ResetPassword = new Field(ltype: typeof(Button), ltext: "Reset Password", width: Field.DefaultWidthLarge, lplacev: Place.End);
         }
 
@@ -468,13 +483,13 @@ namespace WinAMBurner
 
     class Entity : Gui
     {
-        public static int ID = 0;
-        public static string MOBILE = "123456";
-        public static string EMAIL = "email@email.com";
-        public static string ADDRESS = "Adress";
-        public static string CITY = "City";
-        public static string NAME = "Name";
-        public static string CONTACT_NAME = "Contact Name";
+        //public static int ID = 0;
+        //public static string MOBILE = "123456";
+        //public static string EMAIL = "email@email.com";
+        //public static string ADDRESS = "Adress";
+        //public static string CITY = "City";
+        //public static string NAME = "Name";
+        //public static string CONTACT_NAME = "Contact Name";
 
         public int id { get; set; }
         //public int id { get; }
@@ -614,7 +629,7 @@ namespace WinAMBurner
         //public static string ADDRESS = "Adress";
         //public static string CITY = "City";
         //public static string NAME = "Name";
-        public static string NUMBER_OF_LACTATING_COWS = "0";
+        //public static string NUMBER_OF_LACTATING_COWS = "0";
         public static string[] DHI_TEST = new string[] { "No", "Yes" };
         //public static string CONTACT_NAME = "Contact Name";
 
@@ -766,22 +781,39 @@ namespace WinAMBurner
 
         private void initFields()
         {
-            Name = new Field(type: typeof(RichTextBox), ltype: typeof(Label), dtext: NAME, ltext: "Name:", autosize: false, placeh: Place.Six, lplaceh: Place.Four, placev: Place.Three);
-            Address = new Field(type: typeof(RichTextBox), ltype: typeof(Label), dtext: ADDRESS, ltext: "Address:", autosize: false, placeh: Place.Six, lplaceh: Place.Four, placev: Place.Four);
-            Country = new Field(type: typeof(ComboBox), ltype: typeof(Label), dtext: "Country", ltext: "Country:", autosize: false, items: Const.COUNTRY, placeh: Place.Six, lplaceh: Place.Four, placev: Place.Five);
-            State = new Field(type: typeof(ComboBox), ltype: typeof(Label), dtext: "State", ltext: "State:", autosize: false, items: Const.STATE, placeh: Place.Six, lplaceh: Place.Four, placev: Place.Six);
-            City = new Field(type: typeof(RichTextBox), ltype: typeof(Label), dtext: CITY, ltext: "City:", autosize: false, placeh: Place.Six, lplaceh: Place.Four, placev: Place.Seven);
+            //Name = new Field(type: typeof(RichTextBox), ltype: typeof(Label), dtext: NAME, ltext: "Name:", autosize: false, placeh: Place.Six, lplaceh: Place.Four, placev: Place.Three);
+            //Address = new Field(type: typeof(RichTextBox), ltype: typeof(Label), dtext: ADDRESS, ltext: "Address:", autosize: false, placeh: Place.Six, lplaceh: Place.Four, placev: Place.Four);
+            //Country = new Field(type: typeof(ComboBox), ltype: typeof(Label), dtext: "Country", ltext: "Country:", autosize: false, items: Const.COUNTRY, placeh: Place.Six, lplaceh: Place.Four, placev: Place.Five);
+            //State = new Field(type: typeof(ComboBox), ltype: typeof(Label), dtext: "State", ltext: "State:", autosize: false, items: Const.STATE, placeh: Place.Six, lplaceh: Place.Four, placev: Place.Six);
+            //City = new Field(type: typeof(RichTextBox), ltype: typeof(Label), dtext: CITY, ltext: "City:", autosize: false, placeh: Place.Six, lplaceh: Place.Four, placev: Place.Seven);
+            //IsActive = Const.IS_ACTIVE;
+            //ContactName = new Field(type: typeof(RichTextBox), ltype: typeof(Label), dtext: CONTACT_NAME, ltext: "Contact Name:", autosize: false, placeh: Place.Six, lplaceh: Place.Four, placev: Place.Eight);
+            //Mobile = new Field(type: typeof(RichTextBox), ltype: typeof(Label), dtext: MOBILE, ltext: "Mobile:", autosize: false, placeh: Place.Six, lplaceh: Place.Four, placev: Place.Nine);
+            //Email = new Field(type: typeof(RichTextBox), ltype: typeof(Label), dtext: EMAIL, ltext: "Email Address:", autosize: false, placeh: Place.Six, lplaceh: Place.Four, placev: Place.Ten);
+            //FarmType = new Field(type: typeof(ComboBox), ltype: typeof(Label), dtext: Const.FARM_TYPE.FirstOrDefault(), ltext: "Farm Type:", autosize: false, items: Const.FARM_TYPE, placeh: Place.Three, lplaceh: Place.One, placev: Place.Three);
+            //BreedType = new Field(type: typeof(ComboBox), ltype: typeof(Label), dtext: Const.BREED_TYPE.FirstOrDefault(), ltext: "Breed Type:", autosize: false, items: Const.BREED_TYPE, placeh: Place.Three, lplaceh: Place.One, placev: Place.Four);
+            //NumberOfLactatingCows = new Field(type: typeof(RichTextBox), ltype: typeof(Label), dtext: NUMBER_OF_LACTATING_COWS, ltext: "# of Lactating Cows:", pcheck: Field.icheckValid, autosize: false, placeh: Place.Three, lplaceh: Place.One, placev: Place.Five);
+            //DhiTest = new Field(type: typeof(ComboBox), ltype: typeof(Label), dtext: DHI_TEST.FirstOrDefault(), ltext: "Milk Recording:", autosize: false, items: DHI_TEST, placeh: Place.Three, lplaceh: Place.One, placev: Place.Six);
+            //MilkingSetupType = new Field(type: typeof(ComboBox), ltype: typeof(Label), dtext: Const.MILKING_SETUP_TYPE.FirstOrDefault(), ltext: "Milking Setup:", autosize: false, items: Const.MILKING_SETUP_TYPE, placeh: Place.Three, lplaceh: Place.One, placev: Place.Seven);
+            //LocationOfTreatmentType = new Field(type: typeof(ComboBox), ltype: typeof(Label), dtext: Const.LOCATION_OF_TREATMENT_TYPE.FirstOrDefault(), ltext: "Treatment Location:", autosize: false, items: Const.LOCATION_OF_TREATMENT_TYPE, placeh: Place.Three, lplaceh: Place.One, placev: Place.Eight);
+            //ContractType = new Field(type: typeof(ComboBox), ltype: typeof(Label), dtext: Const.CONTRACT_TYPE.FirstOrDefault(), ltext: "Contract Type:", autosize: false, items: Const.CONTRACT_TYPE, placeh: Place.Three, lplaceh: Place.One, placev: Place.Nine);
+
+            Name = new Field(type: typeof(RichTextBox), ltype: typeof(Label), dflt: "Name", ltext: "Name:", autosize: false, placeh: Place.Six, lplaceh: Place.Four, placev: Place.Three);
+            Address = new Field(type: typeof(RichTextBox), ltype: typeof(Label), dflt: "Address", ltext: "Address:", autosize: false, placeh: Place.Six, lplaceh: Place.Four, placev: Place.Four);
+            Country = new Field(type: typeof(ComboBox), ltype: typeof(Label), dflt: "Country", ltext: "Country:", autosize: false, items: Const.COUNTRY, placeh: Place.Six, lplaceh: Place.Four, placev: Place.Five);
+            State = new Field(type: typeof(ComboBox), ltype: typeof(Label), dflt: "State", ltext: "State:", autosize: false, items: Const.STATE, enable: false, placeh: Place.Six, lplaceh: Place.Four, placev: Place.Six);
+            City = new Field(type: typeof(RichTextBox), ltype: typeof(Label), dflt: "City", ltext: "City:", autosize: false, placeh: Place.Six, lplaceh: Place.Four, placev: Place.Seven);
             IsActive = Const.IS_ACTIVE;
-            ContactName = new Field(type: typeof(RichTextBox), ltype: typeof(Label), dtext: CONTACT_NAME, ltext: "Contact Name:", autosize: false, placeh: Place.Six, lplaceh: Place.Four, placev: Place.Eight);
-            Mobile = new Field(type: typeof(RichTextBox), ltype: typeof(Label), dtext: MOBILE, ltext: "Mobile:", autosize: false, placeh: Place.Six, lplaceh: Place.Four, placev: Place.Nine);
-            Email = new Field(type: typeof(RichTextBox), ltype: typeof(Label), dtext: EMAIL, ltext: "Email Address:", autosize: false, placeh: Place.Six, lplaceh: Place.Four, placev: Place.Ten);
-            FarmType = new Field(type: typeof(ComboBox), ltype: typeof(Label), dtext: Const.FARM_TYPE.FirstOrDefault(), ltext: "Farm Type:", autosize: false, items: Const.FARM_TYPE, placeh: Place.Three, lplaceh: Place.One, placev: Place.Three);
-            BreedType = new Field(type: typeof(ComboBox), ltype: typeof(Label), dtext: Const.BREED_TYPE.FirstOrDefault(), ltext: "Breed Type:", autosize: false, items: Const.BREED_TYPE, placeh: Place.Three, lplaceh: Place.One, placev: Place.Four);
-            NumberOfLactatingCows = new Field(type: typeof(RichTextBox), ltype: typeof(Label), dtext: NUMBER_OF_LACTATING_COWS, ltext: "# of Lactating Cows:", pcheck: Field.icheckValid, autosize: false, placeh: Place.Three, lplaceh: Place.One, placev: Place.Five);
-            DhiTest = new Field(type: typeof(ComboBox), ltype: typeof(Label), dtext: DHI_TEST.FirstOrDefault(), ltext: "Milk Recording:", autosize: false, items: DHI_TEST, placeh: Place.Three, lplaceh: Place.One, placev: Place.Six);
-            MilkingSetupType = new Field(type: typeof(ComboBox), ltype: typeof(Label), dtext: Const.MILKING_SETUP_TYPE.FirstOrDefault(), ltext: "Milking Setup:", autosize: false, items: Const.MILKING_SETUP_TYPE, placeh: Place.Three, lplaceh: Place.One, placev: Place.Seven);
-            LocationOfTreatmentType = new Field(type: typeof(ComboBox), ltype: typeof(Label), dtext: Const.LOCATION_OF_TREATMENT_TYPE.FirstOrDefault(), ltext: "Treatment Location:", autosize: false, items: Const.LOCATION_OF_TREATMENT_TYPE, placeh: Place.Three, lplaceh: Place.One, placev: Place.Eight);
-            ContractType = new Field(type: typeof(ComboBox), ltype: typeof(Label), dtext: Const.CONTRACT_TYPE.FirstOrDefault(), ltext: "Contract Type:", autosize: false, items: Const.CONTRACT_TYPE, placeh: Place.Three, lplaceh: Place.One, placev: Place.Nine);
+            ContactName = new Field(type: typeof(RichTextBox), ltype: typeof(Label), dflt: "Contact Name", ltext: "Contact Name:", autosize: false, placeh: Place.Six, lplaceh: Place.Four, placev: Place.Eight);
+            Mobile = new Field(type: typeof(RichTextBox), ltype: typeof(Label), dflt: "Mobile", ltext: "Mobile:", autosize: false, placeh: Place.Six, lplaceh: Place.Four, placev: Place.Nine);
+            Email = new Field(type: typeof(RichTextBox), ltype: typeof(Label), dflt: "Email Address", ltext: "Email Address:", autosize: false, placeh: Place.Six, lplaceh: Place.Four, placev: Place.Ten);
+            FarmType = new Field(type: typeof(ComboBox), ltype: typeof(Label), dflt: "Farm Type", ltext: "Farm Type:", autosize: false, items: Const.FARM_TYPE, placeh: Place.Three, lplaceh: Place.One, placev: Place.Three);
+            BreedType = new Field(type: typeof(ComboBox), ltype: typeof(Label), dflt: "Breed Type", ltext: "Breed Type:", autosize: false, items: Const.BREED_TYPE, placeh: Place.Three, lplaceh: Place.One, placev: Place.Four);
+            NumberOfLactatingCows = new Field(type: typeof(RichTextBox), ltype: typeof(Label), dflt: "# of Lactating Cows", ltext: "# of Lactating Cows:", pcheck: Field.icheckValid, autosize: false, placeh: Place.Three, lplaceh: Place.One, placev: Place.Five);
+            DhiTest = new Field(type: typeof(ComboBox), ltype: typeof(Label), dflt: "Milk Recording", ltext: "Milk Recording:", autosize: false, items: DHI_TEST, placeh: Place.Three, lplaceh: Place.One, placev: Place.Six);
+            MilkingSetupType = new Field(type: typeof(ComboBox), ltype: typeof(Label), dflt: "Milking Setup", ltext: "Milking Setup:", autosize: false, items: Const.MILKING_SETUP_TYPE, placeh: Place.Three, lplaceh: Place.One, placev: Place.Seven);
+            LocationOfTreatmentType = new Field(type: typeof(ComboBox), ltype: typeof(Label), dflt: "Treatment Location", ltext: "Treatment Location:", autosize: false, items: Const.LOCATION_OF_TREATMENT_TYPE, placeh: Place.Three, lplaceh: Place.One, placev: Place.Eight);
+            ContractType = new Field(type: typeof(ComboBox), ltype: typeof(Label), dflt: "Contract Type", ltext: "Contract Type:", autosize: false, items: Const.CONTRACT_TYPE, placeh: Place.Three, lplaceh: Place.One, placev: Place.Nine);
 
             Picture = new Field(ltype: typeof(PictureBox), lplacev: Place.One);
             Caption = new Field(ltype: typeof(Label), ltext: "Add Farm", font: Field.DefaultFontLarge, lplacev: Place.Two);
@@ -807,7 +839,9 @@ namespace WinAMBurner
                 Caption.ltext = "Add Farm";
                 ContractType.view = true;
             }
-            if (Country.val as string != "United States of America")
+            if (Country.val as string == "United States of America")
+                State.enable = true;
+            else
                 State.enable = false;
             Cancel.buttonEventHandler = cancelHandler;
             Submit.buttonEventHandler = submitHandler;
@@ -822,8 +856,8 @@ namespace WinAMBurner
         //public static string ADDRESS = "Adress";
         //public static string CITY = "City";
         //public static string EMAIL = "Email@Email.com";
-        public static string NUMBER_OF_DAIRY_FARMS = "0";
-        public static string NUMBER_OF_DAIRY_COWS = "0";
+        //public static string NUMBER_OF_DAIRY_FARMS = "0";
+        //public static string NUMBER_OF_DAIRY_COWS = "0";
         //public static string NAME = "Name";
         //public static string CONTACT_NAME = "Contact Name";
 
@@ -935,17 +969,17 @@ namespace WinAMBurner
 
         private void initFields()
         {
-            NumberOfDairyFarms = new Field(type: typeof(RichTextBox), ltype: typeof(Label), dtext: NUMBER_OF_DAIRY_FARMS, ltext: "# of dairy farms:", pcheck: Field.icheckValid, autosize: false, placeh: Place.Six, lplaceh: Place.Four, placev: Place.Three);
-            NumberOfDairyCows = new Field(type: typeof(RichTextBox), ltype: typeof(Label), dtext: NUMBER_OF_DAIRY_COWS, ltext: "# of dairy cows:", pcheck: Field.icheckValid, autosize: false, placeh: Place.Six, lplaceh: Place.Four, placev: Place.Four);
-            Address = new Field(type: typeof(RichTextBox), ltype: typeof(Label), dtext: ADDRESS, ltext: "Address:", autosize: false, placeh: Place.Six, lplaceh: Place.Four, placev: Place.Five);
-            Country = new Field(type: typeof(ComboBox), ltype: typeof(Label), dtext: "Country", ltext: "Country:", autosize: false, items: Const.COUNTRY, placeh: Place.Six, lplaceh: Place.Four, placev: Place.Six);
-            State = new Field(type: typeof(ComboBox), ltype: typeof(Label), dtext: "State", ltext: "State:", autosize: false, items: Const.STATE, placeh: Place.Six, lplaceh: Place.Four, placev: Place.Seven);
-            City = new Field(type: typeof(RichTextBox), ltype: typeof(Label), dtext: CITY, ltext: "City:", autosize: false, placeh: Place.Six, lplaceh: Place.Four, placev: Place.Eight);
-            Name = new Field(type: typeof(RichTextBox), ltype: typeof(Label), dtext: NAME, ltext: "Name:", autosize: false, placeh: Place.Three, lplaceh: Place.One, placev: Place.Three);
-            Mobile = new Field(type: typeof(RichTextBox), ltype: typeof(Label), dtext: MOBILE, ltext: "Mobile:", autosize: false, placeh: Place.Three, lplaceh: Place.One, placev: Place.Four);
-            Email = new Field(type: typeof(RichTextBox), ltype: typeof(Label), dtext: EMAIL, ltext: "Email Address:", autosize: false, placeh: Place.Three, lplaceh: Place.One, placev: Place.Five);
-            ContactName = new Field(type: typeof(RichTextBox), ltype: typeof(Label), dtext: CONTACT_NAME, ltext: "Contact Name:", autosize: false, placeh: Place.Three, lplaceh: Place.One, placev: Place.Six);
-            ContractType = new Field(type: typeof(ComboBox), ltype: typeof(Label), dtext: Const.CONTRACT_TYPE.FirstOrDefault(), ltext: "Contract Type:", autosize: false, items: Const.CONTRACT_TYPE, placeh: Place.Three, lplaceh: Place.One, placev: Place.Seven);
+            NumberOfDairyFarms = new Field(type: typeof(RichTextBox), ltype: typeof(Label), dflt: "# of dairy farms", ltext: "# of dairy farms:", pcheck: Field.icheckValid, autosize: false, placeh: Place.Six, lplaceh: Place.Four, placev: Place.Three);
+            NumberOfDairyCows = new Field(type: typeof(RichTextBox), ltype: typeof(Label), dflt: "# of dairy cows", ltext: "# of dairy cows:", pcheck: Field.icheckValid, autosize: false, placeh: Place.Six, lplaceh: Place.Four, placev: Place.Four);
+            Address = new Field(type: typeof(RichTextBox), ltype: typeof(Label), dflt: "Address", ltext: "Address:", autosize: false, placeh: Place.Six, lplaceh: Place.Four, placev: Place.Five);
+            Country = new Field(type: typeof(ComboBox), ltype: typeof(Label), dflt: "Country", ltext: "Country:", autosize: false, items: Const.COUNTRY, placeh: Place.Six, lplaceh: Place.Four, placev: Place.Six);
+            State = new Field(type: typeof(ComboBox), ltype: typeof(Label), dflt: "State", ltext: "State:", autosize: false, items: Const.STATE, enable: false, placeh: Place.Six, lplaceh: Place.Four, placev: Place.Seven);
+            City = new Field(type: typeof(RichTextBox), ltype: typeof(Label), dflt: "City", ltext: "City:", autosize: false, placeh: Place.Six, lplaceh: Place.Four, placev: Place.Eight);
+            Name = new Field(type: typeof(RichTextBox), ltype: typeof(Label), dflt: "Name", ltext: "Name:", autosize: false, placeh: Place.Three, lplaceh: Place.One, placev: Place.Three);
+            Mobile = new Field(type: typeof(RichTextBox), ltype: typeof(Label), dflt: "Mobile", ltext: "Mobile:", autosize: false, placeh: Place.Three, lplaceh: Place.One, placev: Place.Four);
+            Email = new Field(type: typeof(RichTextBox), ltype: typeof(Label), dflt: "Email Address", ltext: "Email Address:", autosize: false, placeh: Place.Three, lplaceh: Place.One, placev: Place.Five);
+            ContactName = new Field(type: typeof(RichTextBox), ltype: typeof(Label), dflt: "Contact Name", ltext: "Contact Name:", autosize: false, placeh: Place.Three, lplaceh: Place.One, placev: Place.Six);
+            ContractType = new Field(type: typeof(ComboBox), ltype: typeof(Label), dflt: "Contract Type", ltext: "Contract Type:", autosize: false, items: Const.CONTRACT_TYPE, placeh: Place.Three, lplaceh: Place.One, placev: Place.Seven);
             Picture = new Field(ltype: typeof(PictureBox), lplacev: Place.One);
 
             Caption = new Field(ltype: typeof(Label), ltext: "Add Service", font: Field.DefaultFontLarge, lplacev: Place.Two);
@@ -971,6 +1005,10 @@ namespace WinAMBurner
                 Caption.ltext = "Add Service";
                 ContractType.view = true;
             }
+            if (Country.val as string == "United States of America")
+                State.enable = true;
+            else
+                State.enable = false;
             Cancel.buttonEventHandler = cancelHandler;
             Submit.buttonEventHandler = submitHandler;
             Country.comboEventHandler = countryHandler;
@@ -1029,7 +1067,7 @@ namespace WinAMBurner
             }
         }
         private object ffFarm;
-        private object pFarm { get { return Field.getObject(fFarm, ffFarm, ppFarm); } set { ppFarm = Field.setObject(fFarm, ref ffFarm, value, ppFarm); } }
+        private object pFarm { get { return Field.getObject(fFarm, ref ffFarm, ppFarm); } set { ppFarm = Field.setObject(fFarm, ref ffFarm, value, ppFarm); } }
         private Field fFarm;
         public Field Farm { get { return Field.getField(fFarm, pFarm); } set { pFarm = Field.setField(ref fFarm, value, pFarm); } }
 
@@ -1045,7 +1083,7 @@ namespace WinAMBurner
             }
         }
         private object ffService;
-        private object pService { get { return Field.getObject(fService, ffService, ppService); } set { ppService = Field.setObject(fService, ref ffService, value, ppService); } }
+        private object pService { get { return Field.getObject(fService, ref ffService, ppService); } set { ppService = Field.setObject(fService, ref ffService, value, ppService); } }
         private Field fService;
         public Field Service { get { return Field.getField(fService, pService); } set { pService = Field.setField(ref fService, value, pService); } }
 
@@ -1054,7 +1092,7 @@ namespace WinAMBurner
 
         public object ppPartNumber { get { return part_number; } set { part_number = value as string; } }
         private object ffPartNumber;
-        private object pPartNumber { get { return Field.getObject(fPartNumber, ffPartNumber, ppPartNumber); } set { ppPartNumber = Field.setObject(fPartNumber, ref ffPartNumber, value, ppPartNumber); } }
+        private object pPartNumber { get { return Field.getObject(fPartNumber, ref ffPartNumber, ppPartNumber); } set { ppPartNumber = Field.setObject(fPartNumber, ref ffPartNumber, value, ppPartNumber); } }
         public Field fPartNumber;
         public Field PartNumber { get { return Field.getField(fPartNumber, pPartNumber); } set { pPartNumber = Field.setField(ref fPartNumber, value, pPartNumber); } }
 
@@ -1075,9 +1113,9 @@ namespace WinAMBurner
 
         private void initFields()
         {
-            PartNumber = new Field(type: typeof(ComboBox), ltype: typeof(Label), dtext: "Part Number", ltext: "Add treatments to AM – SN ", placev: Place.Eight, lplacev: Place.Seven);
-            Farm = new Field(type: typeof(ComboBox), ltype: typeof(Label), dtext: "Farm / Service provider", ltext: "Select Farm / Service provider", placev: Place.Five, lplacev: Place.Four);
-            Service = new Field(type: typeof(ComboBox), ltype: typeof(Label), dtext: "Farm / Service provider", ltext: "Select Farm / Service provider", placev: Place.Five, lplacev: Place.Four);
+            PartNumber = new Field(type: typeof(ComboBox), ltype: typeof(Label), dflt: "Part Number", ltext: "Add treatments to AM – SN ", placev: Place.Eight, lplacev: Place.Seven);
+            Farm = new Field(type: typeof(ComboBox), ltype: typeof(Label), dflt: "Farm / Service provider", ltext: "Select Farm / Service provider", placev: Place.Five, lplacev: Place.Four);
+            Service = new Field(type: typeof(ComboBox), ltype: typeof(Label), dflt: "Farm / Service provider", ltext: "Select Farm / Service provider", placev: Place.Five, lplacev: Place.Four);
 
             Picture = new Field(ltype: typeof(PictureBox), lplacev: Place.One);
             Welcome = new Field(ltype: typeof(Label), ltext: "Welcome distributor", font: Field.DefaultFontLarge, lplacev: Place.Two);

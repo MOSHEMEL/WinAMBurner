@@ -31,8 +31,8 @@ namespace WinAMBurner
         //public string text;
         public object val;
         public string ltext;
-        public string dtext;
-        public bool dflt;
+        public string dflt;
+        //public bool dflag;
         //public string[] items;
         public object[] items;
         public Control control;
@@ -63,22 +63,22 @@ namespace WinAMBurner
         //public bool clear;
         public bool enable;
 
-        private string combotext;
+        //private string combotext;
 
-        public Field(Type type = null, Type ltype = null, string dtext = null, object val = null, string ltext = null, object[] items = null,
+        public Field(Type type = null, Type ltype = null, string dflt = null, object val = null, string ltext = null, object[] items = null,
             LinkLabelLinkClickedEventHandler linkEventHandler = null,
             EventHandler comboEventHandler = null,
             EventHandler buttonEventHandler = null,
             EventHandler textEventHandler = null,
             EventHandler radioEventHandler = null,
-            fCheck fcheck = null, pCheck pcheck = null,
+            fCheck fcheck = null, pCheck pcheck = null, bool enable = true,
             float font = DefaultFont, Color color = new Color(),
             int width = DefaultWidth, int height = DefaultHeight, bool autosize = true,
             Place placeh = Place.Center, Place lplaceh = Place.Center, Place placev = Place.None, Place lplacev = Place.None)
         {
-            this.dtext = dtext;
-            this.val = this.dtext;
-            this.dflt = true;
+            this.dflt = dflt;
+            this.val = this.dflt;
+            //this.dflag = true;
             //this.text = dtext;
             this.ltext = ltext;
             this.items = items;
@@ -113,7 +113,7 @@ namespace WinAMBurner
                 this.pcheck += checkValid;
             this.view = true;
             //this.clear = false;
-            this.enable = true;
+            this.enable = enable;
         }
 
         //public static bool setField(ref Field field, Field value)
@@ -192,7 +192,7 @@ namespace WinAMBurner
             field = value;
             if (field != null)
             {
-                if (field.val != field.dtext)
+                if (field.val != field.dflt)
                     param = field.val;
 
                 if (field.fcheck(value) && field.pcheck(param))
@@ -210,13 +210,15 @@ namespace WinAMBurner
         {
             if (field != null)
             {
-                field.val = param;
                 if (field.pcheck(param))
-                    field.dflt = false;
+                {
+                    //field.dflag = false;
+                    field.val = param;
+                }
                 else
                 {
-                    field.dflt = true;
-                    field.val = field.dtext;
+                    //field.dflag = true;
+                    field.val = field.dflt;
                 }
             }
             return field;
@@ -224,7 +226,7 @@ namespace WinAMBurner
 
         public static object setObject(Field field, ref object entity, object value, object param)
         {
-            if (field != null)
+            if ((field != null) && (field.items != null))
             {
                 entity = value;
                 //if (field.pcheck(value))
@@ -241,20 +243,25 @@ namespace WinAMBurner
                     farm = field.items.Cast<Farm>().ToList().Find(i => i.Name.val as string == value as string);
                     if (farm != null)
                         param = farm.Id;
+                    else
+                        param = null;
                 }
                 else if (service != null)
                 {
                     service = field.items.Cast<Service>().ToList().Find(i => i.Name.val as string == value as string);
                     if (service != null)
                         param = service.Id;
+                    else
+                        param = null;
                 }
                 else if (treatmentPackage != null)
                 {
                     treatmentPackage = field.items.Cast<TreatmentPackage>().ToList().Find(i => i.description == value as string);
-                    param = treatmentPackage.part_number;
+                    if (treatmentPackage != null)
+                        param = treatmentPackage.part_number;
+                    else
+                        param = null;
                 }
-                else
-                    param = null;
                 //if (field.clear)
                 //{
                 //    entity = value;
@@ -265,7 +272,7 @@ namespace WinAMBurner
             return param;
         }
 
-        public static object getObject(Field field, object entity, object param)
+        public static object getObject(Field field, ref object entity, object param)
         {
             if (field != null)
             {
@@ -289,7 +296,7 @@ namespace WinAMBurner
         {
             //if ((field.text != null) && (field.text != field.dtext) && (field.text != string.Empty))
             //if ((field != null) && (field.text != null) && (field.text != string.Empty) && (!field.dflag))
-            if ((field != null) && (field.val != null) && (field.val as string != string.Empty) && (field.val != field.dtext))
+            if ((field != null) && (field.val != null) && (field.val as string != string.Empty) && (field.val as string != field.dflt as string))
             {
                 //field.error = ErrCode.OK;
                 return true;
@@ -392,8 +399,8 @@ namespace WinAMBurner
                 if (error == ErrCode.EPARAM)
                 {
                     control.ForeColor = Color.Red;
-                    control.Text = dtext;
-                    dflt = true;
+                    control.Text = dflt;
+                    //dflag = true;
                     return ErrCode.EPARAM;
                 }
             }
@@ -574,9 +581,9 @@ namespace WinAMBurner
             //control.Name = name;
             //if (control.Name == DefaultText)
             //{
-            //if (control.Text == dflt)
             //if (text == dtext)
-            if (dflt)
+            //if (dflt)
+            if (control.Text == dflt)
                 control.ForeColor = Color.Silver;
             else
                 control.ForeColor = Color.Black;
@@ -642,8 +649,8 @@ namespace WinAMBurner
             if (control != null)
             {
                 //if (control.Name == DefaultText)
-                //if (control.Text == dtext)
-                if (dflt)
+                //if (dflag)
+                if (control.Text == dflt)
                 {
                     //    string dflt = control.Text;
                     control.Text = string.Empty;
@@ -651,7 +658,7 @@ namespace WinAMBurner
                     control.ForeColor = Color.Black;
                     if (textBox != null)
                         textBox.PasswordChar = '*';
-                    dflt = false;
+                    //dflag = false;
                 }
             }
         }
@@ -666,11 +673,11 @@ namespace WinAMBurner
                 {
                     //    string dflt = control.Name;
                     //control.Name = dflt;
-                    control.Text = dtext;
+                    control.Text = dflt;
                     control.ForeColor = Color.Silver;
                     if (textBox != null)
                         textBox.PasswordChar = '\0';
-                    dflt = true;
+                    //dflag = true;
                 }
             }
         }
@@ -685,13 +692,14 @@ namespace WinAMBurner
                 try
                 {
                     //combotext = comboBox.Text + e.KeyChar;
-                    combotext = comboBox.Text;
+                    string combotext = comboBox.Text;
                     removeItems();
                     //addItems(items.Where(s => s.ToString().ToLower().StartsWith(comboBox.Text.ToLower())).ToArray());
                     addItems(items.Where(s => s.ToString().ToLower().StartsWith(combotext.ToLower())).ToArray());
                     //comboBox.DropDownHeight = DefaultWidthLarge;
                     comboBox.DroppedDown = true;
-                    //comboBox.Text = text;
+                    comboBox.Text = combotext;
+                    comboBox.SelectionStart = comboBox.Text.Count();
                 }
                 catch(Exception ex)
                 {
@@ -700,68 +708,19 @@ namespace WinAMBurner
             }
         }
 
-        //private void comboBox_KeyPress(object sender, KeyPressEventArgs e)
-        //{
-        //    ComboBox comboBox = sender as ComboBox;
-        //    if (comboBox != null)
-        //        comboBox.DroppedDown = true;
-        //}
-
-        //private void comboBox_EnabledChanged(object sender, EventArgs e)
-        //{
-        //    ComboBox comboBox = sender as ComboBox;
-        //    if ((comboBox != null) && (items != null))
-        //    {
-        //        //if (comboBox.Enabled)
-        //        //    //comboBox.Items.AddRange(items);
-        //        //    addItems(items);
-        //        //else
-        //        //    removeItems();
-        //    }
-        //}
-
-        //private void addComboItems(object[] items)
+        //public void addItems()
         //{
         //    ComboBox comboBox = control as ComboBox;
         //    if (comboBox != null)
         //    {
         //        //field.items = items.Select(s => s.ToString()).ToArray();
-        //        dflag = true;
+        //        //dflag = true;
         //        //items = items;
         //        //field.setDefault();
         //        comboBox.Items.AddRange(items);
-        //        //comboBox.Text = dtext;
+        //        //comboBox.Text = dflt;
         //    }
         //}
-
-        //private void removeComboItems()
-        //{
-        //    ComboBox comboBox = control as ComboBox;
-        //    if (comboBox != null)
-        //    {
-        //        //while (comboBox.Items.Count > 0)
-        //        //    comboBox.Items.RemoveAt(0);
-        //        dflag = true;
-        //        //items = null;
-        //        while (comboBox.Items.Count > 0)
-        //            comboBox.Items.RemoveAt(0);
-        //        //comboBox.Text = dtext;
-        //    }
-        //}
-
-        public void addItems()
-        {
-            ComboBox comboBox = control as ComboBox;
-            if (comboBox != null)
-            {
-                //field.items = items.Select(s => s.ToString()).ToArray();
-                dflt = true;
-                //items = items;
-                //field.setDefault();
-                comboBox.Items.AddRange(items);
-                //comboBox.Text = field.dtext;
-            }
-        }
 
         public void addItems(object[] items)
         {
@@ -769,11 +728,11 @@ namespace WinAMBurner
             if (comboBox != null)
             {
                 //field.items = items.Select(s => s.ToString()).ToArray();
-                dflt = true;
+                //dflag = true;
                 //items = items;
                 //field.setDefault();
                 comboBox.Items.AddRange(items);
-                //comboBox.Text = field.dtext;
+                //comboBox.Text = dflt;
             }
         }
 
@@ -783,19 +742,13 @@ namespace WinAMBurner
             if (comboBox != null)
             {
                 //field.setDefault();
-                dflt = true;
+                //dflag = true;
                 //items = null;
                 while (comboBox.Items.Count > 0)
                     comboBox.Items.RemoveAt(0);
-                //comboBox.Text = field.dtext;
+                //comboBox.Text = dflt;
             }
         }
-
-        //public static void hide(Form thisForm)
-        //{
-        //    while (thisForm.Controls.Count > 0)
-        //        thisForm.Controls[0].Dispose();
-        //}
 
         public static void dataGridDraw(Form thisForm, ref DataGridView dataGridView, Place placeh = Place.Center, Place placev = Place.Center)
         {

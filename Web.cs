@@ -21,7 +21,7 @@ namespace WinAMBurner
             LoginResponseJson loginResponse = null;
             try
             {
-                LogFile.logWrite("Request POST:\n" + login.ToString() + JsonSerializer.Serialize(login));
+                LogFile.logWrite("Request POST: " + URL + "api/p/login/" + "\n" + login.ToString() + JsonSerializer.Serialize(login));
                 client.DefaultRequestHeaders.Authorization = null;
                 HttpResponseMessage response = await client.PostAsync(URL + "api/p/login/",
                     new StringContent(JsonSerializer.Serialize(login), Encoding.UTF8, "application/json"));
@@ -60,7 +60,7 @@ namespace WinAMBurner
             T entity = default(T);
             try
             {
-                LogFile.logWrite("Request GET:\n");
+                LogFile.logWrite("Request GET: " + URL + entityUrl + "\n");
                 streamTask = client.GetStreamAsync(URL + entityUrl);
                 if(streamTask != null)
                 {
@@ -82,7 +82,7 @@ namespace WinAMBurner
             JsonDocument jsonDocument = null;
             try
             {
-                LogFile.logWrite("Request POST:\n" + JsonSerializer.Serialize(entity));
+                LogFile.logWrite("Request POST: " + URL + entityUrl + "\n" + JsonSerializer.Serialize(entity));
                 HttpResponseMessage response = await client.PostAsync(URL + entityUrl,
                     new StringContent(JsonSerializer.Serialize(entity), Encoding.UTF8, "application/json"));
                 if (response != null)
@@ -104,7 +104,7 @@ namespace WinAMBurner
             JsonDocument jsonDocument = null;
             try
             {
-                LogFile.logWrite("Request PATCH:\n" + JsonSerializer.Serialize(entity));
+                LogFile.logWrite("Request PATCH: " + URL + entityUrl + "\n" + JsonSerializer.Serialize(entity));
                 HttpResponseMessage response = await client.PatchAsync(URL + entityUrl,
                     new StringContent(JsonSerializer.Serialize(entity), Encoding.UTF8, "application/json"));
                 if (response != null)
@@ -126,7 +126,7 @@ namespace WinAMBurner
             JsonDocument jsonDocument = null;
             try
             {
-                LogFile.logWrite("Request OPTIONS:\n");
+                LogFile.logWrite("Request OPTIONS: " + URL + "api/p/farms/" + "\n");
                 HttpResponseMessage response = await client.SendAsync(new HttpRequestMessage(HttpMethod.Options, URL + "api/p/farms/"));
                 if (response != null)
                     jsonDocument = await JsonSerializer.DeserializeAsync<JsonDocument>(await response.Content.ReadAsStreamAsync());

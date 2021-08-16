@@ -206,11 +206,11 @@ namespace WinAMBurner
             //updateParams(login);
             login.updateParams();
 
-            //login.email = "yael@gmail.com";
-            //login.password = "yael123";
-            login.email = "yaelv@armentavet.com";
-            login.password = "Yyyaeeel123";
-            login.tablet = "kjh1g234123";
+            login.email = "yael@gmail.com";
+            login.password = "yael123";
+            //login.email = "yaelv@armentavet.com";
+            //login.password = "Yyyaeeel123";
+            //login.tablet = "kjh1g234123";
 
             //if ((login.email != string.Empty) && (login.password != string.Empty))
             if ((errcode = login.checkParams()) == ErrCode.OK)
@@ -220,7 +220,7 @@ namespace WinAMBurner
                 {
                     // if ok
                     user = loginResponse.user;
-                    user.is_password_changed = false;
+                    //user.is_password_changed = false;
                     if (!user.is_password_changed)
                     {
                         login.hide();
@@ -297,8 +297,8 @@ namespace WinAMBurner
             password.disableControls();
             password.updateParams();
 
-            password.new_password1 = "Yyyaeeel123";
-            password.new_password2 = "Yyyaeeel123";
+            //password.new_password1 = "Yyyaeeel123";
+            //password.new_password2 = "Yyyaeeel123";
 
             if ((errcode = password.checkParams()) == ErrCode.OK)
             {
@@ -516,7 +516,7 @@ namespace WinAMBurner
 
         private void AMConnectedShow()
         {
-            label1 = new Field(ltype: typeof(Label), dtext: "AM found – connected to AM", color: Color.Green,
+            label1 = new Field(ltype: typeof(Label), dflt: "AM found – connected to AM", color: Color.Green,
                 placeh: Place.Center, placev: Place.Six).draw(this, true) as Label;
             //button2.Enabled = true;
         }
@@ -595,10 +595,13 @@ namespace WinAMBurner
                 if (service != null)
                     entity = service;
                 if (entity != null)
+                {
                     //comboBoxPN.Items.AddRange(treatmentPackages.Where(t => t.contract_type == entity.contract_type).ToArray());
                     //addItems(comboBoxPN, action.PartNumber, treatmentPackages.Where(t => t.contract_type == entity.contract_type).ToArray());
+                    //action.PartNumber.items = treatmentPackages.Where(t => t.contract_type == entity.contract_type).ToArray();
                     action.PartNumber.addItems(treatmentPackages.Where(t => t.contract_type == entity.contract_type).ToArray());
-                    action.PartNumber.items = treatmentPackages.Where(t => t.contract_type == entity.contract_type).ToArray();
+                }
+                comboBoxPN.Text = action.PartNumber.dflt;
             }
         }
 
@@ -612,7 +615,10 @@ namespace WinAMBurner
                 //ComboBox comboBoxId = action.Farm.control as ComboBox;
                 //ComboBox comboBoxPN = action.PartNumber.control as ComboBox;
                 //if ((radioButton != null) && (radioFarm != null) && (radioService != null) && (comboBoxId != null) && (comboBoxPN != null))
-                if ((radioButton != null) && (radioFarm != null) && (radioService != null))
+                if ((radioButton != null) && (radioFarm != null) && (radioService != null)
+                     && (action.Farm != null) && (action.Farm.control != null)
+                     && (action.Service != null) && (action.Service.control != null)
+                     && (action.PartNumber != null) && (action.PartNumber.control != null))
                 {
                     if (radioButton.Checked)
                     {
@@ -624,12 +630,15 @@ namespace WinAMBurner
                             //action.Farm.addItems(farms.ToArray());
                             //action.Farm.items = farms.ToArray();
                             action.Farm.control.Visible = true;
+                            action.Farm.view = true;
                             //action.Farm.clear = false;
 
                             action.Service.control.Visible = false;
+                            action.Service.control.Text = null;
+                            action.Service.view = false;
                             //(action.Service.control as ComboBox).SelectedItem = null;
                             //action.Service.dflt = true;
-                            action.service_provider = null;
+                            //action.service_provider = null;
                             //action.Service.clear = true;
                             //action.clearService();
                             //comboBoxId.Items.AddRange(farms.ToArray());
@@ -641,19 +650,25 @@ namespace WinAMBurner
                             //action.Farm.removeItems();
                             //action.Farm.addItems(services.ToArray());
                             action.Farm.control.Visible = false;
+                            action.Farm.control.Text = null;
+                            action.Farm.view = false;
                             //(action.Farm.control as ComboBox).SelectedItem = null;
                             //action.Farm.dflt = true;
-                            action.farm = null;
+                            //action.farm = null;
                             //action.Farm.clear = true;
                             //action.clearFarm();
 
                             action.Service.control.Visible = true;
+                            action.Service.view = true;
                             //action.Service.clear = false;
                             //action.Farm.items = services.ToArray();
                         }
                     }
                     else
+                    {
                         action.PartNumber.removeItems();
+                        action.PartNumber.control.Text = action.PartNumber.dflt;
+                    }
                     //{
                     //    //removeItems(comboBoxId, action.Farm);
                     //    action.Farm.removeItems();
@@ -663,29 +678,6 @@ namespace WinAMBurner
                 }
             }
         }
-
-        //private void addItems(ComboBox comboBox, Field field, object[] items)
-        //{
-        //    //field.items = items.Select(s => s.ToString()).ToArray();
-        //    field.dflag = true;
-        //    field.items = items;
-        //    //field.setDefault();
-        //    comboBox.Items.AddRange(items);
-        //    //comboBox.Text = field.dtext;
-        //}
-
-        //private void removeItems(ComboBox comboBox, Field field)
-        //{
-        //    if (comboBox != null)
-        //    {
-        //        //field.setDefault();
-        //        field.dflag = true;
-        //        field.items = null;
-        //        while (comboBox.Items.Count > 0)
-        //            comboBox.Items.RemoveAt(0);
-        //        //comboBox.Text = field.dtext;
-        //    }
-        //}
 
         private void progressBar_Callback(object sender, EventArgs e)
         {
@@ -909,7 +901,8 @@ namespace WinAMBurner
         private void richTextBoxFarmSearch_TextChanged(object sender, EventArgs e)
         {
             DataTable table = null;
-            if ((table = richTextBoxSearch(sender, farms.Cast<Entity>().ToList())) != null)
+            //if ((table = richTextBoxSearch(sender, farms.Cast<Entity>().ToList())) != null)
+            if ((table = richTextBoxSearch(sender, farms.Cast<Entity>())) != null)
                 //farmTable = table;
                 dataGridView1.DataSource = table;
         }
@@ -917,12 +910,14 @@ namespace WinAMBurner
         private void richTextBoxServiceSearch_TextChanged(object sender, EventArgs e)
         {
             DataTable table = null;
-            if ((table = richTextBoxSearch(sender, services.Cast<Entity>().ToList())) != null)
+            //if ((table = richTextBoxSearch(sender, services.Cast<Entity>().ToList())) != null)
+            if ((table = richTextBoxSearch(sender, services.Cast<Entity>())) != null)
                 //serviceTable = table;
                 dataGridView1.DataSource = table;
         }
 
-        private DataTable richTextBoxSearch(object sender, List<Entity> entities)
+        //private DataTable richTextBoxSearch(object sender, List<Entity> entities)
+        private DataTable richTextBoxSearch(object sender, IEnumerable<Entity> entities)
         {
             RichTextBox richTextBox = sender as RichTextBox;
             DataTable table = null;
@@ -943,7 +938,7 @@ namespace WinAMBurner
             new Field(ltype: typeof(PictureBox), lplacev: Place.One).draw(this, true);
             new Field(ltype: typeof(Label), ltext: dataName, lplacev: Place.Two).draw(this, true);
             new Field(ltype: typeof(Button), ltext: "Back", buttonEventHandler: eventHandlerButton4, lplaceh: Place.Four, lplacev: Place.Three).draw(this, true);
-            new Field(type: typeof(RichTextBox), dtext: "Search", textEventHandler: eventHandlerButton3, placeh: Place.Six, placev: Place.Three).draw(this, false);
+            new Field(type: typeof(RichTextBox), dflt: "Search", textEventHandler: eventHandlerButton3, placeh: Place.Six, placev: Place.Three).draw(this, false);
             new Field(ltype: typeof(Button), ltext: "Edit", buttonEventHandler: eventHandlerButton1, lplaceh: Place.One, lplacev: Place.Three).draw(this, true);
             new Field(ltype: typeof(Button), ltext: "Add New", buttonEventHandler: eventHandlerButton2, lplaceh: Place.Three, lplacev: Place.Three).draw(this, true);
             Field.dataGridDraw(this, ref dataGridView1, placev: Place.Four);
@@ -961,7 +956,8 @@ namespace WinAMBurner
             //Field.hide(this);
             hide();
             //screenFarmAddShow();
-            (farm = new Farm(false, comboBoxCountry_SelectedIndexChanged, buttonFarmCancel_Click, buttonFarmAddSubmit_Click)).drawFields(this);
+            farm = new Farm(false, comboBoxCountry_SelectedIndexChanged, buttonFarmCancel_Click, buttonFarmAddSubmit_Click);
+            farm.drawFields(this);
 
         }
 
@@ -970,107 +966,36 @@ namespace WinAMBurner
             //Field.hide(this);
             hide();
             //screenServiceAddShow();
-            (service = new Service(false, comboBoxCountry_SelectedIndexChanged, buttonServiceCancel_Click, buttonServiceAddSubmit_Click)).drawFields(this);
+            service = new Service(false, comboBoxCountry_SelectedIndexChanged, buttonServiceCancel_Click, buttonServiceAddSubmit_Click);
+            service.drawFields(this);
         }
-
-        //private void screenFarmAddShow()
-        //{
-        //    farm = new Farm();
-        //    farm.Country.comboEventHandler = comboBoxCountry_SelectedIndexChanged;
-        //    //farm.ContractType.view = true;
-        //    screenUpdateShow(farm, buttonFarmCancel_Click);
-        //    //Gui.draw(this, typeof(Label), text: "Add Farm", font: Gui.DefaultFontLarge, placev: Gui.Place.Two);
-        //    new Field(ltype: typeof(Label), ltext: "Add Farm", font: Field.DefaultFontLarge, lplacev: Place.Two).draw(this, true);
-        //    //Gui.draw(this, typeof(Button), text: "Submit", eventHandler: new EventHandler(buttonFarmAddSubmit_Click),
-        //    //    placeh: Gui.Place.Three, placev: Gui.Place.Eleven);
-        //    new Field(ltype: typeof(Button), ltext: "Submit", buttonEventHandler: buttonFarmAddSubmit_Click,
-        //        lplaceh: Place.Three, lplacev: Place.Eleven).draw(this, true);
-        //}
-
-        //private void screenServiceAddShow()
-        //{
-        //    service = new Service();
-        //    service.Country.comboEventHandler = comboBoxCountry_SelectedIndexChanged;
-        //    service.ContractType.view = true;
-        //    screenUpdateShow(service, buttonServiceCancel_Click);
-        //    //Gui.draw(this, typeof(Label), text: "Add Service provider", font: Gui.DefaultFontLarge, placev: Gui.Place.Two);
-        //    new Field(ltype: typeof(Label), ltext: "Add Service provider", font: Field.DefaultFontLarge, lplacev: Place.Two).draw(this, true);
-        //    //Gui.draw(this, typeof(Button), text: "Submit", eventHandler: new EventHandler(buttonServiceAddSubmit_Click),
-        //    //    placeh: Gui.Place.Three, placev: Gui.Place.Eleven);
-        //    new Field(ltype: typeof(Button), ltext: "Submit", buttonEventHandler: new EventHandler(buttonServiceAddSubmit_Click),
-        //        lplaceh: Place.Three, lplacev: Place.Eleven).draw(this, true);
-        //}
-
-        //private void screenUpdateShow<T>(T entity, EventHandler eventHandler)
-        //{
-        //    drawFields(entity);
-        //    //Gui.draw(this, typeof(PictureBox), placev: Gui.Place.One);
-        //    new Field(ltype: typeof(PictureBox), lplacev: Place.One).draw(this, true);
-        //    //Gui.draw(this, typeof(Button), text: "Cancel", eventHandler: eventHandler,
-        //    //    placeh: Gui.Place.Six, placev: Gui.Place.Eleven);
-        //    new Field(ltype: typeof(Button), ltext: "Cancel", buttonEventHandler: eventHandler,
-        //        lplaceh: Place.Six, lplacev: Place.Eleven).draw(this, true);
-        //}
-
-        //private void drawFields<T>(T entity)
-        //{
-        //    foreach (PropertyInfo prop in typeof(T).GetProperties())
-        //    {
-        //        //Console.WriteLine("{0} = {1}", prop.Name, prop.GetValue(user, null));
-        //        //PropertyInfo prop = props.ElementAt(controls.IndexOf(control));
-        //        Field field = prop.GetValue(entity) as Field;
-        //        if (field != null)
-        //        {
-        //            //if (edit && field.ltext.Contains("Contract"))
-        //            //    continue;
-        //            if (field.view)
-        //            {
-        //                field.draw(this, false);
-        //                field.draw(this, true);
-        //            }
-        //        }
-        //    }
-        //}
-
-        //private Control drawField(Field field, bool edit)
-        //{
-        //    //string dflt = null;
-        //    //if (edit)
-        //    //    dflt = field.text;
-        //    //else
-        //    //    dflt = Gui.DefaultText;
-        //    //field.control = Gui.draw(this, field.type, text: field.val, name: defaultText, items: field.items, eventHandler: field.comboEventHandler, placeh: field.placeh, placev: field.placev);
-        //    //field.lcontrol = Gui.draw(this, typeof(Label), text: field.text, autoSize: false, placeh: field.lplaceh, placev: field.placev);
-        //    Control control = field.draw(this);
-        //    field.draw(this, false);
-        //    return control;
-        //}
 
         private void buttonFarmEdit_Click(object sender, EventArgs e)
         {
             //if ((farms != null) && (farmTable != null) && (dataGridView1 != null))
             if ((farms != null) && (dataGridView1 != null))
             {
-                farm = getCurrentEntity(farms.Cast<Entity>().ToList()) as Farm;
+                farm = getCurrentEntity(farms.Cast<Entity>()) as Farm;
                 //farmRow = getCurrentRow(farmTable);
                 //Field.hide(this);
-                hide();
-                //screenFarmEditShow(farm);
-                farm.initFields(true, comboBoxCountry_SelectedIndexChanged, buttonFarmCancel_Click, buttonFarmEditSubmit_Click);
-                //farm.ContractType.view = false;
-                farm.drawFields(this);
+                if (farm != null)
+                {
+                    hide();
+                    //screenFarmEditShow(farm);
+                    farm.initFields(true, comboBoxCountry_SelectedIndexChanged, buttonFarmCancel_Click, buttonFarmEditSubmit_Click);
+                    //farm.ContractType.view = false;
+                    farm.drawFields(this);
+                }
             }
         }
 
-        //private DataRow getCurrentRow(DataTable dataTable)
-        //{
-        //    return dataTable.Rows[dataGridView1.CurrentCell.RowIndex];
-        //}
-
-        private Entity getCurrentEntity(List<Entity> entities)
+        private Entity getCurrentEntity(IEnumerable<Entity> entities)
         {
             //return entities.ElementAt(dataGridView1.CurrentCell.RowIndex);
-            return entities.Find(e => e.Name.val as string == dataGridView1.CurrentRow.Cells[0].Value as string);
+            if ((entities != null) && (dataGridView1 != null) && (dataGridView1.CurrentRow != null) && (dataGridView1.CurrentRow.Cells != null)
+                && (dataGridView1.CurrentRow.Cells.Count > 0))
+                return entities.ToList().Find(e => ((e.Name.val as string != null) && (e.Name.val as string == dataGridView1.CurrentRow.Cells[0].Value as string)));
+            return null;
         }
 
         private void buttonServiceEdit_Click(object sender, EventArgs e)
@@ -1078,14 +1003,17 @@ namespace WinAMBurner
             //if ((services != null) && (serviceTable != null) && (dataGridView1 != null))
             if ((services != null) && (dataGridView1 != null))
             {
-                service = getCurrentEntity(services.Cast<Entity>().ToList()) as Service;
+                service = getCurrentEntity(services.Cast<Entity>()) as Service;
                 //serviceRow = getCurrentRow(serviceTable);
                 //Field.hide(this);
-                hide();
-                //screenServiceEditShow(service);
-                service.initFields(true, comboBoxCountry_SelectedIndexChanged, buttonServiceCancel_Click, buttonServiceEditSubmit_Click);
-                //service.ContractType.view = false;
-                service.drawFields(this);
+                if (service != null)
+                {
+                    hide();
+                    //screenServiceEditShow(service);
+                    service.initFields(true, comboBoxCountry_SelectedIndexChanged, buttonServiceCancel_Click, buttonServiceEditSubmit_Click);
+                    //service.ContractType.view = false;
+                    service.drawFields(this);
+                }
             }
         }
 
@@ -1133,8 +1061,8 @@ namespace WinAMBurner
                 }
                 if ((entity != null) && (entity.State.control != null))
                 {
-                    entity.State.dflt = true;
-                    entity.State.control.Text = entity.State.dtext;
+                    //entity.State.dflag = true;
+                    entity.State.control.Text = entity.State.dflt;
                     if (comboBox.Text == "United States of America")
                     {
                         entity.State.enable = true;
@@ -1166,18 +1094,18 @@ namespace WinAMBurner
         private async void buttonFarmAddSubmit_Click(object sender, EventArgs e)
         {
             ErrCode errcode = ErrCode.ERROR;
+            JsonDocument jsonDocument = null;
             List<string> errors = new List<string>();
             List<string> messages = new List<string>();
 
-            //allControlsDisable();
             farm.disableControls();
 
-            //updateParams(farm);
             farm.updateParams();
-            //if ((errCode = checkParams(farm)) == ErrCode.OK)
+
             if ((errcode = farm.checkParams()) == ErrCode.OK)
+            //if ((errcode = farm.presend()) == ErrCode.OK)
             {
-                JsonDocument jsonDocument = await web.entityAdd<FarmJson>(farm, "api/p/farms/");
+                jsonDocument = await web.entityAdd<FarmJson>(farm, "api/p/farms/");
                 if (jsonDocument != null)
                 {
                     //if ((errCode = responseParse<FarmJson>(jsonDocument)) == ErrCode.OK)
@@ -1187,8 +1115,8 @@ namespace WinAMBurner
                     if (rfarm != null)
                     {
                         farms.Add(rfarm);
-                        farm.hide();
-                        screenFarmShow();
+                        //farm.hide();
+                        //screenFarmShow();
                         errcode = ErrCode.OK;
                         //if ((errCode = responseParse(farm, jsonDocument)) == ErrCode.OK)
                         //{
@@ -1198,25 +1126,45 @@ namespace WinAMBurner
                         //    errCode = ErrCode.OK;
                         //}
                     }
-                    else
-                        //{
-                        //responseParse(farm, jsonDocument);
-                        //errcode = ErrCode.EPARAM;
-                        //}
-                        errcode = responseParse(farm, jsonDocument, errors, messages);
+                    //else
+                    //{
+                    //responseParse(farm, jsonDocument);
+                    //errcode = ErrCode.EPARAM;
+                    //}
+                    //errcode = responseParse(farm, jsonDocument, errors, messages);
                 }
             }
 
+            //if (jsonDocument != null)
+            //    errcode = responseParse(farm, jsonDocument, errors, messages);
+            if (jsonDocument != null)
+                responseParse(farm, jsonDocument, errors, messages);
+            responseShow(errcode, errors);
+            if (errcode == ErrCode.OK)
+            {
+                farm.hide();
+                screenFarmShow();
+            }
+            else
+                farm.enableControls();
+        }
+
+        private void responseShow(ErrCode errcode, List<string> errors)
+        {
             if (errcode == ErrCode.EPARAM)
-                screenError(errors, "Submit Failed");
-            else if (errcode != ErrCode.OK)
-                screenError(new List<string>() { "Submit failed, can't add empty or negative fields,",
-                    "make sure all the fields are filled with valid values"}, "Submit Failed");
+            {
+                if (errors.Count > 0)
+                    notify(errors, NotifyButtons.OK, "Submit Failed");
+                else
+                    notify(new List<string>() { "Submit failed, can't add empty or negative fields,",
+                    "make sure all the fields are filled with valid values"}, NotifyButtons.OK, "Submit Failed");
+            }
         }
 
         private async void buttonServiceAddSubmit_Click(object sender, EventArgs e)
         {
             ErrCode errcode = ErrCode.ERROR;
+            JsonDocument jsonDocument = null;
             List<string> errors = new List<string>();
             List<string> messages = new List<string>();
 
@@ -1228,7 +1176,7 @@ namespace WinAMBurner
             //if ((errCode = checkParams(service)) == ErrCode.OK)
             if ((errcode = service.checkParams()) == ErrCode.OK)
             {
-                JsonDocument jsonDocument = await web.entityAdd<ServiceJson>(service, "api/p/service_providers/");
+                jsonDocument = await web.entityAdd<ServiceJson>(service, "api/p/service_providers/");
                 if (jsonDocument != null)
                 {
                     Service rservice = null;
@@ -1237,8 +1185,8 @@ namespace WinAMBurner
                     if (rservice != null)
                     {
                         services.Add(rservice);
-                        service.hide();
-                        screenServiceShow();
+                        //service.hide();
+                        //screenServiceShow();
                         errcode = ErrCode.OK;
                         //if ((errCode = responseParse<ServiceJson>(jsonDocument)) == ErrCode.OK)
                         //if ((errCode = responseParse(service, jsonDocument)) == ErrCode.OK)
@@ -1249,20 +1197,33 @@ namespace WinAMBurner
                         //    errCode = ErrCode.OK;
                         //}
                     }
-                    else
+                    //else
                     //{
                     //    responseParse(service, jsonDocument);
                     //    errCode = ErrCode.EPARAM;
                     //}
-                        errcode = responseParse(service, jsonDocument, errors, messages);
+                    //errcode = responseParse(service, jsonDocument, errors, messages);
                 }
             }
 
-            if (errcode == ErrCode.EPARAM)
-                screenError(errors, "Submit Failed");
-            else if (errcode != ErrCode.OK)
-                screenError(new List<string>() { "Submit failed, can't add empty or negative fields,",
-                    "make sure all the fields are filled with valid values"}, "Submit Failed");
+            //if (errcode == ErrCode.EPARAM)
+            //{
+            //    if (errors.Count > 0)
+            //        screenError(errors, "Submit Failed");
+            //    else
+            //        screenError(new List<string>() { "Submit failed, can't add empty or negative fields,",
+            //        "make sure all the fields are filled with valid values"}, "Submit Failed");
+            //}
+            if (jsonDocument != null)
+                responseParse(service, jsonDocument, errors, messages);
+            responseShow(errcode, errors);
+            if (errcode == ErrCode.OK)
+            {
+                service.hide();
+                screenServiceShow();
+            }
+            else
+                service.enableControls();
         }
 
         //private ErrCode responseParse<T>(T entity, JsonDocument jsonDocument)
@@ -1374,6 +1335,7 @@ namespace WinAMBurner
         private async void buttonFarmEditSubmit_Click(object sender, EventArgs e)
         {
             ErrCode errcode = ErrCode.ERROR;
+            JsonDocument jsonDocument = null;
             List<string> errors = new List<string>();
             List<string> messages = new List<string>();
 
@@ -1386,7 +1348,7 @@ namespace WinAMBurner
             //if ((errCode = checkParams(f)) == ErrCode.OK)
             if ((errcode = ufarm.checkParams()) == ErrCode.OK)
             {
-                JsonDocument jsonDocument = await web.entityEdit<FarmJson>(ufarm, "api/p/farms/" + farm.Id + "/");
+                jsonDocument = await web.entityEdit<FarmJson>(ufarm, "api/p/farms/" + farm.Id + "/");
                 if (jsonDocument != null)
                 {
                     Farm rfarm = null;
@@ -1396,8 +1358,8 @@ namespace WinAMBurner
                     {
                         farms.Insert(farms.IndexOf(farm), rfarm);
                         farms.Remove(farm);
-                        farm.hide();
-                        screenFarmShow();
+                        //farm.hide();
+                        //screenFarmShow();
                         errcode = ErrCode.OK;
                         //if ((errCode = responseParse<FarmJson>(jsonDocument)) == ErrCode.OK)
                         //if ((errCode = responseParse(farm, jsonDocument)) == ErrCode.OK)
@@ -1412,27 +1374,39 @@ namespace WinAMBurner
                         //    errCode = ErrCode.OK;
                         //}
                     }
-                    else
+                    //else
                     //{
                     //    responseParse(ufarm, jsonDocument);
                     //    errCode = ErrCode.EPARAM;
                     //}
-                        errcode = responseParse(ufarm, jsonDocument, errors, messages);
+                    //errcode = responseParse(farm, jsonDocument, errors, messages);
                 }
             }
 
-            if (errcode == ErrCode.EPARAM)
-                screenError(errors, "Submit Failed");
-            if (errcode != ErrCode.OK)
+            //if (errcode == ErrCode.EPARAM)
+            //{
+            //    if (errors.Count > 0)
+            //        screenError(errors, "Submit Failed");
+            //    else
+            //        screenError(new List<string>() { "Submit failed, can't add empty or negative fields,",
+            //        "make sure all the fields are filled with valid values"}, "Submit Failed");
+            //}
+            if (jsonDocument != null)
+                responseParse(farm, jsonDocument, errors, messages);
+            responseShow(errcode, errors);
+            if (errcode == ErrCode.OK)
             {
-                screenError(new List<string>() { "Submit failed, can't add empty or negative fields,",
-                    "make sure all the fields are filled with valid values"}, "Submit Failed");
+                farm.hide();
+                screenFarmShow();
             }
+            else
+                farm.enableControls();
         }
 
         private async void buttonServiceEditSubmit_Click(object sender, EventArgs e)
         {
             ErrCode errcode = ErrCode.ERROR;
+            JsonDocument jsonDocument = null;
             List<string> errors = new List<string>();
             List<string> messages = new List<string>();
 
@@ -1445,7 +1419,7 @@ namespace WinAMBurner
             //if ((errCode = checkParams(s)) == ErrCode.OK)
             if ((errcode = uservice.checkParams()) == ErrCode.OK)
             {
-                JsonDocument jsonDocument = await web.entityEdit<ServiceJson>(uservice, "api/p/service_providers/" + service.Id + "/");
+                jsonDocument = await web.entityEdit<ServiceJson>(uservice, "api/p/service_providers/" + service.Id + "/");
                 if (jsonDocument != null)
                 {
                     Service rservice = null;
@@ -1455,8 +1429,8 @@ namespace WinAMBurner
                     {
                         services.Insert(services.IndexOf(service), rservice);
                         services.Remove(service);
-                        service.hide();
-                        screenServiceShow();
+                        //service.hide();
+                        //screenServiceShow();
                         errcode = ErrCode.OK;
                         //if ((errCode = responseParse<ServiceJson>(jsonDocument)) == ErrCode.OK)
                         //if ((errCode = responseParse(service, jsonDocument)) == ErrCode.OK)
@@ -1468,20 +1442,34 @@ namespace WinAMBurner
                         //    errCode = ErrCode.OK;
                         //}
                     }
-                    else
+                    //else
                     //{
                     //    responseParse(uservice, jsonDocument);
                     //    errCode = ErrCode.EPARAM;
                     //}
-                        errcode = responseParse(uservice, jsonDocument, errors, messages);
+                    //errcode = responseParse(service, jsonDocument, errors, messages);
                 }
             }
 
-            if (errcode == ErrCode.EPARAM)
-                screenError(errors, "Submit Failed");
-            if (errcode != ErrCode.OK)
-                screenError(new List<string>() { "Submit failed, can't add empty or negative fields,",
-                    "make sure all the fields are filled with valid values"}, "Submit Failed");
+            //if (errcode == ErrCode.EPARAM)
+            //{
+            //
+            //    if (errors.Count > 0)
+            //        screenError(errors, "Submit Failed");
+            //    else
+            //        screenError(new List<string>() { "Submit failed, can't add empty or negative fields,",
+            //        "make sure all the fields are filled with valid values"}, "Submit Failed");
+            //}
+            if (jsonDocument != null)
+                responseParse(service, jsonDocument, errors, messages);
+            responseShow(errcode, errors);
+            if (errcode == ErrCode.OK)
+            {
+                service.hide();
+                screenServiceShow();
+            }
+            else
+                service.enableControls();
         }
 
         private void linkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
