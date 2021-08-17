@@ -39,6 +39,7 @@ namespace WinAMBurner
         private Action action;
         private Password password;
         private Reset reset;
+        private Field search;
 
         private string TabletNo
         {
@@ -842,10 +843,13 @@ namespace WinAMBurner
         {
             RichTextBox richTextBox = sender as RichTextBox;
             DataTable table = null;
-            if ((richTextBox != null) && (richTextBox.Text != null) && (dataGridView1 != null) && (entities != null))
+            if ((richTextBox != null) && (richTextBox.Text != null) && (dataGridView1 != null) && (entities != null) && (search != null))
             {
-                table = entityTableGet(entities.Where(e => (e.Name.val as string != null) && ((e.Name.val as string).ToLower().Contains(richTextBox.Text.ToLower()))).ToList());
-                dataGridView1.DataSource = table;
+                if (richTextBox.Text != search.dflt)
+                {
+                    table = entityTableGet(entities.Where(e => (e.Name.val as string != null) && ((e.Name.val as string).ToLower().Contains(richTextBox.Text.ToLower()))).ToList());
+                    dataGridView1.DataSource = table;
+                }
             }
             return table;
         }
@@ -855,7 +859,8 @@ namespace WinAMBurner
             new Field(ltype: typeof(PictureBox), lplacev: Place.One).draw(this, true);
             new Field(ltype: typeof(Label), ltext: dataName, lplacev: Place.Two).draw(this, true);
             new Field(ltype: typeof(Button), ltext: "Back", buttonEventHandler: eventHandlerButton4, lplaceh: Place.Four, lplacev: Place.Three).draw(this, true);
-            new Field(type: typeof(RichTextBox), dflt: "Search", textEventHandler: eventHandlerButton3, placeh: Place.Six, placev: Place.Three).draw(this, false);
+            search = new Field(type: typeof(RichTextBox), dflt: "Search", textEventHandler: eventHandlerButton3, placeh: Place.Six, placev: Place.Three);
+            search.draw(this, false);
             new Field(ltype: typeof(Button), ltext: "Edit", buttonEventHandler: eventHandlerButton1, lplaceh: Place.One, lplacev: Place.Three).draw(this, true);
             new Field(ltype: typeof(Button), ltext: "Add New", buttonEventHandler: eventHandlerButton2, lplaceh: Place.Three, lplacev: Place.Three).draw(this, true);
             Field.dataGridDraw(this, ref dataGridView1, placev: Place.Four);
