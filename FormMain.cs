@@ -169,8 +169,8 @@ namespace WinAMBurner
 
                 login.updateParams();
 
-                login.email = "yael@gmail.com";
-                login.password = "yael123";
+                //login.email = "yael@gmail.com";
+                //login.password = "yael123";
                 //login.email = "yaelv@armentavet.com";
                 //login.password = "Yyyaeeel123";
                 //login.tablet = "kjh1g234123";
@@ -531,7 +531,11 @@ namespace WinAMBurner
                     if (service != null)
                         entity = service;
                     if (entity != null)
-                        action.PartNumber.addItems(treatmentPackages.Where(t => t.contract_type == entity.contract_type).ToArray());
+                    {
+                        action.PartNumber.items = treatmentPackages.Where(t => t.contract_type == entity.contract_type).ToArray();
+                        //action.PartNumber.addItems(treatmentPackages.Where(t => t.contract_type == entity.contract_type).ToArray());
+                        action.PartNumber.addItems(action.PartNumber.items);
+                    }
                     comboBoxPN.Text = action.PartNumber.dflt;
                 }
             }
