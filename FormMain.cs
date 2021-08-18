@@ -97,7 +97,7 @@ namespace WinAMBurner
 
                 if ((errcode = reset.checkParams()) == ErrCode.OK)
                 {
-                    JsonDocument jsonDocument = await web.entityAdd<ResetJson>(reset, "api/p/password/reset/");
+                    JsonDocument jsonDocument = await web.entityAdd<ResetJson>(reset, "api/p/password_reset/");
                     if (jsonDocument != null)
                     {
                         errcode = responseParse(reset, jsonDocument, errors, messages);
@@ -171,9 +171,9 @@ namespace WinAMBurner
 
                 //login.email = "yael@gmail.com";
                 //login.password = "yael123";
-                //login.email = "yaelv@armentavet.com";
-                //login.password = "Yyyaeeel123";
-                //login.tablet = "kjh1g234123";
+                login.email = "yaelv@armentavet.com";
+                login.password = "Yyyaeeel123";
+                login.tablet = "kjh1g234123";
 
                 if ((errcode = login.checkParams()) == ErrCode.OK)
                 {
@@ -254,6 +254,24 @@ namespace WinAMBurner
 
         private async void buttonChangePassword_Click(object sender, EventArgs e)
         {
+            if ((password != null) && (web != null) && (login != null))
+            {
+                password.send<PasswordJson, Password>(password, "api/p/password/change/", web.entityAdd,
+                    "Change Password Success", "Change Password Failed",
+                    new List<string>() { "Change password failed,", "please enter a valid values" },
+                    new Gui.dResponse(() =>
+                    {
+                        if (login != null)
+                        {
+                            login.password = null;
+                            login.drawFields(this);
+                        }
+                    } ));
+            }
+        }
+
+        private async void xxxbuttonChangePassword_Click(object sender, EventArgs e)
+        {
             if (password != null)
             {
                 ErrCode errcode = ErrCode.ERROR;
@@ -272,36 +290,38 @@ namespace WinAMBurner
                     jsonDocument = await web.entityAdd<PasswordJson>(password, "api/p/password/change/");
                     if (jsonDocument != null)
                     {
-
                         Password rpassword = null;
                         try { rpassword = JsonSerializer.Deserialize<Password>(jsonDocument.RootElement.ToString()); }
                         catch (Exception ex) { LogFile.logWrite(ex.ToString()); }
 
                         if (rpassword != null)
                             errcode = ErrCode.OK;
+                        else
+                            errcode = ErrCode.EPARAM;
                     }
+                    else
+                        errcode = ErrCode.EPARAM;
                 }
 
                 responseParse(password, jsonDocument, errors, messages);
 
-                if (errcode == ErrCode.EPARAM)
+                if (errcode == ErrCode.OK)
                 {
-                    screenError(errors, "Change Password Failed");
-                }
-                else if (errcode == ErrCode.ERROR)
-                {
-                    screenError(new List<string>() { "Change password failed,",
-                    "please enter a valid values"}, "Change Password Failed");
-                }
-                else if (errcode == ErrCode.OK)
-                {
-                    screenError(messages, "Success");
+                    if (messages.Count() > 0)
+                        screenError(messages, "Success");
                     password.hide();
                     if (login != null)
                     {
                         login.password = null;
                         login.drawFields(this);
                     }
+                }
+                else
+                {
+                    if (errors.Count() > 0)
+                        screenError(errors, "Change Password Failed");
+                    screenError(new List<string>() { "Change password failed,",
+                    "please enter a valid values"}, "Change Password Failed");
                 }
             }
         }

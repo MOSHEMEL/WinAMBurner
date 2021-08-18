@@ -273,6 +273,75 @@ namespace WinAMBurner
                 //prop.SetValue(entity, control.Text);
             }
         }
+
+        public delegate Task<JsonDocument> dWeb(object entity, string entityUrl);
+        public delegate void dResponse();
+
+        public async void send<TJson, T>(TJson jentity, string url, dWeb pweb, string captionOk, string captionErr, List<string> messagesErr, dResponse presp)
+        {
+            if ((jentity != null) && (url != null) && (pweb != null) && (captionOk != null) && (captionErr != null) && (messagesErr != null) && (presp != null))
+            {
+                ErrCode errcode = ErrCode.ERROR;
+                JsonDocument jsonDocument = null;
+                List<string> errors = new List<string>();
+                List<string> messages = new List<string>();
+
+                disableControls();
+                updateParams();
+
+                //password.new_password1 = "Yyyaeeel123";
+                //password.new_password2 = "Yyyaeeel123";
+
+                if ((errcode = checkParams()) == ErrCode.OK)
+                {
+                    jsonDocument = await pweb(jentity, url);
+                    if (jsonDocument != null)
+                    {
+                        T rentity = default;
+                        try { rentity = JsonSerializer.Deserialize<T>(jsonDocument.RootElement.ToString()); }
+                        catch (Exception ex) { LogFile.logWrite(ex.ToString()); }
+
+                        if (rentity != null)
+                            errcode = ErrCode.OK;
+                        else
+                            errcode = ErrCode.EPARAM;
+                    }
+                    else
+                        errcode = ErrCode.EPARAM;
+                }
+
+                responseParse(jsonDocument, errors, messages);
+
+                if (errcode == ErrCode.OK)
+                {
+                    presp();
+                    if (messages.Count() > 0)
+                        notify(messages, NotifyButtons.OK, captionOk);
+                    hide();
+                }
+                else
+                {
+                    if (errors.Count() > 0)
+                        notify(errors, NotifyButtons.OK, captionErr);
+
+                    notify(messagesErr, NotifyButtons.OK, captionErr);
+                    enableControls();
+                }
+            }
+        }
+
+        private DialogResult notify(List<string> text, NotifyButtons notifyButtons, string caption)
+        {
+            DialogResult dialogResult = default;
+            if (text.Count > 0)
+            {
+                FormNotify formNotify = new FormNotify(text, notifyButtons, caption);
+                formNotify.ShowDialog();
+                dialogResult = formNotify.DialogResult;
+                formNotify.Dispose();
+            }
+            return dialogResult;
+        }
     }
 
     class Login : Gui, LoginJson
