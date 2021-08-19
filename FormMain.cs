@@ -86,50 +86,67 @@ namespace WinAMBurner
 
         private async void buttonResetPassword_Click(object sender, EventArgs e)
         {
-            if (reset != null)
+            if ((reset != null) && (web != null) && (login != null))
             {
-                ErrCode errcode = ErrCode.ERROR;
-                List<string> errors = new List<string>();
-                List<string> messages = new List<string>();
-
-                reset.disableControls();
-                reset.updateParams();
-
-                if ((errcode = reset.checkParams()) == ErrCode.OK)
-                {
-                    JsonDocument jsonDocument = await web.entityAdd<ResetJson>(reset, "api/p/password_reset/");
-                    if (jsonDocument != null)
+                reset.send<ResetJson, Reset>(reset, "api/p/password_reset/", web.entityAdd,
+                    "Reset Password Success", "Reset Password Failed", true,
+                    new Gui.dResponseOk<Reset>((rreset) =>
                     {
-                        errcode = responseParse(reset, jsonDocument, errors, messages);
-
-                        Reset rreset = null;
-                        try { rreset = JsonSerializer.Deserialize<Reset>(jsonDocument.RootElement.ToString()); }
-                        catch (Exception ex) { LogFile.logWrite(ex.ToString()); }
-
-                        if (rreset != null)
-                            errcode = ErrCode.OK;
-                    }
-                }
-
-                if (errcode == ErrCode.EPARAM)
-                {
-                    screenError(errors, "Reset Password Failed");
-                }
-                else if (errcode == ErrCode.ERROR)
-                {
-                    screenError(new List<string>() { "Reset password failed,",
-                    "please enter a valid values"}, "Reset Password Failed");
-                }
-                else if (errcode == ErrCode.OK)
-                {
-                    screenError(messages, "Success");
-                    reset.hide();
-                    login = new Login(forgot_Click, buttonLogin_Click) { tablet = TabletNo };
-                    if (login != null)
-                        login.drawFields(this);
-                }
+                        login = new Login(forgot_Click, buttonLogin_Click) { tablet = TabletNo };
+                        if (login != null)
+                            login.drawFields(this);
+                        return ErrCode.OK;
+                    }),
+                    messagesErr: new List<string>() { "Reset password failed,", "please enter a valid values" });
             }
         }
+
+        //private async void buttonResetPassword_Click(object sender, EventArgs e)
+        //{
+        //    if (reset != null)
+        //    {
+        //        ErrCode errcode = ErrCode.ERROR;
+        //        List<string> errors = new List<string>();
+        //        List<string> messages = new List<string>();
+        //
+        //        reset.disableControls();
+        //        reset.updateParams();
+        //
+        //        if ((errcode = reset.checkParams()) == ErrCode.OK)
+        //        {
+        //            JsonDocument jsonDocument = await web.entityAdd<ResetJson>(reset, "api/p/password_reset/");
+        //            if (jsonDocument != null)
+        //            {
+        //                errcode = responseParse(reset, jsonDocument, errors, messages);
+        //
+        //                Reset rreset = null;
+        //                try { rreset = JsonSerializer.Deserialize<Reset>(jsonDocument.RootElement.ToString()); }
+        //                catch (Exception ex) { LogFile.logWrite(ex.ToString()); }
+        //
+        //                if (rreset != null)
+        //                    errcode = ErrCode.OK;
+        //            }
+        //        }
+        //
+        //        if (errcode == ErrCode.EPARAM)
+        //        {
+        //            screenError(errors, "Reset Password Failed");
+        //        }
+        //        else if (errcode == ErrCode.ERROR)
+        //        {
+        //            screenError(new List<string>() { "Reset password failed,",
+        //            "please enter a valid values"}, "Reset Password Failed");
+        //        }
+        //        else if (errcode == ErrCode.OK)
+        //        {
+        //            screenError(messages, "Success");
+        //            reset.hide();
+        //            login = new Login(forgot_Click, buttonLogin_Click) { tablet = TabletNo };
+        //            if (login != null)
+        //                login.drawFields(this);
+        //        }
+        //    }
+        //}
 
         private void logout()
         {
@@ -161,83 +178,135 @@ namespace WinAMBurner
 
         private async void buttonLogin_Click(object sender, EventArgs e)
         {
-            if (login != null)
+            if ((login != null) && (web != null))
             {
-                ErrCode errcode = ErrCode.ERROR;
-
-                login.disableControls();
-
-                login.updateParams();
-
-                //login.email = "yael@gmail.com";
-                //login.password = "yael123";
-                login.email = "yaelv@armentavet.com";
-                login.password = "Yyyaeeel123";
-                login.tablet = "kjh1g234123";
-
-                if ((errcode = login.checkParams()) == ErrCode.OK)
-                {
-                    LoginResponseJson loginResponse = await web.login(login);
-                    if ((loginResponse != null) && (loginResponse.token != null))
+                login.Email.control.Text = "yael@gmail.com";
+                login.Password.control.Text = "yael123";
+                //        //login.email = "yaelv@armentavet.com";
+                //        //login.password = "Yyyaeeel123";
+                //        //login.tablet = "kjh1g234123";
+                login.send<LoginJson, Login>(login, "api/p/login/", web.login,
+                    "Login Success", "Login Failed", false,
+                    new Gui.dResponseOk<Login>((rlogin) =>
                     {
-                        // if ok
-                        user = loginResponse.user;
-                        //user.is_password_changed = false;
-                        if (!user.is_password_changed)
+                        if (rlogin.token != null)
                         {
-                            login.hide();
-                            password = new Password(buttonChangePassword_Click);
-                            password.drawFields(this);
-                            return;
-                        }
-                        JsonDocument jsonDocument = await web.getConstants();
-                        if (jsonDocument != null)
-                            Const.parseConstants(jsonDocument);
-                        farms = await web.entityGet<List<Farm>>("api/p/farms/");
-                        if (farms != null)
-                            farms = farms.Where(f => f.is_active).ToList();
-                        services = await web.entityGet<List<Service>>("api/p/service_providers/");
-                        treatmentPackages = await web.entityGet<List<TreatmentPackage>>("api/p/treatment_package/");
-                        if (treatmentPackages != null)
-                            treatmentPackages = treatmentPackages.Where(t => t.is_active).ToList();
-                        settings = await web.entityGet<SettingsJson>("api/p/settings/");
+                            // if ok
+                            user = rlogin.user;
+                            //user.is_password_changed = false;
+                            if (!user.is_password_changed)
+                            {
+                                password = new Password(buttonChangePassword_Click);
+                                password.drawFields(this);
+                                return ErrCode.OK;
+                            }
+                            JsonDocument jsonDocument = web.getConstants().GetAwaiter().GetResult();
+                            if (jsonDocument != null)
+                                Const.parseConstants(jsonDocument);
+                            farms = web.entityGet<List<Farm>>("api/p/farms/").GetAwaiter().GetResult();
+                            if (farms != null)
+                                farms = farms.Where(f => f.is_active).ToList();
+                            services = web.entityGet<List<Service>>("api/p/service_providers/").GetAwaiter().GetResult();
+                            treatmentPackages = web.entityGet<List<TreatmentPackage>>("api/p/treatment_package/").GetAwaiter().GetResult();
+                            if (treatmentPackages != null)
+                                treatmentPackages = treatmentPackages.Where(t => t.is_active).ToList();
+                            settings = web.entityGet<SettingsJson>("api/p/settings/").GetAwaiter().GetResult();
 
-                        if ((user != null) && (farms != null) && (services != null) && (treatmentPackages != null) && (settings != null) &&
-                            (Const.DCOUNTRY != null) && (Const.COUNTRY != null) && (Const.DSTATE != null) && (Const.STATE != null) &&
-                            (Const.FARM_TYPE != null) && (Const.BREED_TYPE != null) && (Const.MILKING_SETUP_TYPE != null) &&
-                            (Const.LOCATION_OF_TREATMENT_TYPE != null) && (Const.CONTRACT_TYPE != null))
-                        {
-                            login.hide();
-                            screenActionShow();
-                            //else
-                            //{
-                            //    password = new Password(buttonChangePassword_Click);
-                            //    password.drawFields(this);
-                            //}
-                            errcode = ErrCode.OK;
+                            if ((user != null) && (farms != null) && (services != null) && (treatmentPackages != null) && (settings != null) &&
+                                (Const.DCOUNTRY != null) && (Const.COUNTRY != null) && (Const.DSTATE != null) && (Const.STATE != null) &&
+                                (Const.FARM_TYPE != null) && (Const.BREED_TYPE != null) && (Const.MILKING_SETUP_TYPE != null) &&
+                                (Const.LOCATION_OF_TREATMENT_TYPE != null) && (Const.CONTRACT_TYPE != null))
+                            {
+                                screenActionShow();
+                            }
+                            return ErrCode.OK;
                         }
-                        else
-                            errcode = ErrCode.EPARAM;
-                    }
-                    else
-                        errcode = ErrCode.EPARAM;
-                }
-                else
-                    errcode = ErrCode.EPARAM;
-
-                if (errcode != ErrCode.OK)
-                {
-                    screenError(new List<string>() { "Login failed Check your username and password,",
-                    "make sure your tablet is connected to the internet"}, "Login Failed");
-                }
+                        return ErrCode.ERROR;
+                    }),
+                    messagesErr: new List<string>() { "Login failed, check your username and password,",
+                        "make sure your tablet is connected to the internet" });
             }
         }
 
-        private void screenError(List<string> text, string caption)
-        {
-            notify(text, NotifyButtons.OK, caption);
-            allControlsEnable();
-        }
+        //private async void buttonLogin_Click(object sender, EventArgs e)
+        //{
+        //    if (login != null)
+        //    {
+        //        ErrCode errcode = ErrCode.ERROR;
+        //
+        //        login.disableControls();
+        //
+        //        login.updateParams();
+        //
+        //        login.email = "yael@gmail.com";
+        //        login.password = "yael123";
+        //        //login.email = "yaelv@armentavet.com";
+        //        //login.password = "Yyyaeeel123";
+        //        //login.tablet = "kjh1g234123";
+        //
+        //        if ((errcode = login.checkParams()) == ErrCode.OK)
+        //        {
+        //            LoginResponseJson loginResponse = await web.login(login);
+        //            if ((loginResponse != null) && (loginResponse.token != null))
+        //            {
+        //                // if ok
+        //                user = loginResponse.user;
+        //                //user.is_password_changed = false;
+        //                if (!user.is_password_changed)
+        //                {
+        //                    login.hide();
+        //                    password = new Password(buttonChangePassword_Click);
+        //                    password.drawFields(this);
+        //                    return;
+        //                }
+        //                JsonDocument jsonDocument = await web.getConstants();
+        //                if (jsonDocument != null)
+        //                    Const.parseConstants(jsonDocument);
+        //                farms = await web.entityGet<List<Farm>>("api/p/farms/");
+        //                if (farms != null)
+        //                    farms = farms.Where(f => f.is_active).ToList();
+        //                services = await web.entityGet<List<Service>>("api/p/service_providers/");
+        //                treatmentPackages = await web.entityGet<List<TreatmentPackage>>("api/p/treatment_package/");
+        //                if (treatmentPackages != null)
+        //                    treatmentPackages = treatmentPackages.Where(t => t.is_active).ToList();
+        //                settings = await web.entityGet<SettingsJson>("api/p/settings/");
+        //
+        //                if ((user != null) && (farms != null) && (services != null) && (treatmentPackages != null) && (settings != null) &&
+        //                    (Const.DCOUNTRY != null) && (Const.COUNTRY != null) && (Const.DSTATE != null) && (Const.STATE != null) &&
+        //                    (Const.FARM_TYPE != null) && (Const.BREED_TYPE != null) && (Const.MILKING_SETUP_TYPE != null) &&
+        //                    (Const.LOCATION_OF_TREATMENT_TYPE != null) && (Const.CONTRACT_TYPE != null))
+        //                {
+        //                    login.hide();
+        //                    screenActionShow();
+        //                    //else
+        //                    //{
+        //                    //    password = new Password(buttonChangePassword_Click);
+        //                    //    password.drawFields(this);
+        //                    //}
+        //                    errcode = ErrCode.OK;
+        //                }
+        //                else
+        //                    errcode = ErrCode.EPARAM;
+        //            }
+        //            else
+        //                errcode = ErrCode.EPARAM;
+        //        }
+        //        else
+        //            errcode = ErrCode.EPARAM;
+        //
+        //        if (errcode != ErrCode.OK)
+        //        {
+        //            screenError(new List<string>() { "Login failed Check your username and password,",
+        //            "make sure your tablet is connected to the internet"}, "Login Failed");
+        //        }
+        //    }
+        //}
+
+        //private void screenError(List<string> text, string caption)
+        //{
+        //    notify(text, NotifyButtons.OK, caption);
+        //    allControlsEnable();
+        //}
 
         private DialogResult notify(List<string> text, NotifyButtons notifyButtons, string caption)
         {
@@ -257,74 +326,76 @@ namespace WinAMBurner
             if ((password != null) && (web != null) && (login != null))
             {
                 password.send<PasswordJson, Password>(password, "api/p/password/change/", web.entityAdd,
-                    "Change Password Success", "Change Password Failed",
-                    new List<string>() { "Change password failed,", "please enter a valid values" },
-                    new Gui.dResponse(() =>
+                    "Change Password Success", "Change Password Failed", true,
+                    new Gui.dResponseOk<Password>((rpassword) =>
                     {
                         if (login != null)
                         {
                             login.password = null;
                             login.drawFields(this);
                         }
-                    } ));
+                        return ErrCode.OK;
+                    } ),
+                    messagesErr: new List<string>() { "Change password failed,", "please enter a valid values" });
             }
         }
 
-        private async void xxxbuttonChangePassword_Click(object sender, EventArgs e)
-        {
-            if (password != null)
-            {
-                ErrCode errcode = ErrCode.ERROR;
-                JsonDocument jsonDocument = null;
-                List<string> errors = new List<string>();
-                List<string> messages = new List<string>();
-
-                password.disableControls();
-                password.updateParams();
-
-                //password.new_password1 = "Yyyaeeel123";
-                //password.new_password2 = "Yyyaeeel123";
-
-                if ((errcode = password.checkParams()) == ErrCode.OK)
-                {
-                    jsonDocument = await web.entityAdd<PasswordJson>(password, "api/p/password/change/");
-                    if (jsonDocument != null)
-                    {
-                        Password rpassword = null;
-                        try { rpassword = JsonSerializer.Deserialize<Password>(jsonDocument.RootElement.ToString()); }
-                        catch (Exception ex) { LogFile.logWrite(ex.ToString()); }
-
-                        if (rpassword != null)
-                            errcode = ErrCode.OK;
-                        else
-                            errcode = ErrCode.EPARAM;
-                    }
-                    else
-                        errcode = ErrCode.EPARAM;
-                }
-
-                responseParse(password, jsonDocument, errors, messages);
-
-                if (errcode == ErrCode.OK)
-                {
-                    if (messages.Count() > 0)
-                        screenError(messages, "Success");
-                    password.hide();
-                    if (login != null)
-                    {
-                        login.password = null;
-                        login.drawFields(this);
-                    }
-                }
-                else
-                {
-                    if (errors.Count() > 0)
-                        screenError(errors, "Change Password Failed");
-                    screenError(new List<string>() { "Change password failed,",
-                    "please enter a valid values"}, "Change Password Failed");
-                }
-            }
-        }
+        //private async void buttonChangePassword_Click(object sender, EventArgs e)
+        //{
+        //    if (password != null)
+        //    {
+        //        ErrCode errcode = ErrCode.ERROR;
+        //        JsonDocument jsonDocument = null;
+        //        List<string> errors = new List<string>();
+        //        List<string> messages = new List<string>();
+        //
+        //        password.disableControls();
+        //        password.updateParams();
+        //
+        //        //login.email = "yaelv@armentavet.com";
+        //        //password.new_password1 = "Yyyaeeel123";
+        //        //password.new_password2 = "Yyyaeeel123";
+        //
+        //        if ((errcode = password.checkParams()) == ErrCode.OK)
+        //        {
+        //            jsonDocument = await web.entityAdd<PasswordJson>(password, "api/p/password/change/");
+        //            if (jsonDocument != null)
+        //            {
+        //                Password rpassword = null;
+        //                try { rpassword = JsonSerializer.Deserialize<Password>(jsonDocument.RootElement.ToString()); }
+        //                catch (Exception ex) { LogFile.logWrite(ex.ToString()); }
+        //
+        //                if (rpassword != null)
+        //                    errcode = ErrCode.OK;
+        //                else
+        //                    errcode = ErrCode.EPARAM;
+        //            }
+        //            else
+        //                errcode = ErrCode.EPARAM;
+        //        }
+        //
+        //        responseParse(password, jsonDocument, errors, messages);
+        //
+        //        if (errcode == ErrCode.OK)
+        //        {
+        //            if (messages.Count() > 0)
+        //                screenError(messages, "Success");
+        //            password.hide();
+        //            if (login != null)
+        //            {
+        //                login.password = null;
+        //                login.drawFields(this);
+        //            }
+        //        }
+        //        else
+        //        {
+        //            if (errors.Count() > 0)
+        //                screenError(errors, "Change Password Failed");
+        //            screenError(new List<string>() { "Change password failed,",
+        //            "please enter a valid values"}, "Change Password Failed");
+        //        }
+        //    }
+        //}
 
         private void screenActionShow()
         {
@@ -634,14 +705,16 @@ namespace WinAMBurner
             //    NotifyButtons.YesNo, caption: "Abort");
             //formNotify.ShowDialog();
             //if (formNotify.DialogResult == DialogResult.Yes)
-            
-            DialogResult dialogResult = notify(new List<string>() { "Are you sure you want to cancel the operation?"}, NotifyButtons.YesNo, caption: "Abort");
-            if (dialogResult == DialogResult.Yes)
+
+            if (action != null)
             {
-                if(action != null)
+                DialogResult dialogResult = action.notify(new List<string>() { "Are you sure you want to cancel the operation?" }, NotifyButtons.YesNo, caption: "Abort");
+                if (dialogResult == DialogResult.Yes)
+                {
                     action.hide();
-                clearAM();
-                screenActionShow();
+                    clearAM();
+                    screenActionShow();
+                }
             }
             //formNotify.Dispose();
         }
@@ -651,9 +724,9 @@ namespace WinAMBurner
             if ((action != null) && (am != null) && (settings != null))
             {
                 ErrCode errcode = ErrCode.ERROR;
-                JsonDocument jsonDocument = null;
-                List<string> errors = new List<string>();
-                List<string> messages = new List<string>();
+                //JsonDocument jsonDocument = null;
+                //List<string> errors = new List<string>();
+                //List<string> messages = new List<string>();
                 uint maxi = am.Maxi;
 
                 action.disableControls();
@@ -681,7 +754,7 @@ namespace WinAMBurner
                             //        "Press the button to proceed"}, NotifyButtons.YesNo, caption: "Approve");
                             //formNotify.ShowDialog();
 
-                            DialogResult dialogResult = notify(new List<string>() {
+                            DialogResult dialogResult = action.notify(new List<string>() {
                                     string.Format("{0} treatments will be added",am.MaxiSet / settings.number_of_pulses_per_treatment),
                                     string.Format("to the AM - SN {0}", am.SNum),
                                     (farm != null) ? string.Format("Farm {0}", farm.Name.val as string) :
@@ -701,42 +774,73 @@ namespace WinAMBurner
                                 {
                                     if ((errcode = await am.AMDataRead()) == ErrCode.OK)
                                     {
-                                        jsonDocument = await web.entityAdd<ActionJson>(action, "api/p/actions/");
-                                        if (jsonDocument != null)
-                                        {
-                                            Action raction = null;
-                                            try { raction = JsonSerializer.Deserialize<Action>(jsonDocument.RootElement.ToString()); }
-                                            catch (Exception ex) { LogFile.logWrite(ex.ToString()); }
-                                            if (raction != null)
+                                        await action.send<ActionJson, Action>(action, "api/p/actions/", web.entityAdd,
+                                            "Approve Success", "Approve Failed", false,
+                                            new Gui.dResponseOk<Action>((raction) =>
                                             {
-                                                //notify(new List<string>() {
-                                                //    string.Format("The original amount of treatments: {0}", maxi / settings.number_of_pulses_per_treatment),
-                                                //    string.Format("Added treatments: {0}",am.MaxiSet / settings.number_of_pulses_per_treatment),
-                                                //    string.Format("The treatments available on AM - SN {1}: {0}", am.Maxi / settings.number_of_pulses_per_treatment, am.SNum),
-                                                //    "please disconnect the AM"},
-                                                //    NotifyButtons.OK, "Approve Success");
-                                                //action.hide();
-                                                //clearAM();
-                                                //screenActionShow();
-                                                errcode = ErrCode.OK;
-                                            }
-                                            else
+                                                clearAM();
+                                                screenActionShow();
+                                                return ErrCode.OK;
+                                            }),
+                                            new Gui.dResponseErr(() =>
                                             {
-                                                //
-                                                // erase am needed
-                                                //
-                                                //responseParse(action, jsonDocument, errors, messages);
-                                                //notify(errors, NotifyButtons.OK, "Approve Fail");
-                                                errcode = ErrCode.ERASE;
-                                            }
-                                        }
-                                        else
-                                        {
-                                            //
-                                            // erase am needed
-                                            //
-                                            errcode = ErrCode.ERASE;
-                                        }
+                                                am.MaxiSet = 0;
+                                                if (progressBar != null)
+                                                    progressBar.Value = progressBar.Minimum;
+
+                                                if (am.AMDataWrite().GetAwaiter().GetResult() == ErrCode.OK)
+                                                {
+                                                    if (am.AMDataRead().GetAwaiter().GetResult() == ErrCode.OK)
+                                                        return new List<string>() { "Approve failed,", "AM sucsessfully restored to original values" };
+                                                    else
+                                                        return new List<string>() { "Approve failed,", "Faild to restore to original values" };
+                                                }
+                                                else
+                                                    return new List<string>() { "Approve failed,", "Faild to restore to original values" };
+                                            }),
+                                            messagesOk: new List<string>() {
+                                                        string.Format("The original amount of treatments: {0}", maxi / settings.number_of_pulses_per_treatment),
+                                                        string.Format("Added treatments: {0}",am.MaxiSet / settings.number_of_pulses_per_treatment),
+                                                        string.Format("The treatments available on AM - SN {1}: {0}", am.Maxi / settings.number_of_pulses_per_treatment, am.SNum),
+                                                        "please disconnect the AM"},
+                                            messagesErr: new List<string>() { "Restoring AM" });
+
+                                        //jsonDocument = await web.entityAdd<ActionJson>(action, "api/p/actions/");
+                                        //if (jsonDocument != null)
+                                        //{
+                                        //    Action raction = null;
+                                        //    try { raction = JsonSerializer.Deserialize<Action>(jsonDocument.RootElement.ToString()); }
+                                        //    catch (Exception ex) { LogFile.logWrite(ex.ToString()); }
+                                        //    if (raction != null)
+                                        //    {
+                                        //        //notify(new List<string>() {
+                                        //        //    string.Format("The original amount of treatments: {0}", maxi / settings.number_of_pulses_per_treatment),
+                                        //        //    string.Format("Added treatments: {0}",am.MaxiSet / settings.number_of_pulses_per_treatment),
+                                        //        //    string.Format("The treatments available on AM - SN {1}: {0}", am.Maxi / settings.number_of_pulses_per_treatment, am.SNum),
+                                        //        //    "please disconnect the AM"},
+                                        //        //    NotifyButtons.OK, "Approve Success");
+                                        //        //action.hide();
+                                        //        //clearAM();
+                                        //        //screenActionShow();
+                                        //        errcode = ErrCode.OK;
+                                        //    }
+                                        //    else
+                                        //    {
+                                        //
+                                        // erase am needed
+                                        //
+                                        //responseParse(action, jsonDocument, errors, messages);
+                                        //notify(errors, NotifyButtons.OK, "Approve Fail");
+                                        //    errcode = ErrCode.ERASE;
+                                        //}
+                                        //}
+                                        //else
+                                        //{
+                                        //    //
+                                        //    // erase am needed
+                                        //    //
+                                        //    errcode = ErrCode.ERASE;
+                                        //}
                                     }
                                 }
                             }
@@ -752,70 +856,69 @@ namespace WinAMBurner
                 else
                     errcode = ErrCode.EPARAM;
 
+                if (progressBar != null)
+                    progressBar.Visible = false;
+
                 if (errcode == ErrCode.EPARAM)
-                    screenTreatError(new List<string>() {
-                    "Wrong parameters,",
-                    "please choose the Farm / Service provider",
-                    "and the number of treatments" }, "Approve Fail");
+                    action.notify(new List<string>() { "Wrong parameters,", "please choose the Farm / Service provider",
+                    "and the number of treatments" }, NotifyButtons.OK, "Approve Fail");
                 else if (errcode == ErrCode.MAX)
-                    screenTreatError(new List<string>() {
-                    "Wrong part number,",
-                    "the maximum number of treatments reached,",
-                    "please choose a smaller number of treatments" }, "Approve Fail");
-                else if (errcode == ErrCode.ERASE)
-                {
-                    if (jsonDocument != null)
-                    {
-                        responseParse(action, jsonDocument, errors, messages);
-                        notify(errors, NotifyButtons.OK, "Approve Fail");
-                    }
-                    notify(new List<string>() { "Restoring AM" }, NotifyButtons.OK, "Approve Fail");
-
-                    am.MaxiSet = 0;
-                    if (progressBar != null)
-                        progressBar.Value = progressBar.Minimum;
-
-                    if (await am.AMDataWrite() == ErrCode.OK)
-                    {
-                        if (await am.AMDataRead() == ErrCode.OK)
-                            screenTreatError(new List<string>() { "Approve failed,", "AM sucsessfully restored to original values" }, "Approve Fail");
-                        else
-                            screenTreatError(new List<string>() { "Approve failed,", "Faild to restore to original values" }, "Approve Fail");
-                    }
-                    else
-                        screenTreatError(new List<string>() { "Approve failed,", "Faild to restore to original values" }, "Approve Fail");
-                }
+                    action.notify(new List<string>() { "Wrong part number,", "the maximum number of treatments reached,",
+                    "please choose a smaller number of treatments" }, NotifyButtons.OK, "Approve Fail");
+                //else if (errcode == ErrCode.ERASE)
+                //{
+                //    if (jsonDocument != null)
+                //    {
+                //        responseParse(action, jsonDocument, errors, messages);
+                //        notify(errors, NotifyButtons.OK, "Approve Fail");
+                //    }
+                //    notify(new List<string>() { "Restoring AM" }, NotifyButtons.OK, "Approve Fail");
+                //
+                //    am.MaxiSet = 0;
+                //    if (progressBar != null)
+                //        progressBar.Value = progressBar.Minimum;
+                //
+                //    if (await am.AMDataWrite() == ErrCode.OK)
+                //    {
+                //        if (await am.AMDataRead() == ErrCode.OK)
+                //            screenTreatError(new List<string>() { "Approve failed,", "AM sucsessfully restored to original values" }, "Approve Fail");
+                //        else
+                //            screenTreatError(new List<string>() { "Approve failed,", "Faild to restore to original values" }, "Approve Fail");
+                //    }
+                //    else
+                //        screenTreatError(new List<string>() { "Approve failed,", "Faild to restore to original values" }, "Approve Fail");
+                //}
                 //else if (errcode == ErrCode.EFAIL)
                 //    screenTreatError(new List<string>() { "Failed to restore AM" }, "Approve Fail");
                 else if (errcode == ErrCode.ERROR)
-                    screenTreatError(new List<string>() { "The operation failed, the treatments were not added" }, "Approve Fail");
+                    action.notify(new List<string>() { "The operation failed, the treatments were not added" }, NotifyButtons.OK, "Approve Fail");
                 else if (errcode == ErrCode.CANSEL)
                     action.enableControls();
-                else if (errcode == ErrCode.OK)
-                {
-                    notify(new List<string>() {
-                        string.Format("The original amount of treatments: {0}", maxi / settings.number_of_pulses_per_treatment),
-                        string.Format("Added treatments: {0}",am.MaxiSet / settings.number_of_pulses_per_treatment),
-                        string.Format("The treatments available on AM - SN {1}: {0}", am.Maxi / settings.number_of_pulses_per_treatment, am.SNum),
-                        "please disconnect the AM"},
-                        NotifyButtons.OK, "Approve Success");
-                    action.hide();
-                    clearAM();
-                    screenActionShow();
-                }
+                //else if (errcode == ErrCode.OK)
+                //{
+                //    notify(new List<string>() {
+                //        string.Format("The original amount of treatments: {0}", maxi / settings.number_of_pulses_per_treatment),
+                //        string.Format("Added treatments: {0}",am.MaxiSet / settings.number_of_pulses_per_treatment),
+                //        string.Format("The treatments available on AM - SN {1}: {0}", am.Maxi / settings.number_of_pulses_per_treatment, am.SNum),
+                //        "please disconnect the AM"},
+                //        NotifyButtons.OK, "Approve Success");
+                //    action.hide();
+                //    clearAM();
+                //    screenActionShow();
+                //}
             }
         }
 
-        private void screenTreatError(List<string> text, string caption)
-        {
-            if ((action != null) && (action.Progress != null))
-            {
-                ProgressBar progressBar = action.Progress.lcontrol as ProgressBar;
-                if (progressBar != null)
-                    progressBar.Visible = false;
-                screenError(text, caption);
-            }
-        }
+        //private void screenTreatError(List<string> text, string caption)
+        //{
+        //    if ((action != null) && (action.Progress != null))
+        //    {
+        //        ProgressBar progressBar = action.Progress.lcontrol as ProgressBar;
+        //        if (progressBar != null)
+        //            progressBar.Visible = false;
+        //        screenError(text, caption);
+        //    }
+        //}
 
         //
         // Farm Service
@@ -1001,98 +1104,133 @@ namespace WinAMBurner
 
         private async void buttonFarmAddSubmit_Click(object sender, EventArgs e)
         {
-            if (farm != null)
+            if ((farm != null) && (web != null))
             {
-                ErrCode errcode = ErrCode.ERROR;
-                JsonDocument jsonDocument = null;
-                List<string> errors = new List<string>();
-                List<string> messages = new List<string>();
-
-                farm.disableControls();
-
-                farm.updateParams();
-
-                if ((errcode = farm.checkParams()) == ErrCode.OK)
-                {
-                    jsonDocument = await web.entityAdd<FarmJson>(farm, "api/p/farms/");
-                    if (jsonDocument != null)
+                farm.send<FarmJson, Farm>(farm, "api/p/farms/", web.entityAdd,
+                    "Submit Success", "Submit Failed", false,
+                    new Gui.dResponseOk<Farm>((rfarm) =>
                     {
-                        Farm rfarm = null;
-                        try { rfarm = JsonSerializer.Deserialize<Farm>(jsonDocument.RootElement.ToString()); }
-                        catch (Exception ex) { LogFile.logWrite(ex.ToString()); }
-                        if (rfarm != null)
-                        {
-                            farms.Add(rfarm);
-                            errcode = ErrCode.OK;
-                        }
-                    }
-                }
-
-                if (jsonDocument != null)
-                    responseParse(farm, jsonDocument, errors, messages);
-                responseShow(errcode, errors);
-                if (errcode == ErrCode.OK)
-                {
-                    farm.hide();
-                    screenFarmShow();
-                }
-                else
-                    farm.enableControls();
-            }
-        }
-
-        private void responseShow(ErrCode errcode, List<string> errors)
-        {
-            if (errcode == ErrCode.EPARAM)
-            {
-                if (errors.Count > 0)
-                    notify(errors, NotifyButtons.OK, "Submit Failed");
-                else
-                    notify(new List<string>() { "Submit failed, can't add empty or negative fields,",
-                    "make sure all the fields are filled with valid values"}, NotifyButtons.OK, "Submit Failed");
+                        farms.Add(rfarm);
+                        screenFarmShow();
+                        return ErrCode.OK;
+                    }),
+                    messagesErr: new List<string>() { "Submit failed, can't add empty or negative fields,",
+                        "make sure all the fields are filled with valid values" });
             }
         }
 
         private async void buttonServiceAddSubmit_Click(object sender, EventArgs e)
         {
-            if (service != null)
+            if ((service != null) && (web != null))
             {
-                ErrCode errcode = ErrCode.ERROR;
-                JsonDocument jsonDocument = null;
-                List<string> errors = new List<string>();
-                List<string> messages = new List<string>();
-
-                service.disableControls();
-
-                service.updateParams();
-                if ((errcode = service.checkParams()) == ErrCode.OK)
-                {
-                    jsonDocument = await web.entityAdd<ServiceJson>(service, "api/p/service_providers/");
-                    if (jsonDocument != null)
+                service.send<ServiceJson, Service>(service, "api/p/service_providers/", web.entityAdd,
+                    "Submit Success", "Submit Failed",
+                    false,
+                    new Gui.dResponseOk<Service>((rservice) =>
                     {
-                        Service rservice = null;
-                        try { rservice = JsonSerializer.Deserialize<Service>(jsonDocument.RootElement.ToString()); }
-                        catch (Exception ex) { LogFile.logWrite(ex.ToString()); }
-                        if (rservice != null)
-                        {
-                            services.Add(rservice);
-                            errcode = ErrCode.OK;
-                        }
-                    }
-                }
-
-                if (jsonDocument != null)
-                    responseParse(service, jsonDocument, errors, messages);
-                responseShow(errcode, errors);
-                if (errcode == ErrCode.OK)
-                {
-                    service.hide();
-                    screenServiceShow();
-                }
-                else
-                    service.enableControls();
+                        services.Add(rservice);
+                        screenServiceShow();
+                        return ErrCode.OK;
+                    }),
+                    messagesErr: new List<string>() { "Submit failed, can't add empty or negative fields,",
+                        "make sure all the fields are filled with valid values" });
             }
         }
+
+        //private async void buttonFarmAddSubmit_Click(object sender, EventArgs e)
+        //{
+        //    if (farm != null)
+        //    {
+        //        ErrCode errcode = ErrCode.ERROR;
+        //        JsonDocument jsonDocument = null;
+        //        List<string> errors = new List<string>();
+        //        List<string> messages = new List<string>();
+        //
+        //        farm.disableControls();
+        //
+        //        farm.updateParams();
+        //
+        //        if ((errcode = farm.checkParams()) == ErrCode.OK)
+        //        {
+        //            jsonDocument = await web.entityAdd<FarmJson>(farm, "api/p/farms/");
+        //            if (jsonDocument != null)
+        //            {
+        //                Farm rfarm = null;
+        //                try { rfarm = JsonSerializer.Deserialize<Farm>(jsonDocument.RootElement.ToString()); }
+        //                catch (Exception ex) { LogFile.logWrite(ex.ToString()); }
+        //                if (rfarm != null)
+        //                {
+        //                    farms.Add(rfarm);
+        //                    errcode = ErrCode.OK;
+        //                }
+        //            }
+        //        }
+        //
+        //        if (jsonDocument != null)
+        //            responseParse(farm, jsonDocument, errors, messages);
+        //        responseShow(errcode, errors);
+        //        if (errcode == ErrCode.OK)
+        //        {
+        //            farm.hide();
+        //            screenFarmShow();
+        //        }
+        //        else
+        //            farm.enableControls();
+        //    }
+        //}
+
+        //private void responseShow(ErrCode errcode, List<string> errors)
+        //{
+        //    if (errcode == ErrCode.EPARAM)
+        //    {
+        //        if (errors.Count > 0)
+        //            notify(errors, NotifyButtons.OK, "Submit Failed");
+        //        else
+        //            notify(new List<string>() { "Submit failed, can't add empty or negative fields,",
+        //            "make sure all the fields are filled with valid values"}, NotifyButtons.OK, "Submit Failed");
+        //    }
+        //}
+
+        //private async void buttonServiceAddSubmit_Click(object sender, EventArgs e)
+        //{
+        //    if (service != null)
+        //    {
+        //        ErrCode errcode = ErrCode.ERROR;
+        //        JsonDocument jsonDocument = null;
+        //        List<string> errors = new List<string>();
+        //        List<string> messages = new List<string>();
+        //
+        //        service.disableControls();
+        //
+        //        service.updateParams();
+        //        if ((errcode = service.checkParams()) == ErrCode.OK)
+        //        {
+        //            jsonDocument = await web.entityAdd<ServiceJson>(service, "api/p/service_providers/");
+        //            if (jsonDocument != null)
+        //            {
+        //                Service rservice = null;
+        //                try { rservice = JsonSerializer.Deserialize<Service>(jsonDocument.RootElement.ToString()); }
+        //                catch (Exception ex) { LogFile.logWrite(ex.ToString()); }
+        //                if (rservice != null)
+        //                {
+        //                    services.Add(rservice);
+        //                    errcode = ErrCode.OK;
+        //                }
+        //            }
+        //        }
+        //
+        //        if (jsonDocument != null)
+        //            responseParse(service, jsonDocument, errors, messages);
+        //        responseShow(errcode, errors);
+        //        if (errcode == ErrCode.OK)
+        //        {
+        //            service.hide();
+        //            screenServiceShow();
+        //        }
+        //        else
+        //            service.enableControls();
+        //    }
+        //}
 
         private ErrCode responseParse<T>(T entity, JsonDocument jsonDocument, List<string> errors, List<string> messages)
         {
@@ -1107,89 +1245,125 @@ namespace WinAMBurner
 
         private async void buttonFarmEditSubmit_Click(object sender, EventArgs e)
         {
-            if (farm != null)
+            if ((farm != null) && (web != null))
             {
-                ErrCode errcode = ErrCode.ERROR;
-                JsonDocument jsonDocument = null;
-                List<string> errors = new List<string>();
-                List<string> messages = new List<string>();
-
-                farm.disableControls();
-
-                Farm ufarm = farm.clone() as Farm;
-                ufarm.updateParams();
-                if ((errcode = ufarm.checkParams()) == ErrCode.OK)
-                {
-                    jsonDocument = await web.entityEdit<FarmJson>(ufarm, "api/p/farms/" + farm.Id + "/");
-                    if (jsonDocument != null)
+                farm.send<FarmJson, Farm>(farm, "api/p/farms/" + farm.Id + "/", web.entityEdit,
+                    "Submit Success", "Submit Failed", false,
+                    new Gui.dResponseOk<Farm>((rfarm) =>
                     {
-                        Farm rfarm = null;
-                        try { rfarm = JsonSerializer.Deserialize<Farm>(jsonDocument.RootElement.ToString()); }
-                        catch (Exception ex) { LogFile.logWrite(ex.ToString()); }
-                        if (rfarm != null)
-                        {
-                            farms.Insert(farms.IndexOf(farm), rfarm);
-                            farms.Remove(farm);
-                            errcode = ErrCode.OK;
-                        }
-                    }
-                }
-
-                if (jsonDocument != null)
-                    responseParse(farm, jsonDocument, errors, messages);
-                responseShow(errcode, errors);
-                if (errcode == ErrCode.OK)
-                {
-                    farm.hide();
-                    screenFarmShow();
-                }
-                else
-                    farm.enableControls();
+                        farms.Insert(farms.IndexOf(farm), rfarm);
+                        farms.Remove(farm);
+                        screenFarmShow();
+                        return ErrCode.OK;
+                    }),
+                    messagesErr: new List<string>() { "Submit failed, can't add empty or negative fields,",
+                        "make sure all the fields are filled with valid values" });
             }
         }
-
+        
         private async void buttonServiceEditSubmit_Click(object sender, EventArgs e)
         {
-            if (service != null)
+            if ((service != null) && (web != null))
             {
-                ErrCode errcode = ErrCode.ERROR;
-                JsonDocument jsonDocument = null;
-                List<string> errors = new List<string>();
-                List<string> messages = new List<string>();
-
-                service.disableControls();
-
-                Service uservice = service.clone() as Service;
-                uservice.updateParams();
-                if ((errcode = uservice.checkParams()) == ErrCode.OK)
-                {
-                    jsonDocument = await web.entityEdit<ServiceJson>(uservice, "api/p/service_providers/" + service.Id + "/");
-                    if (jsonDocument != null)
+                service.send<ServiceJson, Service>(service, "api/p/service_providers/" + service.Id + "/", web.entityEdit,
+                    "Submit Success", "Submit Failed", false,
+                    new Gui.dResponseOk<Service>((rservice) =>
                     {
-                        Service rservice = null;
-                        try { rservice = JsonSerializer.Deserialize<Service>(jsonDocument.RootElement.ToString()); }
-                        catch (Exception ex) { LogFile.logWrite(ex.ToString()); }
-                        if (rservice != null)
-                        {
-                            services.Insert(services.IndexOf(service), rservice);
-                            services.Remove(service);
-                            errcode = ErrCode.OK;
-                        }
-                    }
-                }
-
-                if (jsonDocument != null)
-                    responseParse(service, jsonDocument, errors, messages);
-                responseShow(errcode, errors);
-                if (errcode == ErrCode.OK)
-                {
-                    service.hide();
-                    screenServiceShow();
-                }
-                else
-                    service.enableControls();
+                        services.Insert(services.IndexOf(service), rservice);
+                        services.Remove(service);
+                        screenServiceShow();
+                        return ErrCode.OK;
+                    }),
+                    messagesErr: new List<string>() { "Submit failed, can't add empty or negative fields,",
+                        "make sure all the fields are filled with valid values" });
             }
         }
+
+        //private async void buttonFarmEditSubmit_Click(object sender, EventArgs e)
+        //{
+        //    if (farm != null)
+        //    {
+        //        ErrCode errcode = ErrCode.ERROR;
+        //        JsonDocument jsonDocument = null;
+        //        List<string> errors = new List<string>();
+        //        List<string> messages = new List<string>();
+        //
+        //        farm.disableControls();
+        //
+        //        Farm ufarm = farm.clone() as Farm;
+        //        ufarm.updateParams();
+        //        if ((errcode = ufarm.checkParams()) == ErrCode.OK)
+        //        {
+        //            jsonDocument = await web.entityEdit<FarmJson>(ufarm, "api/p/farms/" + farm.Id + "/");
+        //            if (jsonDocument != null)
+        //            {
+        //                Farm rfarm = null;
+        //                try { rfarm = JsonSerializer.Deserialize<Farm>(jsonDocument.RootElement.ToString()); }
+        //                catch (Exception ex) { LogFile.logWrite(ex.ToString()); }
+        //                if (rfarm != null)
+        //                {
+        //                    farms.Insert(farms.IndexOf(farm), rfarm);
+        //                    farms.Remove(farm);
+        //                    errcode = ErrCode.OK;
+        //                }
+        //            }
+        //        }
+        //
+        //        if (jsonDocument != null)
+        //            responseParse(farm, jsonDocument, errors, messages);
+        //        responseShow(errcode, errors);
+        //        if (errcode == ErrCode.OK)
+        //        {
+        //            farm.hide();
+        //            screenFarmShow();
+        //        }
+        //        else
+        //            farm.enableControls();
+        //    }
+        //}
+
+        //private async void buttonServiceEditSubmit_Click(object sender, EventArgs e)
+        //{
+        //    if (service != null)
+        //    {
+        //        ErrCode errcode = ErrCode.ERROR;
+        //        JsonDocument jsonDocument = null;
+        //        List<string> errors = new List<string>();
+        //        List<string> messages = new List<string>();
+        //
+        //        service.disableControls();
+        //
+        //        Service uservice = service.clone() as Service;
+        //        uservice.updateParams();
+        //        if ((errcode = uservice.checkParams()) == ErrCode.OK)
+        //        {
+        //            jsonDocument = await web.entityEdit<ServiceJson>(uservice, "api/p/service_providers/" + service.Id + "/");
+        //            if (jsonDocument != null)
+        //            {
+        //                Service rservice = null;
+        //                try { rservice = JsonSerializer.Deserialize<Service>(jsonDocument.RootElement.ToString()); }
+        //                catch (Exception ex) { LogFile.logWrite(ex.ToString()); }
+        //                if (rservice != null)
+        //                {
+        //                    services.Insert(services.IndexOf(service), rservice);
+        //                    services.Remove(service);
+        //                    errcode = ErrCode.OK;
+        //                }
+        //            }
+        //        }
+        //
+        //        if (jsonDocument != null)
+        //            responseParse(service, jsonDocument, errors, messages);
+        //        responseShow(errcode, errors);
+        //        if (errcode == ErrCode.OK)
+        //        {
+        //            service.hide();
+        //            screenServiceShow();
+        //        }
+        //        else
+        //            service.enableControls();
+        //    }
+        //}
 
         private void linkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {

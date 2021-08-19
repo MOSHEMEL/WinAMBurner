@@ -15,13 +15,13 @@ namespace WinAMBurner
         private const string URL = "http://qa.armentavet.co/";
         private readonly HttpClient client = new HttpClient();
 
-        public async Task<LoginResponseJson> login(LoginJson login)
+        public async Task<JsonDocument> login<T>(T login, string entityUrl)
         {
             JsonDocument jsonDocument = null;
             LoginResponseJson loginResponse = null;
             try
             {
-                LogFile.logWrite("Request POST: " + URL + "api/p/login/" + "\n" + login.ToString() + JsonSerializer.Serialize(login));
+                LogFile.logWrite("Request POST: " + URL + entityUrl + "\n" + login.ToString() + JsonSerializer.Serialize(login));
                 client.DefaultRequestHeaders.Authorization = null;
                 HttpResponseMessage response = await client.PostAsync(URL + "api/p/login/",
                     new StringContent(JsonSerializer.Serialize(login), Encoding.UTF8, "application/json"));
@@ -32,7 +32,7 @@ namespace WinAMBurner
                         jsonDocument = await JsonSerializer.DeserializeAsync<JsonDocument>(await response.Content.ReadAsStreamAsync());
                         if (jsonDocument != null)
                         {
-                            loginResponse = JsonSerializer.Deserialize<LoginResponseJson>(jsonDocument.RootElement.ToString());
+                            loginResponse = JsonSerializer.Deserialize<Login>(jsonDocument.RootElement.ToString());
                             if (loginResponse != null)
                                 client.DefaultRequestHeaders.Authorization
                                              = new AuthenticationHeaderValue("JWT", loginResponse.token);
@@ -50,7 +50,7 @@ namespace WinAMBurner
             {
                 LogFile.logWrite(e.ToString());
             }
-            return loginResponse;
+            return jsonDocument;
         }
 
         public async Task<T> entityGet<T>(string entityUrl)

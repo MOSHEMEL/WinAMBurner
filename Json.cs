@@ -16,7 +16,7 @@ namespace WinAMBurner
         public string tablet { get; set; }
     }
 
-    class LoginResponseJson
+    interface LoginResponseJson
     {
         public string token { get; set; }
         public UserJson user { get; set; }
@@ -142,6 +142,10 @@ namespace WinAMBurner
 
     class Gui
     {
+        public delegate Task<JsonDocument> dWeb<TJson>(TJson jentity, string entityUrl);
+        public delegate ErrCode dResponseOk<T>(T entity);
+        public delegate List<string> dResponseErr();
+
         public Field Picture { get; set; }
         public Field Welcome { get; set; }
 
@@ -274,15 +278,18 @@ namespace WinAMBurner
             }
         }
 
-        public delegate Task<JsonDocument> dWeb(object entity, string entityUrl);
-        public delegate void dResponse();
+        //public delegate Task<JsonDocument> dWeb<TJson>(TJson jentity, string entityUrl);
+        //public delegate void dResponse<T>(T entity);
 
-        public async void send<TJson, T>(TJson jentity, string url, dWeb pweb, string captionOk, string captionErr, List<string> messagesErr, dResponse presp)
+        public async Task<ErrCode> send<TJson, T>(TJson jentity, string url, dWeb<TJson> dweb, string captionOk, string captionErr,
+            bool showMsgs, dResponseOk<T> dresponseOk, dResponseErr dresponseErr = null, List<string> messagesOk = null, List<string> messagesErr = null)
         {
-            if ((jentity != null) && (url != null) && (pweb != null) && (captionOk != null) && (captionErr != null) && (messagesErr != null) && (presp != null))
+            ErrCode errcode = ErrCode.ERROR;
+
+            if ((jentity != null) && (url != null) && (dweb != null) && (captionOk != null) && (captionErr != null) && (dresponseOk != null))
             {
-                ErrCode errcode = ErrCode.ERROR;
                 JsonDocument jsonDocument = null;
+                T rentity = default;
                 List<string> errors = new List<string>();
                 List<string> messages = new List<string>();
 
@@ -294,10 +301,11 @@ namespace WinAMBurner
 
                 if ((errcode = checkParams()) == ErrCode.OK)
                 {
-                    jsonDocument = await pweb(jentity, url);
+                    jsonDocument = await dweb(jentity, url);
                     if (jsonDocument != null)
                     {
-                        T rentity = default;
+                        responseParse(jsonDocument, errors, messages);
+
                         try { rentity = JsonSerializer.Deserialize<T>(jsonDocument.RootElement.ToString()); }
                         catch (Exception ex) { LogFile.logWrite(ex.ToString()); }
 
@@ -310,27 +318,35 @@ namespace WinAMBurner
                         errcode = ErrCode.EPARAM;
                 }
 
-                responseParse(jsonDocument, errors, messages);
-
                 if (errcode == ErrCode.OK)
                 {
-                    presp();
-                    if (messages.Count() > 0)
+                    if (showMsgs && (messages.Count() > 0))
                         notify(messages, NotifyButtons.OK, captionOk);
-                    hide();
+
+                    if(messagesOk != null)
+                        notify(messagesOk, NotifyButtons.OK, captionOk);
+
+                    if ((errcode = dresponseOk(rentity)) == ErrCode.OK)
+                        hide();
                 }
-                else
+                if (errcode != ErrCode.OK)
                 {
                     if (errors.Count() > 0)
                         notify(errors, NotifyButtons.OK, captionErr);
 
-                    notify(messagesErr, NotifyButtons.OK, captionErr);
+                    if(messagesErr != null)
+                        notify(messagesErr, NotifyButtons.OK, captionErr);
+
+                    if (dresponseErr != null)
+                        notify(dresponseErr(), NotifyButtons.OK, captionErr);
+
                     enableControls();
                 }
             }
+            return errcode;
         }
 
-        private DialogResult notify(List<string> text, NotifyButtons notifyButtons, string caption)
+        public DialogResult notify(List<string> text, NotifyButtons notifyButtons, string caption)
         {
             DialogResult dialogResult = default;
             if (text.Count > 0)
@@ -344,11 +360,14 @@ namespace WinAMBurner
         }
     }
 
-    class Login : Gui, LoginJson
+    class Login : Gui, LoginJson, LoginResponseJson
     {
         public string email { get; set; }
         public string password { get; set; }
         public string tablet { get; set; }
+
+        public string token { get; set; }
+        public UserJson user { get; set; }
 
         public object pEmail { get { return email; } set { email = value as string; } }
         public Field fEmail;
@@ -364,14 +383,31 @@ namespace WinAMBurner
 
         public Field Press { get; set; }
 
+        public Login()
+        {
+            initFields();
+        }
+
         public Login(EventHandler forgotEventHandler, EventHandler buttonEventHandler)
+        {
+            initFields();
+            initFields(forgotEventHandler, buttonEventHandler);
+        }
+
+        private void initFields()
         {
             Email = new Field(type: typeof(RichTextBox), dflt: "Username", width: Field.DefaultWidthLarge, placev: Place.Three);
             Password = new Field(type: typeof(TextBox), dflt: "Password", width: Field.DefaultWidthLarge, placev: Place.Five);
             Picture = new Field(ltype: typeof(PictureBox), lplacev: Place.One);
             //Forgot = new Field(ltype: typeof(LinkLabel), ltext: "Forgot password", linkEventHandler: linkEventHandler, lplacev: Place.Seven);
-            Forgot = new Field(ltype: typeof(LinkLabel), ltext: "Forgot password", buttonEventHandler: forgotEventHandler, lplacev: Place.Seven);
-            Press = new Field(ltype: typeof(Button), ltext: "Login", buttonEventHandler: buttonEventHandler, lplacev: Place.End);
+            Forgot = new Field(ltype: typeof(LinkLabel), ltext: "Forgot password", lplacev: Place.Seven);
+            Press = new Field(ltype: typeof(Button), ltext: "Login", lplacev: Place.End);
+        }
+
+        private void initFields(EventHandler forgotEventHandler, EventHandler buttonEventHandler)
+        {
+            Forgot.buttonEventHandler = forgotEventHandler;
+            Press.buttonEventHandler = buttonEventHandler;
         }
     }
 
