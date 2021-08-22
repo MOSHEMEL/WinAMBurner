@@ -27,45 +27,17 @@ namespace WinAMBurner
             this.progress = progress;
         }
     }
-    //static class LogFile
-    //{
-    //    private const string logFileName = "logFile.txt";
-    //
-    //    public static void logWrite(List<string> cmd, string dataRdStr)
-    //    {
-    //        File.AppendAllText(logFileName, "------------------------------------");
-    //        File.AppendAllText(logFileName, DateTime.Now.ToString() + "\n");
-    //        foreach (string cm in cmd)
-    //            File.AppendAllText(logFileName, cm.ToString() + "\n");
-    //        File.AppendAllText(logFileName, "------------------------------------");
-    //        File.AppendAllText(logFileName, dataRdStr);
-    //    }
-    //
-    //    public static void logWrite(string str)
-    //    {
-    //        File.AppendAllText(logFileName, "------------------------------------");
-    //        File.AppendAllText(logFileName, DateTime.Now.ToString() + "\n");
-    //        File.AppendAllText(logFileName, str + "\n");
-    //    }
-    //}
 
     class AM
     {
         private SerialPort serialPort;
         private const int serialPortBaudRate = 115200;
 
-        //private const string snumAdress = "0x000ffff6";
-        //private const string dateAdress = "0x000fffee";
-        //private const string maxiAdress = "0x000fffe6";
-        //private const string cmdRd = "rd,3,";
-        //private const string cmdSufx = "#";
-        //private const string cmdDbg = "debug#";
-        //private const char dataSeparator = ' ';
-
         private const int RD_TIMEOUT = 1000;
         private const int WR_TIMEOUT = 1000;
         private const int MAX_TIMEOUT = 3000;
         private const uint ERROR = 0xFFFFFFFF;
+        private const int ID_LENGTH = 3;
 
         private readonly DateTime epoch = new DateTime(1970, 1, 1, 2, 0, 0, DateTimeKind.Utc);
 
@@ -73,17 +45,19 @@ namespace WinAMBurner
         private uint maxi = ERROR;
         private uint maxiSet = ERROR;
         private double date = 0;
-        private uint[] id = new uint[3] { ERROR, ERROR, ERROR };
-        private uint[] aptxId = new uint[3] { ERROR, ERROR, ERROR };
+        private uint[] id = new uint[ID_LENGTH] { ERROR, ERROR, ERROR };
+        private uint[] aptxId = new uint[ID_LENGTH] { ERROR, ERROR, ERROR };
+        private uint factor = ERROR;
 
         public uint SNum { get => snum; set => snum = value; }
         public uint Maxi { get => maxi; set => maxi = value; }
         public uint MaxiSet { get => maxiSet; set => maxiSet = value; }
+        public uint Factor { get => factor; set => factor = value; }
         public uint[] AptxId
         {
             get
             {
-                uint[] value = new uint[3];
+                uint[] value = new uint[ID_LENGTH];
                 for (int i = 0; i < aptxId.Length; i++)
                 {
                     byte[] bytes = BitConverter.GetBytes(aptxId[i]);
@@ -159,6 +133,12 @@ namespace WinAMBurner
             string dataRdStr = await serialReadWrite(cmd);
             //write to log
             LogFile.logWrite(cmd, dataRdStr);
+
+            if (dataRdStr.Contains("Burn the cow, Armenta Ltd 2020 Version"))
+            {
+                dataRdStr = await serialReadWrite(cmd);
+                LogFile.logWrite(cmd, dataRdStr);
+            }
             //parse data
             errcode = amDataParseId(dataRdStr);
             try
@@ -195,6 +175,7 @@ namespace WinAMBurner
             cmd.Add("rd,3,0x000FFFEE#");
             //cmd.Add("Read DATE 3#");
             cmd.Add("rd,3,0x000FFFE6#");
+            cmd.Add("find,3,1#");
             //cmd.Add("Read MAX 3#");
             //cmd.Add("status2,3#");
             //cmd.Add("status1,3#");
@@ -241,6 +222,7 @@ namespace WinAMBurner
             //cmd.Add(string.Format("wrt,3,0x0001008,00{0:x}#", aptxId[2]));
             //cmd.Add(string.Format("wrt,3,0x0001004,00{0:x}#", aptxId[1]));
             //cmd.Add(string.Format("wrt,3,0x0001000,00{0:x}#", aptxId[0]));
+            cmd.Add(string.Format("wrt,3,0x00FFFDE,00{0:x}#", factor));
             cmd.Add(string.Format("snum,3,{0}#", snum));
             cmd.Add(string.Format("maxi,3,{0}#", maxi + maxiSet));
             Date = DateTime.Now;
@@ -290,42 +272,28 @@ namespace WinAMBurner
             uint lmaxi = ERROR;
             uint ldate = ERROR;
             uint lsnum = ERROR;
-            uint[] laptxId = new uint[3] { ERROR, ERROR, ERROR };
+            uint[] laptxId = new uint[ID_LENGTH] { ERROR, ERROR, ERROR };
+            uint lfactor = ERROR;
             //parse to lines
             string[] dataRd = amDataParseStr(dataRdStr);
             //maxi
             //if ((dataLineParse(dataRd, "0x1f-0x85-0x01", ref lid) >= 0) &&
             if ((amDataParseId(dataRdStr) >= 0) &&
                 //maxi
-                (dataLineParse(dataRd, "0xFFFE6", ref lmaxi) >= 0) &&
+                (dataLineParse(dataRd, "0xFFFE6", ref lmaxi) == ErrCode.OK) &&
                 //date
-                (dataLineParse(dataRd, "0xFFFEE", ref ldate) >= 0) &&
+                (dataLineParse(dataRd, "0xFFFEE", ref ldate) == ErrCode.OK) &&
                 //snum
-                (dataLineParse(dataRd, "0xFFFF6", ref lsnum) >= 0) &&
+                (dataLineParse(dataRd, "0xFFFF6", ref lsnum) == ErrCode.OK) &&
                 //aptx_id[0]
-                (dataLineParse(dataRd, "0x1000", ref laptxId[0]) >= 0) &&
+                (dataLineParse(dataRd, "0x1000", ref laptxId[0]) == ErrCode.OK) &&
                 //aptx_id[1]
-                (dataLineParse(dataRd, "0x1004", ref laptxId[1]) >= 0) &&
+                (dataLineParse(dataRd, "0x1004", ref laptxId[1]) == ErrCode.OK) &&
                 //aptx_id[2]
-                (dataLineParse(dataRd, "0x1008", ref laptxId[2]) >= 0))
+                (dataLineParse(dataRd, "0x1008", ref laptxId[2]) == ErrCode.OK) &&
+                //factor
+                (dataLineParse(dataRd, "pulses written", ref lfactor) == ErrCode.OK))
             {
-                //if (id[0] == ERROR)
-                //{
-                //    for (int i = 0; i < lid.Length; i++)
-                //        id[i] = lid[i];
-                //}
-                //else
-                //{
-                //    for (int i = 0; i < lid.Length; i++)
-                //    {
-                //        if (lid[i] != id[i])
-                //        {
-                //            errcode = ErrCode.ERROR;
-                //            return errcode;
-                //        }
-                //    }
-                //}
-
                 if (snum == ERROR)
                     snum = lsnum;
                 else
@@ -337,7 +305,7 @@ namespace WinAMBurner
                     }
                 }
 
-                if (aptxId[0] == ERROR)
+                if (checkError(aptxId))
                 {
                     for (int i = 0; i < laptxId.Length; i++)
                         aptxId[i] = laptxId[i];
@@ -355,6 +323,16 @@ namespace WinAMBurner
                 }
                 maxi = lmaxi;
                 date = ldate;
+                if (factor == ERROR)
+                    factor = lfactor;
+                else
+                {
+                    if (lfactor != factor)
+                    {
+                        errcode = ErrCode.ERROR;
+                        return errcode;
+                    }
+                }
                 errcode = ErrCode.OK;
             }
             return errcode;
@@ -363,13 +341,13 @@ namespace WinAMBurner
         private ErrCode amDataParseId(string dataRdStr)
         {
             ErrCode errcode = ErrCode.ERROR;
-            uint[] lid = new uint[3] { ERROR, ERROR, ERROR };
+            uint[] lid = new uint[ID_LENGTH] { ERROR, ERROR, ERROR };
             //parse to lines
             string[] dataRd = amDataParseStr(dataRdStr);
             //maxi
             if ((dataLineParse(dataRd, "0x1f-0x85-0x01", ref lid) >= 0))
             {
-                if (id[0] == ERROR)
+                if (checkError(id))
                 {
                     for (int i = 0; i < lid.Length; i++)
                         id[i] = lid[i];
@@ -390,6 +368,14 @@ namespace WinAMBurner
             return errcode;
         }
 
+        private bool checkError(uint [] prms)
+        {
+            foreach (uint prm in prms)
+                if (prm == ERROR)
+                    return true;
+            return false;
+        }
+
         private string[] amDataParseStr(string dataRdStr)
         {
             return dataRdStr.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
@@ -398,43 +384,60 @@ namespace WinAMBurner
         private ErrCode dataLineParse(string[] dataRd, string pattern, ref uint number)
         {
             ErrCode errcode = ErrCode.ERROR;
-            //try
-            //{
             string? dataFind = dataRd.ToList().Find(data => data.Contains(pattern));
             if (dataFind != null)
             {
-                string[] dataSplit = dataFind.Split(new char[] { ' ', ':', 'x' }, StringSplitOptions.RemoveEmptyEntries);
-                if (uint.TryParse(dataSplit[3], NumberStyles.HexNumber,
-                    CultureInfo.InvariantCulture, out number))
-                    errcode = ErrCode.OK;
+                string? snumber = new string(dataFind.SkipWhile(c => c != 'x').Skip(1).TakeWhile(c => c != ':').ToArray());
+                if (snumber != null)
+                {
+                    if (uint.TryParse(snumber, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out number))
+                    {
+                        errcode = ErrCode.OK;
+                    }
+                    else
+                    {
+                        snumber = new string(dataFind.SkipWhile(c => (c < '0') || (c > '9')).ToArray());
+                        if (snumber != null)
+                        {
+                            if (uint.TryParse(snumber, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
+                                errcode = ErrCode.OK;
+                        }
+                    }
+                }
+
+                //string[] dataSplit = dataFind.Split(new char[] { ' ', ':', 'x' }, StringSplitOptions.RemoveEmptyEntries);
+                //if (uint.TryParse(dataSplit[3], NumberStyles.HexNumber,
+                //    CultureInfo.InvariantCulture, out number))
+                //    errcode = ErrCode.OK;
             }
-            //}
-            //catch (Exception e)
-            //{
-            //    LogFile.logWrite(e.ToString());
-            //}
             return errcode;
         }
 
         private ErrCode dataLineParse(string[] dataRd, string pattern, ref uint[] number)
         {
-            ErrCode errcode = ErrCode.ERROR;
-            //try
-            //{
+            //ErrCode errcode = ErrCode.ERROR;
+            ErrCode errcode = ErrCode.OK;
             string? dataFind = dataRd.ToList().Find(data => data.Contains(pattern));
             if (dataFind != null)
             {
-                string[] dataSplit = dataFind.Split(new char[] { 'x', '-' }, StringSplitOptions.RemoveEmptyEntries);
-                if (uint.TryParse(dataSplit[1], NumberStyles.HexNumber, CultureInfo.InvariantCulture, out number[0]) &&
-                    uint.TryParse(dataSplit[3], NumberStyles.HexNumber, CultureInfo.InvariantCulture, out number[1]) &&
-                    uint.TryParse(dataSplit[5], NumberStyles.HexNumber, CultureInfo.InvariantCulture, out number[2]))
-                    errcode = ErrCode.OK;
+                string[] dataSplit = dataFind.Split(new char[] { '-' }, StringSplitOptions.RemoveEmptyEntries);
+                for (int i = 0; i < number.Count(); i++)
+                {
+                    if (i < dataSplit.Count())
+                    {
+                        if (!uint.TryParse(new string(dataSplit[i].SkipWhile(c => c != 'x').Skip(1).ToArray())
+                            , NumberStyles.HexNumber, CultureInfo.InvariantCulture, out number[i]))
+                            errcode = ErrCode.ERROR;
+                    }
+                    else
+                        errcode = ErrCode.ERROR;
+                }
+                //string[] dataSplit = dataFind.Split(new char[] { 'x', '-' }, StringSplitOptions.RemoveEmptyEntries);
+                //if (uint.TryParse(dataSplit[1], NumberStyles.HexNumber, CultureInfo.InvariantCulture, out number[0]) &&
+                //    uint.TryParse(dataSplit[3], NumberStyles.HexNumber, CultureInfo.InvariantCulture, out number[1]) &&
+                //    uint.TryParse(dataSplit[5], NumberStyles.HexNumber, CultureInfo.InvariantCulture, out number[2]))
+                //    errcode = ErrCode.OK;
             }
-            //}
-            //catch (Exception e)
-            //{
-            //    LogFile.logWrite(e.ToString());
-            //}
             return errcode;
         }
 

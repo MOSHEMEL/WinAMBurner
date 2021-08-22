@@ -143,8 +143,8 @@ namespace WinAMBurner
     class Gui
     {
         public delegate Task<JsonDocument> dWeb<TJson>(TJson jentity, string entityUrl);
-        public delegate ErrCode dResponseOk<T>(T entity);
-        public delegate List<string> dResponseErr();
+        public delegate Task<ErrCode> dResponseOk<T>(T entity);
+        public delegate Task<List<string>> dResponseErr();
 
         public Field Picture { get; set; }
         public Field Welcome { get; set; }
@@ -326,7 +326,7 @@ namespace WinAMBurner
                     if(messagesOk != null)
                         notify(messagesOk, NotifyButtons.OK, captionOk);
 
-                    if ((errcode = dresponseOk(rentity)) == ErrCode.OK)
+                    if ((errcode = await dresponseOk(rentity)) == ErrCode.OK)
                         hide();
                 }
                 if (errcode != ErrCode.OK)
@@ -338,7 +338,7 @@ namespace WinAMBurner
                         notify(messagesErr, NotifyButtons.OK, captionErr);
 
                     if (dresponseErr != null)
-                        notify(dresponseErr(), NotifyButtons.OK, captionErr);
+                        notify(await dresponseErr(), NotifyButtons.OK, captionErr);
 
                     enableControls();
                 }

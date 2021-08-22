@@ -90,7 +90,7 @@ namespace WinAMBurner
             {
                 reset.send<ResetJson, Reset>(reset, "api/p/password_reset/", web.entityAdd,
                     "Reset Password Success", "Reset Password Failed", true,
-                    new Gui.dResponseOk<Reset>((rreset) =>
+                    new Gui.dResponseOk<Reset>(async (rreset) =>
                     {
                         login = new Login(forgot_Click, buttonLogin_Click) { tablet = TabletNo };
                         if (login != null)
@@ -187,7 +187,7 @@ namespace WinAMBurner
                 //        //login.tablet = "kjh1g234123";
                 login.send<LoginJson, Login>(login, "api/p/login/", web.login,
                     "Login Success", "Login Failed", false,
-                    new Gui.dResponseOk<Login>((rlogin) =>
+                    new Gui.dResponseOk<Login>(async (rlogin) =>
                     {
                         if (rlogin.token != null)
                         {
@@ -200,17 +200,17 @@ namespace WinAMBurner
                                 password.drawFields(this);
                                 return ErrCode.OK;
                             }
-                            JsonDocument jsonDocument = web.getConstants().GetAwaiter().GetResult();
+                            JsonDocument jsonDocument = await web.getConstants();
                             if (jsonDocument != null)
                                 Const.parseConstants(jsonDocument);
-                            farms = web.entityGet<List<Farm>>("api/p/farms/").GetAwaiter().GetResult();
+                            farms = await web.entityGet<List<Farm>>("api/p/farms/");
                             if (farms != null)
                                 farms = farms.Where(f => f.is_active).ToList();
-                            services = web.entityGet<List<Service>>("api/p/service_providers/").GetAwaiter().GetResult();
-                            treatmentPackages = web.entityGet<List<TreatmentPackage>>("api/p/treatment_package/").GetAwaiter().GetResult();
+                            services = await web.entityGet<List<Service>>("api/p/service_providers/");
+                            treatmentPackages = await web.entityGet<List<TreatmentPackage>>("api/p/treatment_package/");
                             if (treatmentPackages != null)
                                 treatmentPackages = treatmentPackages.Where(t => t.is_active).ToList();
-                            settings = web.entityGet<SettingsJson>("api/p/settings/").GetAwaiter().GetResult();
+                            settings = await web.entityGet<SettingsJson>("api/p/settings/");
 
                             if ((user != null) && (farms != null) && (services != null) && (treatmentPackages != null) && (settings != null) &&
                                 (Const.DCOUNTRY != null) && (Const.COUNTRY != null) && (Const.DSTATE != null) && (Const.STATE != null) &&
@@ -327,7 +327,7 @@ namespace WinAMBurner
             {
                 password.send<PasswordJson, Password>(password, "api/p/password/change/", web.entityAdd,
                     "Change Password Success", "Change Password Failed", true,
-                    new Gui.dResponseOk<Password>((rpassword) =>
+                    new Gui.dResponseOk<Password>(async (rpassword) =>
                     {
                         if (login != null)
                         {
@@ -478,7 +478,10 @@ namespace WinAMBurner
             List<string> l = null;
             
             if (entity != null)
-                l = new List<string> { entity.Name.val as string, entity.Country.val as string + ((entity.State.val as string == string.Empty) ? string.Empty : " / ") + entity.State.val as string, entity.City.val as string, entity.Address.val as string, entity.ContractType.val as string };
+                l = new List<string> { entity.Name.val as string, entity.Country.val as string + 
+                    ((entity.State.val as string == string.Empty) ? string.Empty : " / ") + 
+                    entity.State.val as string, entity.City.val as string, 
+                    entity.Address.val as string, entity.ContractType.val as string };
             
             return l;
         }
@@ -700,12 +703,6 @@ namespace WinAMBurner
 
         private void buttonTreatCansel_Click(object sender, EventArgs e)
         {
-            //FormNotify formNotify = new FormNotify(new List<string>() {
-            //    "Are you sure you want to cancel the operation?"},
-            //    NotifyButtons.YesNo, caption: "Abort");
-            //formNotify.ShowDialog();
-            //if (formNotify.DialogResult == DialogResult.Yes)
-
             if (action != null)
             {
                 DialogResult dialogResult = action.notify(new List<string>() { "Are you sure you want to cancel the operation?" }, NotifyButtons.YesNo, caption: "Abort");
@@ -716,7 +713,6 @@ namespace WinAMBurner
                     screenActionShow();
                 }
             }
-            //formNotify.Dispose();
         }
 
         private async void buttonTreatApprove_Click(object sender, EventArgs e)
@@ -724,9 +720,6 @@ namespace WinAMBurner
             if ((action != null) && (am != null) && (settings != null))
             {
                 ErrCode errcode = ErrCode.ERROR;
-                //JsonDocument jsonDocument = null;
-                //List<string> errors = new List<string>();
-                //List<string> messages = new List<string>();
                 uint maxi = am.Maxi;
 
                 action.disableControls();
@@ -746,14 +739,6 @@ namespace WinAMBurner
                         //uint maxi = am.Maxi;
                         if ((am.Maxi + am.MaxiSet) < settings.max_am_pulses)
                         {
-                            //FormNotify formNotify = new FormNotify(new List<string>() {
-                            //        string.Format("{0} treatments will be added",am.MaxiSet / settings.number_of_pulses_per_treatment),
-                            //        string.Format("to the AM - SN {0}", am.SNum),
-                            //        (farm != null) ? string.Format("Farm {0}", farm.Name.val as string) :
-                            //        ((service != null) ? string.Format("Service Provider {0}", service.Name.val as string) : string.Empty),
-                            //        "Press the button to proceed"}, NotifyButtons.YesNo, caption: "Approve");
-                            //formNotify.ShowDialog();
-
                             DialogResult dialogResult = action.notify(new List<string>() {
                                     string.Format("{0} treatments will be added",am.MaxiSet / settings.number_of_pulses_per_treatment),
                                     string.Format("to the AM - SN {0}", am.SNum),
@@ -762,8 +747,6 @@ namespace WinAMBurner
                                     "Press the button to proceed"}, NotifyButtons.YesNo, caption: "Approve");
                             if (dialogResult == DialogResult.Yes)
                             {
-                                //formNotify.Dispose();
-
                                 if (progressBar != null)
                                     progressBar.Visible = true;
                                 am.serialPortProgressEvent += new EventHandler(progressBar_Callback);
@@ -776,21 +759,21 @@ namespace WinAMBurner
                                     {
                                         await action.send<ActionJson, Action>(action, "api/p/actions/", web.entityAdd,
                                             "Approve Success", "Approve Failed", false,
-                                            new Gui.dResponseOk<Action>((raction) =>
+                                            new Gui.dResponseOk<Action>(async (raction) =>
                                             {
                                                 clearAM();
                                                 screenActionShow();
                                                 return ErrCode.OK;
                                             }),
-                                            new Gui.dResponseErr(() =>
+                                            new Gui.dResponseErr(async () =>
                                             {
                                                 am.MaxiSet = 0;
                                                 if (progressBar != null)
                                                     progressBar.Value = progressBar.Minimum;
 
-                                                if (am.AMDataWrite().GetAwaiter().GetResult() == ErrCode.OK)
+                                                if (await am.AMDataWrite() == ErrCode.OK)
                                                 {
-                                                    if (am.AMDataRead().GetAwaiter().GetResult() == ErrCode.OK)
+                                                    if (await am.AMDataRead() == ErrCode.OK)
                                                         return new List<string>() { "Approve failed,", "AM sucsessfully restored to original values" };
                                                     else
                                                         return new List<string>() { "Approve failed,", "Faild to restore to original values" };
@@ -804,43 +787,6 @@ namespace WinAMBurner
                                                         string.Format("The treatments available on AM - SN {1}: {0}", am.Maxi / settings.number_of_pulses_per_treatment, am.SNum),
                                                         "please disconnect the AM"},
                                             messagesErr: new List<string>() { "Restoring AM" });
-
-                                        //jsonDocument = await web.entityAdd<ActionJson>(action, "api/p/actions/");
-                                        //if (jsonDocument != null)
-                                        //{
-                                        //    Action raction = null;
-                                        //    try { raction = JsonSerializer.Deserialize<Action>(jsonDocument.RootElement.ToString()); }
-                                        //    catch (Exception ex) { LogFile.logWrite(ex.ToString()); }
-                                        //    if (raction != null)
-                                        //    {
-                                        //        //notify(new List<string>() {
-                                        //        //    string.Format("The original amount of treatments: {0}", maxi / settings.number_of_pulses_per_treatment),
-                                        //        //    string.Format("Added treatments: {0}",am.MaxiSet / settings.number_of_pulses_per_treatment),
-                                        //        //    string.Format("The treatments available on AM - SN {1}: {0}", am.Maxi / settings.number_of_pulses_per_treatment, am.SNum),
-                                        //        //    "please disconnect the AM"},
-                                        //        //    NotifyButtons.OK, "Approve Success");
-                                        //        //action.hide();
-                                        //        //clearAM();
-                                        //        //screenActionShow();
-                                        //        errcode = ErrCode.OK;
-                                        //    }
-                                        //    else
-                                        //    {
-                                        //
-                                        // erase am needed
-                                        //
-                                        //responseParse(action, jsonDocument, errors, messages);
-                                        //notify(errors, NotifyButtons.OK, "Approve Fail");
-                                        //    errcode = ErrCode.ERASE;
-                                        //}
-                                        //}
-                                        //else
-                                        //{
-                                        //    //
-                                        //    // erase am needed
-                                        //    //
-                                        //    errcode = ErrCode.ERASE;
-                                        //}
                                     }
                                 }
                             }
@@ -865,60 +811,12 @@ namespace WinAMBurner
                 else if (errcode == ErrCode.MAX)
                     action.notify(new List<string>() { "Wrong part number,", "the maximum number of treatments reached,",
                     "please choose a smaller number of treatments" }, NotifyButtons.OK, "Approve Fail");
-                //else if (errcode == ErrCode.ERASE)
-                //{
-                //    if (jsonDocument != null)
-                //    {
-                //        responseParse(action, jsonDocument, errors, messages);
-                //        notify(errors, NotifyButtons.OK, "Approve Fail");
-                //    }
-                //    notify(new List<string>() { "Restoring AM" }, NotifyButtons.OK, "Approve Fail");
-                //
-                //    am.MaxiSet = 0;
-                //    if (progressBar != null)
-                //        progressBar.Value = progressBar.Minimum;
-                //
-                //    if (await am.AMDataWrite() == ErrCode.OK)
-                //    {
-                //        if (await am.AMDataRead() == ErrCode.OK)
-                //            screenTreatError(new List<string>() { "Approve failed,", "AM sucsessfully restored to original values" }, "Approve Fail");
-                //        else
-                //            screenTreatError(new List<string>() { "Approve failed,", "Faild to restore to original values" }, "Approve Fail");
-                //    }
-                //    else
-                //        screenTreatError(new List<string>() { "Approve failed,", "Faild to restore to original values" }, "Approve Fail");
-                //}
-                //else if (errcode == ErrCode.EFAIL)
-                //    screenTreatError(new List<string>() { "Failed to restore AM" }, "Approve Fail");
                 else if (errcode == ErrCode.ERROR)
                     action.notify(new List<string>() { "The operation failed, the treatments were not added" }, NotifyButtons.OK, "Approve Fail");
-                else if (errcode == ErrCode.CANSEL)
+                if (errcode != ErrCode.OK)
                     action.enableControls();
-                //else if (errcode == ErrCode.OK)
-                //{
-                //    notify(new List<string>() {
-                //        string.Format("The original amount of treatments: {0}", maxi / settings.number_of_pulses_per_treatment),
-                //        string.Format("Added treatments: {0}",am.MaxiSet / settings.number_of_pulses_per_treatment),
-                //        string.Format("The treatments available on AM - SN {1}: {0}", am.Maxi / settings.number_of_pulses_per_treatment, am.SNum),
-                //        "please disconnect the AM"},
-                //        NotifyButtons.OK, "Approve Success");
-                //    action.hide();
-                //    clearAM();
-                //    screenActionShow();
-                //}
             }
         }
-
-        //private void screenTreatError(List<string> text, string caption)
-        //{
-        //    if ((action != null) && (action.Progress != null))
-        //    {
-        //        ProgressBar progressBar = action.Progress.lcontrol as ProgressBar;
-        //        if (progressBar != null)
-        //            progressBar.Visible = false;
-        //        screenError(text, caption);
-        //    }
-        //}
 
         //
         // Farm Service
@@ -1033,7 +931,8 @@ namespace WinAMBurner
         {
             if ((entities != null) && (dataGridView1 != null) && (dataGridView1.CurrentRow != null) && (dataGridView1.CurrentRow.Cells != null)
                 && (dataGridView1.CurrentRow.Cells.Count > 0))
-                return entities.ToList().Find(e => ((e.Name.val as string != null) && (e.Name.val as string == dataGridView1.CurrentRow.Cells[0].Value as string)));
+                return entities.ToList().Find(e => ((e.Name.val as string != null) && 
+                    (e.Name.val as string == dataGridView1.CurrentRow.Cells[0].Value as string)));
             return null;
         }
 
@@ -1108,7 +1007,7 @@ namespace WinAMBurner
             {
                 farm.send<FarmJson, Farm>(farm, "api/p/farms/", web.entityAdd,
                     "Submit Success", "Submit Failed", false,
-                    new Gui.dResponseOk<Farm>((rfarm) =>
+                    new Gui.dResponseOk<Farm>(async (rfarm) =>
                     {
                         farms.Add(rfarm);
                         screenFarmShow();
@@ -1126,7 +1025,7 @@ namespace WinAMBurner
                 service.send<ServiceJson, Service>(service, "api/p/service_providers/", web.entityAdd,
                     "Submit Success", "Submit Failed",
                     false,
-                    new Gui.dResponseOk<Service>((rservice) =>
+                    new Gui.dResponseOk<Service>(async (rservice) =>
                     {
                         services.Add(rservice);
                         screenServiceShow();
@@ -1249,7 +1148,7 @@ namespace WinAMBurner
             {
                 farm.send<FarmJson, Farm>(farm, "api/p/farms/" + farm.Id + "/", web.entityEdit,
                     "Submit Success", "Submit Failed", false,
-                    new Gui.dResponseOk<Farm>((rfarm) =>
+                    new Gui.dResponseOk<Farm>(async (rfarm) =>
                     {
                         farms.Insert(farms.IndexOf(farm), rfarm);
                         farms.Remove(farm);
@@ -1267,7 +1166,7 @@ namespace WinAMBurner
             {
                 service.send<ServiceJson, Service>(service, "api/p/service_providers/" + service.Id + "/", web.entityEdit,
                     "Submit Success", "Submit Failed", false,
-                    new Gui.dResponseOk<Service>((rservice) =>
+                    new Gui.dResponseOk<Service>(async (rservice) =>
                     {
                         services.Insert(services.IndexOf(service), rservice);
                         services.Remove(service);
