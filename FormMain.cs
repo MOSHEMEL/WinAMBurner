@@ -97,6 +97,7 @@ namespace WinAMBurner
                             login.drawFields(this);
                         return ErrCode.OK;
                     }),
+                    messagesOk: new List<string>() { "An email with your logon details was sent.", "Please use those details to logon." },
                     messagesErr: new List<string>() { "Reset password failed,", "please enter a valid values" });
             }
         }
@@ -181,7 +182,7 @@ namespace WinAMBurner
             if ((login != null) && (web != null))
             {
                 login.Email.control.Text = "yael@gmail.com";
-                login.Password.control.Text = "yael123";
+                login.Password.control.Text = "yael1234";
                 //        //login.email = "yaelv@armentavet.com";
                 //        //login.password = "Yyyaeeel123";
                 //        //login.tablet = "kjh1g234123";
@@ -197,8 +198,14 @@ namespace WinAMBurner
                             if (!user.is_password_changed)
                             {
                                 password = new Password(buttonChangePassword_Click);
-                                password.drawFields(this);
-                                return ErrCode.OK;
+                                if (password != null)
+                                {
+                                    //password.notify(new List<string>() { "Please Enter a new password.",
+                                    //    "password should be complex and at least 8 chars long." }, NotifyButtons.OK, "Change Password");
+                                    password.drawFields(this);
+                                    return ErrCode.OK;
+                                }
+                                return ErrCode.ERROR;
                             }
                             JsonDocument jsonDocument = await web.getConstants();
                             if (jsonDocument != null)
@@ -335,8 +342,32 @@ namespace WinAMBurner
                             login.drawFields(this);
                         }
                         return ErrCode.OK;
-                    } ),
-                    messagesErr: new List<string>() { "Change password failed,", "please enter a valid values" });
+                    }),
+                    dcheck: new Gui.dCheck(() =>
+                    {
+                        ErrCode err = ErrCode.OK;
+                        if (password.new_password1 != password.new_password2)
+                            err = ErrCode.EMATCH;
+                        else if (password.new_password1 == null)
+                            err = ErrCode.ELENGTH;
+                        else if (password.new_password1.Length < 8)
+                            err = ErrCode.ELENGTH;
+                        
+                        if (err != ErrCode.OK)
+                        {
+                            password.Password1.error = ErrCode.EPARAM;
+                            password.Password2.error = ErrCode.EPARAM;
+                        }
+                        return err;
+                    }),
+                    dresponseErr: new Gui.dResponseErr(async (errcode) =>
+                    {
+                        if (errcode == ErrCode.EMATCH)
+                            return new List<string>() { "Can't confirm the password,", "the two values don't match" };
+                        else if (errcode == ErrCode.ELENGTH)
+                            return new List<string>() { "The password specified is less than 8 characters long" };
+                        return new List<string>() { "Change password failed,", "please enter a valid values" };
+                    }));
             }
         }
 
@@ -402,12 +433,12 @@ namespace WinAMBurner
             new Field(ltype: typeof(PictureBox), lplacev: Place.One).draw(this, true);
             new Field(ltype: typeof(Label), ltext: "Welcome distributor", font: Field.DefaultFontLarge, lplacev: Place.Two).draw(this, true);
             new Field(ltype: typeof(Label), ltext: "Choose Action: ", lplacev: Place.Four).draw(this, true);
-            new Field(ltype: typeof(Button), ltext: "Update AM", buttonEventHandler: buttonUpdateAM_Click, lplacev: Place.Five).draw(this, true);
-            new Field(ltype: typeof(Button), ltext: "Manage Farms", buttonEventHandler: buttonFarm_Click, lplacev: Place.Six).draw(this, true);
-            new Field(ltype: typeof(Button), ltext: "Manage Service provider", buttonEventHandler: buttonService_Click, lplacev: Place.Seven).draw(this, true);
+            new Field(ltype: typeof(Button), ltext: "Update AM", eventHandler: buttonUpdateAM_Click, lplacev: Place.Five).draw(this, true);
+            new Field(ltype: typeof(Button), ltext: "Manage Farms", eventHandler: buttonFarm_Click, lplacev: Place.Six).draw(this, true);
+            new Field(ltype: typeof(Button), ltext: "Manage Service provider", eventHandler: buttonService_Click, lplacev: Place.Seven).draw(this, true);
             new Field(ltype: typeof(LinkLabel), ltext: "Calculate your farm’s profits with APT",
                 linkEventHandler: linkLabel2_LinkClicked, lplacev: Place.Nine).draw(this, true);
-            new Field(ltype: typeof(Button), ltext: "Logout", buttonEventHandler: buttonLogout_Click, lplacev: Place.End).draw(this, true);
+            new Field(ltype: typeof(Button), ltext: "Logout", eventHandler: buttonLogout_Click, lplacev: Place.End).draw(this, true);
         }
 
         public void hide()
@@ -479,7 +510,7 @@ namespace WinAMBurner
             
             if (entity != null)
                 l = new List<string> { entity.Name.val as string, entity.Country.val as string + 
-                    ((entity.State.val as string == string.Empty) ? string.Empty : " / ") + 
+                    ((entity.State.val == string.Empty) ? string.Empty : " / ") + 
                     entity.State.val as string, entity.City.val as string, 
                     entity.Address.val as string, entity.ContractType.val as string };
             
@@ -493,7 +524,7 @@ namespace WinAMBurner
             new Field(ltype: typeof(Label), ltext: "Please make sure the AM is connected to your tablet before continue", lplacev: Place.Four).draw(this, true);
             label1 = new Field(ltype: typeof(Label), lplacev: Place.Six).draw(this, true) as Label;
             progressBar1 = new Field(ltype: typeof(ProgressBar), width: Field.DefaultWidthLarge, height: Field.DefaultHeightSmall, lplacev: Place.Ten).draw(this, true) as ProgressBar;
-            button1 = new Field(ltype: typeof(Button), ltext: "Check AM present", buttonEventHandler: buttonCheckAM_Click, lplacev: Place.End).draw(this, true) as Button;
+            button1 = new Field(ltype: typeof(Button), ltext: "Check AM present", eventHandler: buttonCheckAM_Click, lplacev: Place.End).draw(this, true) as Button;
             if (AMConnected)
                 AMConnectedShow();
             else
@@ -579,8 +610,8 @@ namespace WinAMBurner
             new Field(ltype: typeof(Label), ltext: "Welcome distributor", font: Field.DefaultFontLarge, lplacev: Place.Two).draw(this, true);
             new Field(ltype: typeof(Label), ltext: "AM identified with SN: " + am.SNum, lplacev: Place.Four).draw(this, true);
             new Field(ltype: typeof(Label), ltext: "Current available treatments: " + am.Maxi / settings.number_of_pulses_per_treatment, lplacev: Place.Six).draw(this, true);
-            new Field(ltype: typeof(Button), ltext: "Back", buttonEventHandler: buttonInfoBack_Click, lplaceh: Place.Five, lplacev: Place.End).draw(this, true);
-            new Field(ltype: typeof(Button), ltext: "Continue", buttonEventHandler: buttonInfoContinue_Click, lplaceh: Place.Two, lplacev: Place.End).draw(this, true);
+            new Field(ltype: typeof(Button), ltext: "Back", eventHandler: buttonInfoBack_Click, lplaceh: Place.Five, lplacev: Place.End).draw(this, true);
+            new Field(ltype: typeof(Button), ltext: "Continue", eventHandler: buttonInfoContinue_Click, lplaceh: Place.Two, lplacev: Place.End).draw(this, true);
         }
 
         private void buttonInfoBack_Click(object sender, EventArgs e)
@@ -626,9 +657,18 @@ namespace WinAMBurner
                         entity = service;
                     if (entity != null)
                     {
-                        action.PartNumber.items = treatmentPackages.Where(t => t.contract_type == entity.contract_type).ToArray();
-                        //action.PartNumber.addItems(treatmentPackages.Where(t => t.contract_type == entity.contract_type).ToArray());
-                        action.PartNumber.addItems(action.PartNumber.items);
+                        if ((treatmentPackages != null) && (settings != null) && (am != null))
+                        {
+                            //action.PartNumber.items = treatmentPackages.Where(t => (t.contract_type == entity.contract_type)).ToArray();
+                            if ((action.PartNumber.items = treatmentPackages.Where(t => (t.contract_type == entity.contract_type) &&
+                                 ((t.amount_of_treatments * settings.number_of_pulses_per_treatment + am.Maxi) < settings.max_am_pulses)).ToArray()) != null)
+                                action.PartNumber.addItems(action.PartNumber.items);
+                            else
+                                action.notify(new List<string>() { "The attached AM reached the max allowed treatments. ",
+                                    "There are no available part numbers.",
+                                    "Please replace the AM or contact support. " }, NotifyButtons.OK, "Part Number Error");
+                            //action.PartNumber.addItems(treatmentPackages.Where(t => (t.contract_type == entity.contract_type)).ToArray());
+                        }
                     }
                     comboBoxPN.Text = action.PartNumber.dflt;
                 }
@@ -656,24 +696,27 @@ namespace WinAMBurner
                             action.Farm.view = true;
 
                             action.Service.control.Visible = false;
-                            action.Service.control.Text = null;
                             action.Service.view = false;
                         }
                         if (radioButton == radioService)
                         {
                             radioFarm.Checked = false;
                             action.Farm.control.Visible = false;
-                            action.Farm.control.Text = null;
                             action.Farm.view = false;
 
                             action.Service.control.Visible = true;
                             action.Service.view = true;
                         }
+                        //action.Farm.control.Text = action.Farm.dflt;
+                        //action.Farm.val = action.Farm.dflt;
+                        //action.Service.control.Text = action.Service.dflt;
+                        //action.Service.val = action.Service.dflt;
                     }
                     else
                     {
                         action.PartNumber.removeItems();
-                        action.PartNumber.control.Text = action.PartNumber.dflt;
+                        //action.PartNumber.control.Text = action.PartNumber.dflt;
+                        //action.PartNumber.val = action.PartNumber.dflt;
                     }
                 }
             }
@@ -765,7 +808,7 @@ namespace WinAMBurner
                                                 screenActionShow();
                                                 return ErrCode.OK;
                                             }),
-                                            new Gui.dResponseErr(async () =>
+                                            dresponseErr: new Gui.dResponseErr(async (errcode) =>
                                             {
                                                 am.MaxiSet = 0;
                                                 if (progressBar != null)
@@ -872,7 +915,7 @@ namespace WinAMBurner
             {
                 if (richTextBox.Text != search.dflt)
                 {
-                    table = entityTableGet(entities.Where(e => (e.Name.val as string != null) && ((e.Name.val as string).ToLower().Contains(richTextBox.Text.ToLower()))).ToList());
+                    table = entityTableGet(entities.Where(e => (e.Name.val != null) && (e.Name.val.ToString().ToLower().Contains(richTextBox.Text.ToLower()))).ToList());
                     dataGridView1.DataSource = table;
                 }
             }
@@ -883,11 +926,11 @@ namespace WinAMBurner
         {
             new Field(ltype: typeof(PictureBox), lplacev: Place.One).draw(this, true);
             new Field(ltype: typeof(Label), ltext: dataName, lplacev: Place.Two).draw(this, true);
-            new Field(ltype: typeof(Button), ltext: "Back", buttonEventHandler: eventHandlerButton4, lplaceh: Place.Four, lplacev: Place.Three).draw(this, true);
-            search = new Field(type: typeof(RichTextBox), dflt: "Search", textEventHandler: eventHandlerButton3, placeh: Place.Six, placev: Place.Three);
+            new Field(ltype: typeof(Button), ltext: "Back", eventHandler: eventHandlerButton4, lplaceh: Place.Four, lplacev: Place.Three).draw(this, true);
+            search = new Field(type: typeof(RichTextBox), dflt: "Search", eventHandler: eventHandlerButton3, placeh: Place.Six, placev: Place.Three);
             search.draw(this, false);
-            new Field(ltype: typeof(Button), ltext: "Edit", buttonEventHandler: eventHandlerButton1, lplaceh: Place.One, lplacev: Place.Three).draw(this, true);
-            new Field(ltype: typeof(Button), ltext: "Add New", buttonEventHandler: eventHandlerButton2, lplaceh: Place.Three, lplacev: Place.Three).draw(this, true);
+            new Field(ltype: typeof(Button), ltext: "Edit", eventHandler: eventHandlerButton1, lplaceh: Place.One, lplacev: Place.Three).draw(this, true);
+            new Field(ltype: typeof(Button), ltext: "Add New", eventHandler: eventHandlerButton2, lplaceh: Place.Three, lplacev: Place.Three).draw(this, true);
             Field.dataGridDraw(this, ref dataGridView1, placev: Place.Four);
         }
 
@@ -931,8 +974,8 @@ namespace WinAMBurner
         {
             if ((entities != null) && (dataGridView1 != null) && (dataGridView1.CurrentRow != null) && (dataGridView1.CurrentRow.Cells != null)
                 && (dataGridView1.CurrentRow.Cells.Count > 0))
-                return entities.ToList().Find(e => ((e.Name.val as string != null) && 
-                    (e.Name.val as string == dataGridView1.CurrentRow.Cells[0].Value as string)));
+                return entities.ToList().Find(e => ((e.Name.val != null) && 
+                    ((e.Name.val as string) == (dataGridView1.CurrentRow.Cells[0].Value as string))));
             return null;
         }
 
@@ -1131,16 +1174,16 @@ namespace WinAMBurner
         //    }
         //}
 
-        private ErrCode responseParse<T>(T entity, JsonDocument jsonDocument, List<string> errors, List<string> messages)
-        {
-            ErrCode errcode = ErrCode.ERROR;
-            Gui gui = entity as Gui;
-
-            if (gui != null)
-                errcode = gui.responseParse(jsonDocument, errors, messages);
-
-            return errcode;
-        }
+        //private ErrCode responseParse<T>(T entity, JsonDocument jsonDocument, List<string> errors, List<string> messages)
+        //{
+        //    ErrCode errcode = ErrCode.ERROR;
+        //    Gui gui = entity as Gui;
+        //
+        //    if (gui != null)
+        //        errcode = gui.responseParse(jsonDocument, errors, messages);
+        //
+        //    return errcode;
+        //}
 
         private async void buttonFarmEditSubmit_Click(object sender, EventArgs e)
         {

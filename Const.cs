@@ -99,7 +99,9 @@ namespace WinAMBurner
         EPARAM = -2,
         MAX = -3,
         ERASE = -4,
-        CANSEL = -5
+        CANSEL = -5,
+        EMATCH = -6,
+        ELENGTH = -7
     }
 
     static class LogFile

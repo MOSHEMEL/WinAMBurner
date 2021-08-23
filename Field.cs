@@ -27,6 +27,7 @@ namespace WinAMBurner
         public const string DefaultText = "DefaultText";
 
         public ErrCode error;
+        public object text;
         public object val;
         public string ltext;
         public string dflt;
@@ -44,11 +45,11 @@ namespace WinAMBurner
         private Place lplaceh;
         private Place placev;
         private Place lplacev;
-        public EventHandler comboEventHandler;
-        private EventHandler textEventHandler;
+        public EventHandler eventHandler;
+        //private EventHandler textEventHandler;
         public LinkLabelLinkClickedEventHandler linkEventHandler;
-        public EventHandler radioEventHandler;
-        public EventHandler buttonEventHandler;
+        //public EventHandler radioEventHandler;
+        //public EventHandler buttonEventHandler;
         public delegate bool fCheck(Field field);
         public fCheck fcheck;
         public delegate bool pCheck(object param);
@@ -58,16 +59,17 @@ namespace WinAMBurner
 
         public Field(Type type = null, Type ltype = null, string dflt = null, object val = null, string ltext = null, object[] items = null,
             LinkLabelLinkClickedEventHandler linkEventHandler = null,
-            EventHandler comboEventHandler = null,
-            EventHandler buttonEventHandler = null,
-            EventHandler textEventHandler = null,
-            EventHandler radioEventHandler = null,
+            EventHandler eventHandler = null,
+            //EventHandler buttonEventHandler = null,
+            //EventHandler textEventHandler = null,
+            //EventHandler radioEventHandler = null,
             fCheck fcheck = null, pCheck pcheck = null, bool enable = true,
             float font = DefaultFont, Color color = new Color(),
             int width = DefaultWidth, int height = DefaultHeight, bool autosize = true,
             Place placeh = Place.Center, Place lplaceh = Place.Center, Place placev = Place.None, Place lplacev = Place.None)
         {
             this.dflt = dflt;
+            this.text = this.dflt;
             this.val = this.dflt;
             this.ltext = ltext;
             this.items = items;
@@ -87,10 +89,10 @@ namespace WinAMBurner
                 this.lplacev = lplacev;
 
             this.linkEventHandler = linkEventHandler;
-            this.buttonEventHandler = buttonEventHandler;
-            this.textEventHandler = textEventHandler;
-            this.comboEventHandler = comboEventHandler;
-            this.radioEventHandler = radioEventHandler;
+            //this.buttonEventHandler = buttonEventHandler;
+            //this.textEventHandler = textEventHandler;
+            this.eventHandler = eventHandler;
+            //this.radioEventHandler = radioEventHandler;
             if (fcheck != null)
                 this.fcheck = fcheck;
             else
@@ -108,8 +110,10 @@ namespace WinAMBurner
             field = value;
             if (field != null)
             {
-                if (field.val != field.dflt)
+                if ((field.val as string) != field.dflt)
                     param = field.val;
+                else
+                    param = null;
 
                 if (field.fcheck(value) && field.pcheck(param))
                     field.error = ErrCode.OK;
@@ -119,7 +123,6 @@ namespace WinAMBurner
             else
                 param = null;
             return param;
-
         }
 
         public static Field getField(Field field, object param)
@@ -152,7 +155,7 @@ namespace WinAMBurner
                 treatmentPackage = field.items.FirstOrDefault() as TreatmentPackage;
                 if (farm != null)
                 {
-                    farm = field.items.Cast<Farm>().ToList().Find(i => i.Name.val as string == value as string);
+                    farm = field.items.Cast<Farm>().ToList().Find(i => (i.Name.val as string) == (value as string));
                     if (farm != null)
                         param = farm.Id;
                     else
@@ -160,7 +163,7 @@ namespace WinAMBurner
                 }
                 else if (service != null)
                 {
-                    service = field.items.Cast<Service>().ToList().Find(i => i.Name.val as string == value as string);
+                    service = field.items.Cast<Service>().ToList().Find(i => (i.Name.val as string) == (value as string));
                     if (service != null)
                         param = service.Id;
                     else
@@ -168,7 +171,7 @@ namespace WinAMBurner
                 }
                 else if (treatmentPackage != null)
                 {
-                    treatmentPackage = field.items.Cast<TreatmentPackage>().ToList().Find(i => i.description == value as string);
+                    treatmentPackage = field.items.Cast<TreatmentPackage>().ToList().Find(i => i.description == (value as string));
                     if (treatmentPackage != null)
                         param = treatmentPackage.part_number;
                     else
@@ -197,7 +200,7 @@ namespace WinAMBurner
 
         public static bool checkValid(Field field)
         {
-            if ((field != null) && (field.val != null) && (field.val as string != string.Empty) && (field.val as string != field.dflt as string))
+            if ((field != null) && (field.val != null) && (field.val != string.Empty) && ((field.val as string) != field.dflt))
             {
                 return true;
             }
@@ -235,6 +238,8 @@ namespace WinAMBurner
 
         public static bool stringToBool(string sVal)
         {
+            if (sVal == null)
+                return false;
             if (sVal.Equals("Yes"))
                 return true;
             else
@@ -266,16 +271,17 @@ namespace WinAMBurner
             return null;
         }
 
-        public void updateField(object val)
-        {
-                this.val = val;
-        }
+        //public void updateField(object val)
+        //{
+        //        this.val = val;
+        //}
 
         public void updateField()
         {
             if (control != null)
             {
                 control.Text = control.Text.Trim();
+                val = text;
                 val = control.Text;
             }
         }
@@ -288,6 +294,9 @@ namespace WinAMBurner
                 {
                     control.ForeColor = Color.Red;
                     control.Text = dflt;
+                    TextBox textBox = control as TextBox;
+                    if (textBox != null)
+                        textBox.PasswordChar = '\0';
                     return ErrCode.EPARAM;
                 }
             }
@@ -345,8 +354,10 @@ namespace WinAMBurner
                     if (richTextBox != null)
                     {
                         richTextBox.Multiline = false;
-                        if (textEventHandler != null)
-                            richTextBox.TextChanged += textEventHandler;
+                        //if (eventHandler != null)
+                        //    richTextBox.TextChanged += eventHandler;
+                        //else
+                        richTextBox.TextChanged += textBox_TextChanged;
                         defaultText(control);
                     }
                 }
@@ -356,12 +367,13 @@ namespace WinAMBurner
                     if (textBox != null)
                     {
                         textBox.Multiline = false;
+                        textBox.TextChanged += textBox_TextChanged;
                         defaultText(control);
                     }
                 }
                 if (type == typeof(Button))
-                    if (buttonEventHandler != null)
-                        control.Click += buttonEventHandler;
+                    if (eventHandler != null)
+                        control.Click += eventHandler;
                 if (type == typeof(LinkLabel))
                 {
                     LinkLabel linkLabel = control as LinkLabel;
@@ -370,8 +382,8 @@ namespace WinAMBurner
                         control.AutoSize = true;
                         if (linkEventHandler != null)
                             linkLabel.LinkClicked += linkEventHandler;
-                        if (buttonEventHandler != null)
-                            linkLabel.Click += buttonEventHandler;
+                        if (eventHandler != null)
+                            linkLabel.Click += eventHandler;
                     }
                 }
                 if (type == typeof(ComboBox))
@@ -382,8 +394,10 @@ namespace WinAMBurner
                         comboBox.DropDownHeight = DefaultWidth;
                         if (items != null)
                             comboBox.Items.AddRange(items);
-                        if (comboEventHandler != null)
-                            comboBox.SelectedIndexChanged += comboEventHandler;
+                        //if (eventHandler != null)
+                        //    comboBox.SelectedIndexChanged += eventHandler;
+                        //else
+                        comboBox.SelectedIndexChanged += comboBox_SelectedIndexChanged;
                         comboBox.TextUpdate += comboBox_TextUpdate;
                         defaultText(control);
                     }
@@ -392,14 +406,36 @@ namespace WinAMBurner
                 {
                     RadioButton radioButton = control as RadioButton;
                     if (radioButton != null)
-                        if (radioEventHandler != null)
-                            radioButton.CheckedChanged += radioEventHandler;
+                        if (eventHandler != null)
+                            radioButton.CheckedChanged += eventHandler;
                 }
 
                 control.Location = placeCalc(thisForm, control, placeh: placeh, placev: placev);
                 control.Enabled = enable;
             }
             return control;
+        }
+
+        private void textBox_TextChanged(object sender, EventArgs e)
+        {
+            Control control = sender as Control;
+            if (control != null)
+            {
+                text = control.Text;
+                if (eventHandler != null)
+                    eventHandler(sender, e);
+            }
+        }
+
+        private void comboBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            ComboBox comboBox = sender as ComboBox;
+            if(comboBox != null)
+            {
+                text = comboBox.SelectedItem;
+                if (eventHandler != null)
+                    eventHandler(sender, e);
+            }
         }
 
         private void defaultText(Control control)
@@ -521,6 +557,9 @@ namespace WinAMBurner
             if (comboBox != null)
             {
                 comboBox.Items.AddRange(items);
+                comboBox.Text = dflt;
+                text = dflt;
+                val = dflt;
             }
         }
 
@@ -531,6 +570,9 @@ namespace WinAMBurner
             {
                 while (comboBox.Items.Count > 0)
                     comboBox.Items.RemoveAt(0);
+                comboBox.Text = dflt;
+                text = dflt;
+                val = dflt;
             }
         }
 

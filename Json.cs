@@ -144,7 +144,8 @@ namespace WinAMBurner
     {
         public delegate Task<JsonDocument> dWeb<TJson>(TJson jentity, string entityUrl);
         public delegate Task<ErrCode> dResponseOk<T>(T entity);
-        public delegate Task<List<string>> dResponseErr();
+        public delegate ErrCode dCheck();
+        public delegate Task<List<string>> dResponseErr(ErrCode errcode);
 
         public Field Picture { get; set; }
         public Field Welcome { get; set; }
@@ -278,11 +279,8 @@ namespace WinAMBurner
             }
         }
 
-        //public delegate Task<JsonDocument> dWeb<TJson>(TJson jentity, string entityUrl);
-        //public delegate void dResponse<T>(T entity);
-
         public async Task<ErrCode> send<TJson, T>(TJson jentity, string url, dWeb<TJson> dweb, string captionOk, string captionErr,
-            bool showMsgs, dResponseOk<T> dresponseOk, dResponseErr dresponseErr = null, List<string> messagesOk = null, List<string> messagesErr = null)
+            bool showMsgs, dResponseOk<T> dresponseOk, dCheck dcheck = null, dResponseErr dresponseErr = null, List<string> messagesOk = null, List<string> messagesErr = null)
         {
             ErrCode errcode = ErrCode.ERROR;
 
@@ -296,9 +294,8 @@ namespace WinAMBurner
                 disableControls();
                 updateParams();
 
-                //password.new_password1 = "Yyyaeeel123";
-                //password.new_password2 = "Yyyaeeel123";
-
+                if (dcheck != null)
+                    errcode = dcheck();
                 if ((errcode = checkParams()) == ErrCode.OK)
                 {
                     jsonDocument = await dweb(jentity, url);
@@ -338,7 +335,7 @@ namespace WinAMBurner
                         notify(messagesErr, NotifyButtons.OK, captionErr);
 
                     if (dresponseErr != null)
-                        notify(await dresponseErr(), NotifyButtons.OK, captionErr);
+                        notify(await dresponseErr(errcode), NotifyButtons.OK, captionErr);
 
                     enableControls();
                 }
@@ -406,8 +403,8 @@ namespace WinAMBurner
 
         private void initFields(EventHandler forgotEventHandler, EventHandler buttonEventHandler)
         {
-            Forgot.buttonEventHandler = forgotEventHandler;
-            Press.buttonEventHandler = buttonEventHandler;
+            Forgot.eventHandler = forgotEventHandler;
+            Press.eventHandler = buttonEventHandler;
         }
     }
 
@@ -441,14 +438,15 @@ namespace WinAMBurner
         private void initFields()
         {
             Picture = new Field(ltype: typeof(PictureBox), lplacev: Place.One);
-            Password1 = new Field(type: typeof(TextBox), ltype: typeof(Label), dflt: "Password", ltext: "Please enter a new password: ", width: Field.DefaultWidthLarge, placev: Place.Five, lplacev: Place.Four);
+            Password1 = new Field(type: typeof(TextBox), ltype: typeof(Label), dflt: "Password", ltext: "Please Enter a new password. \nPassword should be complex and at least 8 chars long.", 
+                width: Field.DefaultWidthLarge, placev: Place.Five, lplacev: Place.Three);
             Password2 = new Field(type: typeof(TextBox), dflt: "Confirm Password", width: Field.DefaultWidthLarge, placev: Place.Six);
             ChangePassword = new Field(ltype: typeof(Button), ltext: "Change Password", width: Field.DefaultWidthLarge, lplacev: Place.End);
         }
 
         private void initFields(EventHandler buttonEventHandler)
         {
-            ChangePassword.buttonEventHandler = buttonEventHandler;
+            ChangePassword.eventHandler = buttonEventHandler;
         }
     }
 
@@ -483,7 +481,7 @@ namespace WinAMBurner
 
         private void initFields(EventHandler buttonEventHandler)
         {
-            ResetPassword.buttonEventHandler = buttonEventHandler;
+            ResetPassword.eventHandler = buttonEventHandler;
         }
     }
 
@@ -539,7 +537,7 @@ namespace WinAMBurner
             }
             set
             {
-                country = Const.DCOUNTRY.FirstOrDefault(c => (c.Value == value.ToString())).Key;
+                country = Const.DCOUNTRY.FirstOrDefault(c => c.Value == (value as string)).Key;
             }
         }
         public Field fCountry;
@@ -553,7 +551,7 @@ namespace WinAMBurner
             }
             set
             {
-                state = Const.DSTATE.FirstOrDefault(c => (c.Value == value.ToString())).Key;
+                state = Const.DSTATE.FirstOrDefault(c => c.Value == (value as string)).Key;
             }
         }
         public Field fState;
@@ -716,13 +714,13 @@ namespace WinAMBurner
                 Caption.ltext = "Add Farm";
                 ContractType.view = true;
             }
-            if (Country.val as string == "United States of America")
+            if ((Country.val as string) == "United States of America")
                 State.enable = true;
             else
                 State.enable = false;
-            Cancel.buttonEventHandler = cancelHandler;
-            Submit.buttonEventHandler = submitHandler;
-            Country.comboEventHandler = countryHandler;
+            Cancel.eventHandler = cancelHandler;
+            Submit.eventHandler = submitHandler;
+            Country.eventHandler = countryHandler;
         }
     }
 
@@ -816,13 +814,13 @@ namespace WinAMBurner
                 Caption.ltext = "Add Service";
                 ContractType.view = true;
             }
-            if (Country.val as string == "United States of America")
+            if ((Country.val as string) == "United States of America")
                 State.enable = true;
             else
                 State.enable = false;
-            Cancel.buttonEventHandler = cancelHandler;
-            Submit.buttonEventHandler = submitHandler;
-            Country.comboEventHandler = countryHandler;
+            Cancel.eventHandler = cancelHandler;
+            Submit.eventHandler = submitHandler;
+            Country.eventHandler = countryHandler;
         }
     }
 
@@ -932,18 +930,18 @@ namespace WinAMBurner
         {
             PartNumber.ltext += am.SNum.ToString();
             Farm.items = farms;
-            Farm.comboEventHandler = comboEventHandler;
+            Farm.eventHandler = comboEventHandler;
             Service.items = services;
-            Service.comboEventHandler = comboEventHandler;
+            Service.eventHandler = comboEventHandler;
 
             aptx_id = string.Format("{0:x} {1:x} {2:x}", am.AptxId[0], am.AptxId[1], am.AptxId[2]);
             am_id = am.SNum.ToString();
             this.tablet = tablet;
 
-            RadioFarm.radioEventHandler = radioEventHandler;
-            RadioService.radioEventHandler = radioEventHandler;
-            Cancel.buttonEventHandler = canselEventHandler;
-            Approve.buttonEventHandler = approveEventHandler;
+            RadioFarm.eventHandler = radioEventHandler;
+            RadioService.eventHandler = radioEventHandler;
+            Cancel.eventHandler = canselEventHandler;
+            Approve.eventHandler = approveEventHandler;
         }
     }
 }
