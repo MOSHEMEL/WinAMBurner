@@ -27,8 +27,8 @@ namespace WinAMBurner
         public const string DefaultText = "DefaultText";
 
         public ErrCode error;
-        public object text;
-        public object val;
+        //public object text;
+        public string val;
         public string ltext;
         public string dflt;
         public object[] items;
@@ -50,10 +50,10 @@ namespace WinAMBurner
         public LinkLabelLinkClickedEventHandler linkEventHandler;
         //public EventHandler radioEventHandler;
         //public EventHandler buttonEventHandler;
-        public delegate bool fCheck(Field field);
-        public fCheck fcheck;
-        public delegate bool pCheck(object param);
-        public pCheck pcheck;
+        //public delegate bool fCheck();
+        //public fCheck fcheck;
+        //public delegate bool pCheck(string param);
+        //public pCheck pcheck;
         public bool view;
         public bool enable;
 
@@ -63,13 +63,14 @@ namespace WinAMBurner
             //EventHandler buttonEventHandler = null,
             //EventHandler textEventHandler = null,
             //EventHandler radioEventHandler = null,
-            fCheck fcheck = null, pCheck pcheck = null, bool enable = true,
+            //fCheck fcheck = null, pCheck pcheck = null,
+            bool enable = true,
             float font = DefaultFont, Color color = new Color(),
             int width = DefaultWidth, int height = DefaultHeight, bool autosize = true,
             Place placeh = Place.Center, Place lplaceh = Place.Center, Place placev = Place.None, Place lplacev = Place.None)
         {
             this.dflt = dflt;
-            this.text = this.dflt;
+            //this.text = this.dflt;
             this.val = this.dflt;
             this.ltext = ltext;
             this.items = items;
@@ -93,121 +94,144 @@ namespace WinAMBurner
             //this.textEventHandler = textEventHandler;
             this.eventHandler = eventHandler;
             //this.radioEventHandler = radioEventHandler;
-            if (fcheck != null)
-                this.fcheck = fcheck;
-            else
-                this.fcheck += checkValid;
-            if (pcheck != null)
-                this.pcheck = pcheck;
-            else
-                this.pcheck += checkValid;
+            //if (fcheck != null)
+            //    this.fcheck = fcheck;
+            //else
+            //    this.fcheck = checkValid;
+            //if (pcheck != null)
+            //    this.pcheck = pcheck;
+            //else
+            //    this.pcheck = checkValid;
             this.view = true;
             this.enable = enable;
         }
 
-        public static object setField(ref Field field, Field value, object param)
+        public void setValue(string value)
         {
-            field = value;
-            if (field != null)
-            {
-                if ((field.val as string) != field.dflt)
-                    param = field.val;
-                else
-                    param = null;
-
-                if (field.fcheck(value) && field.pcheck(param))
-                    field.error = ErrCode.OK;
-                else
-                    field.error = ErrCode.EPARAM;
-            }
+            //if (pcheck(value))
+            if (checkValid(value))
+                val = value;
             else
-                param = null;
-            return param;
+                val = dflt;
         }
 
-        public static Field getField(Field field, object param)
+        public string getValue()
         {
-            if (field != null)
+            //if (fcheck())
+            if (checkValid())
+                error = ErrCode.OK;
+            else
             {
-                if (field.pcheck(param))
-                {
-                    field.val = param;
-                }
-                else
-                {
-                    field.val = field.dflt;
-                }
+                error = ErrCode.EPARAM;
+                return null;
             }
-            return field;
+            return val;
         }
 
-        public static object setObject(Field field, ref object entity, object value, object param)
-        {
-            if ((field != null) && (field.items != null))
-            {
-                entity = value;
-                Farm farm;
-                Service service;
-                TreatmentPackage treatmentPackage;
+        //public static object setField(ref Field field, Field value, object param)
+        //{
+        //    field = value;
+        //    if (field != null)
+        //    {
+        //        if ((field.val as string) != field.dflt)
+        //            param = field.val;
+        //        else
+        //            param = null;
+        //
+        //        if (field.fcheck(value) && field.pcheck(param))
+        //            field.error = ErrCode.OK;
+        //        else
+        //            field.error = ErrCode.EPARAM;
+        //    }
+        //    else
+        //        param = null;
+        //    return param;
+        //}
 
-                farm = field.items.FirstOrDefault() as Farm;
-                service = field.items.FirstOrDefault() as Service;
-                treatmentPackage = field.items.FirstOrDefault() as TreatmentPackage;
-                if (farm != null)
-                {
-                    farm = field.items.Cast<Farm>().ToList().Find(i => (i.Name.val as string) == (value as string));
-                    if (farm != null)
-                        param = farm.Id;
-                    else
-                        param = null;
-                }
-                else if (service != null)
-                {
-                    service = field.items.Cast<Service>().ToList().Find(i => (i.Name.val as string) == (value as string));
-                    if (service != null)
-                        param = service.Id;
-                    else
-                        param = null;
-                }
-                else if (treatmentPackage != null)
-                {
-                    treatmentPackage = field.items.Cast<TreatmentPackage>().ToList().Find(i => i.description == (value as string));
-                    if (treatmentPackage != null)
-                        param = treatmentPackage.part_number;
-                    else
-                        param = null;
-                }
-            }
-            return param;
-        }
+        //public static Field getField(Field field, object param)
+        //{
+        //    if (field != null)
+        //    {
+        //        if (field.pcheck(param))
+        //        {
+        //            field.val = param;
+        //        }
+        //        else
+        //        {
+        //            field.val = field.dflt;
+        //        }
+        //    }
+        //    return field;
+        //}
 
-        public static object getObject(Field field, ref object entity, object param)
-        {
-            if (field != null)
-            {
-                Farm farm = entity as Farm;
-                Service service = entity as Service;
-                TreatmentPackage treatmentPackage = entity as TreatmentPackage;
-                if (farm != null)
-                    farm.Id = param as string;
-                if (service != null)
-                    service.Id = param as string;
-                if (treatmentPackage != null)
-                    treatmentPackage.part_number = param as string;
-            }
-            return entity;
-        }
+        //public static object setObject(Field field, ref object entity, object value, object param)
+        //{
+        //    if ((field != null) && (field.items != null))
+        //    {
+        //        entity = value;
+        //        Farm farm;
+        //        Service service;
+        //        TreatmentPackage treatmentPackage;
+        //
+        //        farm = field.items.FirstOrDefault() as Farm;
+        //        service = field.items.FirstOrDefault() as Service;
+        //        treatmentPackage = field.items.FirstOrDefault() as TreatmentPackage;
+        //        if (farm != null)
+        //        {
+        //            farm = field.items.Cast<Farm>().ToList().Find(i => (i.Name.val as string) == (value as string));
+        //            if (farm != null)
+        //                param = farm.Id;
+        //            else
+        //                param = null;
+        //        }
+        //        else if (service != null)
+        //        {
+        //            service = field.items.Cast<Service>().ToList().Find(i => (i.Name.val as string) == (value as string));
+        //            if (service != null)
+        //                param = service.Id;
+        //            else
+        //                param = null;
+        //        }
+        //        else if (treatmentPackage != null)
+        //        {
+        //            treatmentPackage = field.items.Cast<TreatmentPackage>().ToList().Find(i => i.description == (value as string));
+        //            if (treatmentPackage != null)
+        //                param = treatmentPackage.part_number;
+        //            else
+        //                param = null;
+        //        }
+        //    }
+        //    return param;
+        //}
 
-        public static bool checkValid(Field field)
+        //public static object getObject(Field field, ref object entity, object param)
+        //{
+        //    if (field != null)
+        //    {
+        //        Farm farm = entity as Farm;
+        //        Service service = entity as Service;
+        //        TreatmentPackage treatmentPackage = entity as TreatmentPackage;
+        //        if (farm != null)
+        //            farm.Id = param as string;
+        //        if (service != null)
+        //            service.Id = param as string;
+        //        if (treatmentPackage != null)
+        //            treatmentPackage.part_number = param as string;
+        //    }
+        //    return entity;
+        //}
+
+        public bool checkValid()
         {
-            if ((field != null) && (field.val != null) && (field.val != string.Empty) && ((field.val as string) != field.dflt))
+                int ivalue= stringToInt(val);
+            if ((val != null) && (val != string.Empty) && (val != dflt) && (ivalue >= 0))
             {
                 return true;
             }
             return false;
         }
 
-        public static bool checkValid(object param)
+        public bool checkValid(string param)
         {
             if (param != null)
             {
@@ -216,17 +240,70 @@ namespace WinAMBurner
             }
             return false;
         }
+        
+        //public bool icheckValid(string param)
+        //{
+        //    if (param != null)
+        //    {
+        //        int iparam = stringToInt(param);
+        //        if ((param != string.Empty) && (iparam > 0))
+        //            return true;
+        //    }
+        //    return false;
+        //}
 
-        public static bool icheckValid(object param)
-        {
-            if (param != null)
-            {
-                int iparam = stringToInt(param as string);
-                if ((param != string.Empty) && (iparam > 0))
-                    return true;
-            }
-            return false;
-        }
+        //public static bool checkValid(object param)
+        //{
+        //    if (param != null)
+        //    {
+        //        if (param != string.Empty)
+        //            return true;
+        //    }
+        //    return false;
+        //}
+        //
+        //public static bool icheckValid(object param)
+        //{
+        //    if (param != null)
+        //    {
+        //        int iparam = stringToInt(param as string);
+        //        if ((param != string.Empty) && (iparam > 0))
+        //            return true;
+        //    }
+        //    return false;
+        //}
+
+        //public int string2Int(string sVal)
+        //{
+        //    int iVal = 0;
+        //    int.TryParse(sVal, out iVal);
+        //    return iVal;
+        //}
+
+        //public string int2String(int? iVal)
+        //{
+        //    if (iVal != null)
+        //        return iVal.ToString();
+        //    return null;
+        //}
+
+        //public string bool2String(bool bVal)
+        //{
+        //    if (bVal)
+        //        return "Yes";
+        //    else
+        //        return "No";
+        //}
+
+        //public bool string2Bool(string sVal)
+        //{
+        //    if (sVal == null)
+        //        return false;
+        //    if (sVal.Equals("Yes"))
+        //        return true;
+        //    else
+        //        return false;
+        //}
 
         public static string boolToString(bool bVal)
         {
@@ -258,8 +335,10 @@ namespace WinAMBurner
             if (sVal != null)
             {
                 int iVal = 0;
-                int.TryParse(sVal, out iVal);
-                return iVal;
+                if (int.TryParse(sVal, out iVal))
+                    return iVal;
+                else
+                    return null;
             }
             return null;
         }
@@ -281,7 +360,7 @@ namespace WinAMBurner
             if (control != null)
             {
                 control.Text = control.Text.Trim();
-                val = text;
+                //val = text;
                 val = control.Text;
             }
         }
@@ -421,7 +500,7 @@ namespace WinAMBurner
             Control control = sender as Control;
             if (control != null)
             {
-                text = control.Text;
+                val = control.Text;
                 if (eventHandler != null)
                     eventHandler(sender, e);
             }
@@ -432,7 +511,7 @@ namespace WinAMBurner
             ComboBox comboBox = sender as ComboBox;
             if(comboBox != null)
             {
-                text = comboBox.SelectedItem;
+                val = comboBox.SelectedItem as string;
                 if (eventHandler != null)
                     eventHandler(sender, e);
             }
@@ -558,7 +637,8 @@ namespace WinAMBurner
             {
                 comboBox.Items.AddRange(items);
                 comboBox.Text = dflt;
-                text = dflt;
+                comboBox.ForeColor = Color.Silver;
+                //text = dflt;
                 val = dflt;
             }
         }
@@ -571,7 +651,8 @@ namespace WinAMBurner
                 while (comboBox.Items.Count > 0)
                     comboBox.Items.RemoveAt(0);
                 comboBox.Text = dflt;
-                text = dflt;
+                comboBox.ForeColor = Color.Silver;
+                //text = dflt;
                 val = dflt;
             }
         }

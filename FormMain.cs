@@ -177,6 +177,70 @@ namespace WinAMBurner
             am = new AM();
         }
 
+        //private async void buttonLogin_Click(object sender, EventArgs e)
+        //{
+        //    LLogin login = new LLogin(forgot_Click, buttonLogin_Click);
+        //    login.Tablet.val = TabletNo;
+        //    if (login != null)
+        //        login.drawFields(this);
+        //    if ((login != null) && (web != null))
+        //    {
+        //        login.Email.control.Text = "yael@gmail.com";
+        //        login.Password.control.Text = "yael1234";
+        //        //        //login.email = "yaelv@armentavet.com";
+        //        //        //login.password = "Yyyaeeel123";
+        //        //        //login.tablet = "kjh1g234123";
+        //        login.updateParams();
+        //        login.setFields(login.jlogin);
+        //        login.send<JLogin, JRLogin>(login.jlogin, "api/p/login/", web.login,
+        //            "Login Success", "Login Failed", false,
+        //            new Gui.dResponseOk<JRLogin>(async (rlogin) =>
+        //            {
+        //                if (rlogin.token != null)
+        //                {
+        //                    // if ok
+        //                    user = rlogin.user;
+        //                    //user.is_password_changed = false;
+        //                    if (!user.is_password_changed)
+        //                    {
+        //                        password = new Password(buttonChangePassword_Click);
+        //                        if (password != null)
+        //                        {
+        //                            //password.notify(new List<string>() { "Please Enter a new password.",
+        //                            //    "password should be complex and at least 8 chars long." }, NotifyButtons.OK, "Change Password");
+        //                            password.drawFields(this);
+        //                            return ErrCode.OK;
+        //                        }
+        //                        return ErrCode.ERROR;
+        //                    }
+        //                    JsonDocument jsonDocument = await web.getConstants();
+        //                    if (jsonDocument != null)
+        //                        Const.parseConstants(jsonDocument);
+        //                    farms = await web.entityGet<List<Farm>>("api/p/farms/");
+        //                    if (farms != null)
+        //                        farms = farms.Where(f => f.is_active).ToList();
+        //                    services = await web.entityGet<List<Service>>("api/p/service_providers/");
+        //                    treatmentPackages = await web.entityGet<List<TreatmentPackage>>("api/p/treatment_package/");
+        //                    if (treatmentPackages != null)
+        //                        treatmentPackages = treatmentPackages.Where(t => t.is_active).ToList();
+        //                    settings = await web.entityGet<SettingsJson>("api/p/settings/");
+        //
+        //                    if ((user != null) && (farms != null) && (services != null) && (treatmentPackages != null) && (settings != null) &&
+        //                        (Const.DCOUNTRY != null) && (Const.COUNTRY != null) && (Const.DSTATE != null) && (Const.STATE != null) &&
+        //                        (Const.FARM_TYPE != null) && (Const.BREED_TYPE != null) && (Const.MILKING_SETUP_TYPE != null) &&
+        //                        (Const.LOCATION_OF_TREATMENT_TYPE != null) && (Const.CONTRACT_TYPE != null))
+        //                    {
+        //                        screenActionShow();
+        //                    }
+        //                    return ErrCode.OK;
+        //                }
+        //                return ErrCode.ERROR;
+        //            }),
+        //            messagesErr: new List<string>() { "Login failed, check your username and password,",
+        //                "make sure your tablet is connected to the internet" });
+        //    }
+        //}
+
         private async void buttonLogin_Click(object sender, EventArgs e)
         {
             if ((login != null) && (web != null))
@@ -509,10 +573,8 @@ namespace WinAMBurner
             List<string> l = null;
             
             if (entity != null)
-                l = new List<string> { entity.Name.val as string, entity.Country.val as string + 
-                    ((entity.State.val == string.Empty) ? string.Empty : " / ") + 
-                    entity.State.val as string, entity.City.val as string, 
-                    entity.Address.val as string, entity.ContractType.val as string };
+                l = new List<string> { entity.Name.val, entity.Country.val + ((entity.State.val == string.Empty) ? string.Empty : " / ") + 
+                    entity.State.val, entity.City.val, entity.Address.val, entity.ContractType.val};
             
             return l;
         }
@@ -624,7 +686,7 @@ namespace WinAMBurner
         {
             hide();
             action = new Action(am, TabletNo, farms.ToArray(), services.ToArray(),
-                comboBoxFarm_SelectedIndexChanged, radioButton_CheckedChanged,
+                comboBoxPartNumber_SelectedIndexChanged, comboBoxFarm_SelectedIndexChanged, radioButton_CheckedChanged,
                 buttonTreatCansel_Click, buttonTreatApprove_Click);
             if ((action != null) && (action.RadioFarm != null) && (action.Progress != null))
             {
@@ -639,22 +701,44 @@ namespace WinAMBurner
             }
         }
 
+        private void comboBoxPartNumber_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            ComboBox comboBox = sender as ComboBox;
+            if (comboBox != null)
+            {
+                TreatmentPackage treatmentPackage = comboBox.SelectedItem as TreatmentPackage;
+                if ((treatmentPackage != null) &&(settings != null))
+                {
+                    action.PartNumber.val = treatmentPackage.PartNumber;
+                    am.MaxiSet = (uint)(treatmentPackage.amount_of_treatments * settings.number_of_pulses_per_treatment);
+                }
+            }
+        }
+
         private void comboBoxFarm_SelectedIndexChanged(object sender, EventArgs e)
         {
-            ComboBox comboBoxId = sender as ComboBox;
+            ComboBox comboBox = sender as ComboBox;
             if ((action != null) && (action.PartNumber != null))
             {
                 ComboBox comboBoxPN = action.PartNumber.control as ComboBox;
-                if ((comboBoxId != null) && (comboBoxId.SelectedItem != null) && (comboBoxPN != null) && (treatmentPackages != null))
+                if ((comboBox != null) && (comboBox.SelectedItem != null) && (comboBoxPN != null) && (treatmentPackages != null))
                 {
                     action.PartNumber.removeItems();
-                    Farm farm = comboBoxId.SelectedItem as Farm;
-                    Service service = comboBoxId.SelectedItem as Service;
+                    Farm farm = comboBox.SelectedItem as Farm;
+                    Service service = comboBox.SelectedItem as Service;
                     Entity entity = null;
                     if (farm != null)
+                    {
                         entity = farm;
+                        action.Farm.val = farm.Id;
+                        //action.Service.val = null;
+                    }
                     if (service != null)
+                    {
                         entity = service;
+                        //action.Farm.val = null;
+                        action.Service.val = service.Id;
+                    }
                     if (entity != null)
                     {
                         if ((treatmentPackages != null) && (settings != null) && (am != null))
@@ -670,7 +754,6 @@ namespace WinAMBurner
                             //action.PartNumber.addItems(treatmentPackages.Where(t => (t.contract_type == entity.contract_type)).ToArray());
                         }
                     }
-                    comboBoxPN.Text = action.PartNumber.dflt;
                 }
             }
         }
@@ -707,10 +790,12 @@ namespace WinAMBurner
                             action.Service.control.Visible = true;
                             action.Service.view = true;
                         }
-                        //action.Farm.control.Text = action.Farm.dflt;
-                        //action.Farm.val = action.Farm.dflt;
-                        //action.Service.control.Text = action.Service.dflt;
-                        //action.Service.val = action.Service.dflt;
+                        action.Farm.control.Text = action.Farm.dflt;
+                        action.Farm.control.ForeColor = Color.Silver;
+                        action.Farm.val = action.Farm.dflt;
+                        action.Service.control.Text = action.Service.dflt;
+                        action.Service.control.ForeColor = Color.Silver;
+                        action.Service.val = action.Service.dflt;
                     }
                     else
                     {
@@ -769,24 +854,25 @@ namespace WinAMBurner
 
                 ProgressBar progressBar = action.Progress.lcontrol as ProgressBar;
 
-                action.updateParams();
+                //action.updateParams();
 
                 if ((errcode = action.checkParams()) == ErrCode.OK)
                 {
-                    Farm farm = farms.Find(f => f.id == action.farm);
-                    Service service = services.Find(s => s.id == action.service_provider);
-                    TreatmentPackage treatmentPackage = treatmentPackages.Find(t => t.part_number == action.part_number);
-                    if (((farm != null) || (service != null)) && (treatmentPackage != null))
+                    //Farm farm = farms.Find(f => f.id == action.farm);
+                    //Service service = services.Find(s => s.id == action.service_provider);
+                    //TreatmentPackage treatmentPackage = treatmentPackages.Find(t => t.part_number == action.part_number);
+                    //if (((farm != null) || (service != null)) && (treatmentPackage != null))
+                    if (((action.farm != null) || (action.service_provider != null)))
                     {
-                        am.MaxiSet = (uint)(treatmentPackage.amount_of_treatments * settings.number_of_pulses_per_treatment);
+                        //am.MaxiSet = (uint)(treatmentPackage.amount_of_treatments * settings.number_of_pulses_per_treatment);
                         //uint maxi = am.Maxi;
                         if ((am.Maxi + am.MaxiSet) < settings.max_am_pulses)
                         {
                             DialogResult dialogResult = action.notify(new List<string>() {
                                     string.Format("{0} treatments will be added",am.MaxiSet / settings.number_of_pulses_per_treatment),
                                     string.Format("to the AM - SN {0}", am.SNum),
-                                    (farm != null) ? string.Format("Farm {0}", farm.Name.val as string) :
-                                    ((service != null) ? string.Format("Service Provider {0}", service.Name.val as string) : string.Empty),
+                                    (action.farm != null) ? string.Format("Farm {0}", farms.Find(f => f.id == action.farm).Name.val) :
+                                    ((action.service_provider != null) ? string.Format("Service Provider {0}", services.Find(s => s.id == action.service_provider).Name.val) : string.Empty),
                                     "Press the button to proceed"}, NotifyButtons.YesNo, caption: "Approve");
                             if (dialogResult == DialogResult.Yes)
                             {
@@ -915,7 +1001,7 @@ namespace WinAMBurner
             {
                 if (richTextBox.Text != search.dflt)
                 {
-                    table = entityTableGet(entities.Where(e => (e.Name.val != null) && (e.Name.val.ToString().ToLower().Contains(richTextBox.Text.ToLower()))).ToList());
+                    table = entityTableGet(entities.Where(e => (e.Name.val != null) && (e.Name.val.ToLower().Contains(richTextBox.Text.ToLower()))).ToList());
                     dataGridView1.DataSource = table;
                 }
             }
@@ -975,7 +1061,7 @@ namespace WinAMBurner
             if ((entities != null) && (dataGridView1 != null) && (dataGridView1.CurrentRow != null) && (dataGridView1.CurrentRow.Cells != null)
                 && (dataGridView1.CurrentRow.Cells.Count > 0))
                 return entities.ToList().Find(e => ((e.Name.val != null) && 
-                    ((e.Name.val as string) == (dataGridView1.CurrentRow.Cells[0].Value as string))));
+                    (e.Name.val == (dataGridView1.CurrentRow.Cells[0].Value as string))));
             return null;
         }
 
