@@ -158,6 +158,7 @@ namespace WinAMBurner
         public delegate Task<JsonDocument> dWeb<TJson>(TJson jentity, string entityUrl);
         public delegate Task<ErrCode> dResponseOk<T>(T entity);
         public delegate ErrCode dCheck();
+        public delegate Task<ErrCode> dApprove();
         public delegate Task<List<string>> dResponseErr(ErrCode errcode);
 
         public Field Picture { get; set; }
@@ -261,21 +262,21 @@ namespace WinAMBurner
         //    }
         //}
 
-        public void updateParams()
-        {
-            //PropertyInfo [] props = typeof(T).GetProperties();
-            foreach (PropertyInfo prop in GetType().GetProperties())
-            {
-                //Console.WriteLine("{0} = {1}", prop.Name, prop.GetValue(user, null));
-                Field field = prop.GetValue(this) as Field;
-                if (field != null)
-                {
-                    field.updateField();
-                    prop.SetValue(this, field);
-                }
-                //prop.SetValue(entity, control.Text);
-            }
-        }
+        //public void updateParams()
+        //{
+        //    //PropertyInfo [] props = typeof(T).GetProperties();
+        //    foreach (PropertyInfo prop in GetType().GetProperties())
+        //    {
+        //        //Console.WriteLine("{0} = {1}", prop.Name, prop.GetValue(user, null));
+        //        Field field = prop.GetValue(this) as Field;
+        //        if (field != null)
+        //        {
+        //            field.updateField();
+        //            prop.SetValue(this, field);
+        //        }
+        //        //prop.SetValue(entity, control.Text);
+        //    }
+        //}
 
         public ErrCode checkParams()
         {
@@ -339,7 +340,7 @@ namespace WinAMBurner
         }
 
         public async Task<ErrCode> send<TJson, T>(TJson jentity, string url, dWeb<TJson> dweb, string captionOk, string captionErr,
-            bool showMsgs, dResponseOk<T> dresponseOk, dCheck dcheck = null, dResponseErr dresponseErr = null, List<string> messagesOk = null, List<string> messagesErr = null)
+            bool showMsgs, dResponseOk<T> dresponseOk, dCheck dcheck = null, dApprove dapprove = null, dResponseErr dresponseErr = null, List<string> messagesOk = null, List<string> messagesErr = null)
         {
             ErrCode errcode = ErrCode.ERROR;
 
@@ -355,25 +356,38 @@ namespace WinAMBurner
 
                 if (dcheck != null)
                     errcode = dcheck();
-                if ((errcode = checkParams()) == ErrCode.OK)
+                else
+                    errcode = ErrCode.OK;
+
+                if(errcode == ErrCode.OK)
                 {
-                    jsonDocument = await dweb(jentity, url);
-                    if (jsonDocument != null)
+                    if ((errcode = checkParams()) == ErrCode.OK)
                     {
-                        responseParse(jsonDocument, errors, messages);
-
-                        try { rentity = JsonSerializer.Deserialize<T>(jsonDocument.RootElement.ToString()); }
-                        catch (Exception ex) { LogFile.logWrite(ex.ToString()); }
-
-                        if (rentity != null)
-                            errcode = ErrCode.OK;
+                        if (dapprove != null)
+                            errcode = await dapprove();
                         else
-                            errcode = ErrCode.EPARAM;
-                    }
-                    else
-                        errcode = ErrCode.EPARAM;
-                }
+                            errcode = ErrCode.OK;
 
+                        if (errcode == ErrCode.OK)
+                        {
+                            jsonDocument = await dweb(jentity, url);
+                            if (jsonDocument != null)
+                            {
+                                responseParse(jsonDocument, errors, messages);
+
+                                try { rentity = JsonSerializer.Deserialize<T>(jsonDocument.RootElement.ToString()); }
+                                catch (Exception ex) { LogFile.logWrite(ex.ToString()); }
+
+                                if (rentity != null)
+                                    errcode = ErrCode.OK;
+                                else
+                                    errcode = ErrCode.EPARAM;
+                            }
+                            else
+                                errcode = ErrCode.EPARAM;
+                        }
+                    }
+                }
                 if (errcode == ErrCode.OK)
                 {
                     if (showMsgs && (messages.Count() > 0))
@@ -405,7 +419,7 @@ namespace WinAMBurner
         public DialogResult notify(List<string> text, NotifyButtons notifyButtons, string caption)
         {
             DialogResult dialogResult = default;
-            if (text.Count > 0)
+            if ((text != null) && (text.Count > 0))
             {
                 FormNotify formNotify = new FormNotify(text, notifyButtons, caption);
                 formNotify.ShowDialog();
@@ -1021,14 +1035,14 @@ namespace WinAMBurner
 
         private void initFields()
         {
-            PartNumber = new Field(type: typeof(ComboBox), ltype: typeof(Label), dflt: "Part Number", ltext: "Add treatments to AM – SN ", placev: Place.Eight, lplacev: Place.Seven);
-            Farm = new Field(type: typeof(ComboBox), ltype: typeof(Label), dflt: "Farm / Service provider", ltext: "Select Farm / Service provider", placev: Place.Five, lplacev: Place.Four);
-            Service = new Field(type: typeof(ComboBox), ltype: typeof(Label), dflt: "Farm / Service provider", ltext: "Select Farm / Service provider", placev: Place.Five, lplacev: Place.Four);
+            PartNumber = new Field(type: typeof(ComboBox), ltype: typeof(Label), dflt: "Part Number", ltext: "Add treatments to AM – SN ", width: Field.DefaultWidthLarge, placev: Place.Eight, lplacev: Place.Seven);
+            Farm = new Field(type: typeof(ComboBox), ltype: typeof(Label), dflt: "Farm / Service provider", ltext: "Select Farm / Service provider", width: Field.DefaultWidthLarge, placev: Place.Five, lplacev: Place.Four);
+            Service = new Field(type: typeof(ComboBox), ltype: typeof(Label), dflt: "Farm / Service provider", ltext: "Select Farm / Service provider", width: Field.DefaultWidthLarge, placev: Place.Five, lplacev: Place.Four);
 
             Picture = new Field(ltype: typeof(PictureBox), lplacev: Place.One);
             Welcome = new Field(ltype: typeof(Label), ltext: "Welcome distributor", font: Field.DefaultFontLarge, lplacev: Place.Two);
-            RadioFarm = new Field(ltype: typeof(RadioButton), ltext: "Farm", lplaceh: Place.Two, lplacev: Place.Five);
-            RadioService = new Field(ltype: typeof(RadioButton), ltext: "Service provider", lplaceh: Place.Two, lplacev: Place.Six);
+            RadioFarm = new Field(ltype: typeof(RadioButton), ltext: "Farm", width: Field.DefaultWidthLarge, lplaceh: Place.Two, lplacev: Place.Five);
+            RadioService = new Field(ltype: typeof(RadioButton), ltext: "Service provider", width: Field.DefaultWidthLarge, lplaceh: Place.Two, lplacev: Place.Six);
             Progress = new Field(ltype: typeof(ProgressBar), width: Field.DefaultWidthLarge, height: Field.DefaultHeightSmall, lplacev: Place.Ten);
             Cancel = new Field(ltype: typeof(Button), ltext: "Cancel", lplaceh: Place.Five, lplacev: Place.End);
             Approve = new Field(ltype: typeof(Button), ltext: "Approve", lplaceh: Place.Two, lplacev: Place.End);

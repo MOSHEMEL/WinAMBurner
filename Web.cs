@@ -12,7 +12,9 @@ namespace WinAMBurner
 {
     class Web
     {
-        private const string URL = "http://qa.armentavet.co/";
+        private const string TEST_URL = "http://qa.armentavet.co/";
+        private const string URL = TEST_URL;
+
         private readonly HttpClient client = new HttpClient();
 
         public async Task<JsonDocument> login<T>(T login, string entityUrl)

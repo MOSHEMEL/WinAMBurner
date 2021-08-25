@@ -355,15 +355,15 @@ namespace WinAMBurner
         //        this.val = val;
         //}
 
-        public void updateField()
-        {
-            if (control != null)
-            {
-                control.Text = control.Text.Trim();
-                //val = text;
-                val = control.Text;
-            }
-        }
+        //public void updateField()
+        //{
+        //    if (control != null)
+        //    {
+        //        control.Text = control.Text.Trim();
+        //        //val = text;
+        //        val = control.Text;
+        //    }
+        //}
 
         public ErrCode checkField()
         {
@@ -636,10 +636,10 @@ namespace WinAMBurner
             if (comboBox != null)
             {
                 comboBox.Items.AddRange(items);
-                comboBox.Text = dflt;
-                comboBox.ForeColor = Color.Silver;
+                comboBox.Text = string.Empty;
+                //comboBox.ForeColor = Color.Silver;
                 //text = dflt;
-                val = dflt;
+                //val = dflt;
             }
         }
 
@@ -650,10 +650,10 @@ namespace WinAMBurner
             {
                 while (comboBox.Items.Count > 0)
                     comboBox.Items.RemoveAt(0);
-                comboBox.Text = dflt;
-                comboBox.ForeColor = Color.Silver;
+                comboBox.Text = string.Empty;
+                //comboBox.ForeColor = Color.Silver;
                 //text = dflt;
-                val = dflt;
+                //val = dflt;
             }
         }
 

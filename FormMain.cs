@@ -409,20 +409,20 @@ namespace WinAMBurner
                     }),
                     dcheck: new Gui.dCheck(() =>
                     {
-                        ErrCode err = ErrCode.OK;
+                        ErrCode errcode = ErrCode.OK;
                         if (password.new_password1 != password.new_password2)
-                            err = ErrCode.EMATCH;
+                            errcode = ErrCode.EMATCH;
                         else if (password.new_password1 == null)
-                            err = ErrCode.ELENGTH;
+                            errcode = ErrCode.ELENGTH;
                         else if (password.new_password1.Length < 8)
-                            err = ErrCode.ELENGTH;
+                            errcode = ErrCode.ELENGTH;
                         
-                        if (err != ErrCode.OK)
+                        if (errcode != ErrCode.OK)
                         {
                             password.Password1.error = ErrCode.EPARAM;
                             password.Password2.error = ErrCode.EPARAM;
                         }
-                        return err;
+                        return errcode;
                     }),
                     dresponseErr: new Gui.dResponseErr(async (errcode) =>
                     {
@@ -746,11 +746,16 @@ namespace WinAMBurner
                             //action.PartNumber.items = treatmentPackages.Where(t => (t.contract_type == entity.contract_type)).ToArray();
                             if ((action.PartNumber.items = treatmentPackages.Where(t => (t.contract_type == entity.contract_type) &&
                                  ((t.amount_of_treatments * settings.number_of_pulses_per_treatment + am.Maxi) < settings.max_am_pulses)).ToArray()) != null)
+                            {
                                 action.PartNumber.addItems(action.PartNumber.items);
-                            else
-                                action.notify(new List<string>() { "The attached AM reached the max allowed treatments. ",
-                                    "There are no available part numbers.",
-                                    "Please replace the AM or contact support. " }, NotifyButtons.OK, "Part Number Error");
+                                action.PartNumber.control.Text = action.PartNumber.dflt;
+                                action.PartNumber.control.ForeColor = Color.Silver;
+                                action.PartNumber.val = action.PartNumber.dflt;
+                                if (action.PartNumber.items.Length == 0)
+                                    action.notify(new List<string>() { "The attached AM reached the max allowed treatments. ",
+                                       "There are no available part numbers.",
+                                       "Please replace the AM or contact support. " }, NotifyButtons.OK, "Part Number Error");
+                            }
                             //action.PartNumber.addItems(treatmentPackages.Where(t => (t.contract_type == entity.contract_type)).ToArray());
                         }
                     }
@@ -800,8 +805,9 @@ namespace WinAMBurner
                     else
                     {
                         action.PartNumber.removeItems();
-                        //action.PartNumber.control.Text = action.PartNumber.dflt;
-                        //action.PartNumber.val = action.PartNumber.dflt;
+                        action.PartNumber.control.Text = action.PartNumber.dflt;
+                        action.PartNumber.control.ForeColor = Color.Silver;
+                        action.PartNumber.val = action.PartNumber.dflt;
                     }
                 }
             }
@@ -850,100 +856,154 @@ namespace WinAMBurner
                 ErrCode errcode = ErrCode.ERROR;
                 uint maxi = am.Maxi;
 
-                action.disableControls();
+                //action.disableControls();
 
                 ProgressBar progressBar = action.Progress.lcontrol as ProgressBar;
 
                 //action.updateParams();
 
-                if ((errcode = action.checkParams()) == ErrCode.OK)
-                {
-                    //Farm farm = farms.Find(f => f.id == action.farm);
-                    //Service service = services.Find(s => s.id == action.service_provider);
-                    //TreatmentPackage treatmentPackage = treatmentPackages.Find(t => t.part_number == action.part_number);
-                    //if (((farm != null) || (service != null)) && (treatmentPackage != null))
-                    if (((action.farm != null) || (action.service_provider != null)))
+                //if ((errcode = action.checkParams()) == ErrCode.OK)
+                //{
+                //    //Farm farm = farms.Find(f => f.id == action.farm);
+                //    //Service service = services.Find(s => s.id == action.service_provider);
+                //    //TreatmentPackage treatmentPackage = treatmentPackages.Find(t => t.part_number == action.part_number);
+                //    //if (((farm != null) || (service != null)) && (treatmentPackage != null))
+                //    if (((action.farm != null) || (action.service_provider != null)))
+                //    {
+                //        //am.MaxiSet = (uint)(treatmentPackage.amount_of_treatments * settings.number_of_pulses_per_treatment);
+                //        //uint maxi = am.Maxi;
+                //        if ((am.Maxi + am.MaxiSet) < settings.max_am_pulses)
+                //        {
+                //            DialogResult dialogResult = action.notify(new List<string>() {
+                //                    string.Format("{0} treatments will be added",am.MaxiSet / settings.number_of_pulses_per_treatment),
+                //                    string.Format("to the AM - SN {0}", am.SNum),
+                //                    (action.farm != null) ? string.Format("Farm {0}", farms.Find(f => f.id == action.farm).Name.val) :
+                //                    ((action.service_provider != null) ? string.Format("Service Provider {0}", services.Find(s => s.id == action.service_provider).Name.val) : string.Empty),
+                //                    "Press the button to proceed"}, NotifyButtons.YesNo, caption: "Approve");
+                //            if (dialogResult == DialogResult.Yes)
+                //            {
+                //                if (progressBar != null)
+                //                    progressBar.Visible = true;
+                //                am.serialPortProgressEvent += new EventHandler(progressBar_Callback);
+                //                if (progressBar != null)
+                //                    progressBar.Value = progressBar.Minimum;
+                //
+                //                if ((errcode = await am.AMDataWrite()) == ErrCode.OK)
+                //                {
+                //                    if ((errcode = await am.AMDataRead()) == ErrCode.OK)
+                //                    {
+                await action.send<ActionJson, Action>(action, "api/p/actions/", web.entityAdd,
+                    "Approve Success", "Approve Failed", false,
+                    new Gui.dResponseOk<Action>(async (raction) =>
                     {
-                        //am.MaxiSet = (uint)(treatmentPackage.amount_of_treatments * settings.number_of_pulses_per_treatment);
-                        //uint maxi = am.Maxi;
-                        if ((am.Maxi + am.MaxiSet) < settings.max_am_pulses)
+                        action.notify(new List<string>() {
+                                string.Format("The original amount of treatments: {0}", maxi / settings.number_of_pulses_per_treatment),
+                                string.Format("Added treatments: {0}",am.MaxiSet / settings.number_of_pulses_per_treatment),
+                                string.Format("The treatments available on AM - SN {1}: {0}", am.Maxi / settings.number_of_pulses_per_treatment, am.SNum),
+                                "please disconnect the AM"}, NotifyButtons.OK, "Approve Failed");
+                        clearAM();
+                        screenActionShow();
+                        return ErrCode.OK;
+                    }),
+                    dapprove: new Gui.dApprove(async () =>
+                    {
+                        if (((action.farm != null) || (action.service_provider != null)))
                         {
-                            DialogResult dialogResult = action.notify(new List<string>() {
-                                    string.Format("{0} treatments will be added",am.MaxiSet / settings.number_of_pulses_per_treatment),
-                                    string.Format("to the AM - SN {0}", am.SNum),
-                                    (action.farm != null) ? string.Format("Farm {0}", farms.Find(f => f.id == action.farm).Name.val) :
-                                    ((action.service_provider != null) ? string.Format("Service Provider {0}", services.Find(s => s.id == action.service_provider).Name.val) : string.Empty),
-                                    "Press the button to proceed"}, NotifyButtons.YesNo, caption: "Approve");
-                            if (dialogResult == DialogResult.Yes)
+                            if ((am.Maxi + am.MaxiSet) < settings.max_am_pulses)
                             {
-                                if (progressBar != null)
-                                    progressBar.Visible = true;
-                                am.serialPortProgressEvent += new EventHandler(progressBar_Callback);
-                                if (progressBar != null)
-                                    progressBar.Value = progressBar.Minimum;
-
-                                if ((errcode = await am.AMDataWrite()) == ErrCode.OK)
+                                DialogResult dialogResult = action.notify(new List<string>() {
+                                            string.Format("{0} current treatments available",am.Maxi / settings.number_of_pulses_per_treatment),
+                                            string.Format("{0} treatments will be added",am.MaxiSet / settings.number_of_pulses_per_treatment),
+                                            string.Format("AM - SN: {0}", am.SNum),
+                                            (action.farm != null) ? string.Format("Farm: {0}", farms.Find(f => f.id == action.farm).Name.val) :
+                                            ((action.service_provider != null) ? string.Format("Service Provider: {0}", services.Find(s => s.id == action.service_provider).Name.val) : string.Empty),
+                                            "Press the button to proceed"}, NotifyButtons.YesNo, caption: "Approve");
+                                if (dialogResult == DialogResult.Yes)
                                 {
-                                    if ((errcode = await am.AMDataRead()) == ErrCode.OK)
-                                    {
-                                        await action.send<ActionJson, Action>(action, "api/p/actions/", web.entityAdd,
-                                            "Approve Success", "Approve Failed", false,
-                                            new Gui.dResponseOk<Action>(async (raction) =>
-                                            {
-                                                clearAM();
-                                                screenActionShow();
-                                                return ErrCode.OK;
-                                            }),
-                                            dresponseErr: new Gui.dResponseErr(async (errcode) =>
-                                            {
-                                                am.MaxiSet = 0;
-                                                if (progressBar != null)
-                                                    progressBar.Value = progressBar.Minimum;
+                                    if (progressBar != null)
+                                        progressBar.Visible = true;
+                                    am.serialPortProgressEvent += new EventHandler(progressBar_Callback);
+                                    if (progressBar != null)
+                                        progressBar.Value = progressBar.Minimum;
 
-                                                if (await am.AMDataWrite() == ErrCode.OK)
-                                                {
-                                                    if (await am.AMDataRead() == ErrCode.OK)
-                                                        return new List<string>() { "Approve failed,", "AM sucsessfully restored to original values" };
-                                                    else
-                                                        return new List<string>() { "Approve failed,", "Faild to restore to original values" };
-                                                }
-                                                else
-                                                    return new List<string>() { "Approve failed,", "Faild to restore to original values" };
-                                            }),
-                                            messagesOk: new List<string>() {
-                                                        string.Format("The original amount of treatments: {0}", maxi / settings.number_of_pulses_per_treatment),
-                                                        string.Format("Added treatments: {0}",am.MaxiSet / settings.number_of_pulses_per_treatment),
-                                                        string.Format("The treatments available on AM - SN {1}: {0}", am.Maxi / settings.number_of_pulses_per_treatment, am.SNum),
-                                                        "please disconnect the AM"},
-                                            messagesErr: new List<string>() { "Restoring AM" });
+                                    if ((errcode = await am.AMDataWrite()) == ErrCode.OK)
+                                    {
+                                        if ((errcode = await am.AMDataRead()) == ErrCode.OK)
+                                        {
+                                            return ErrCode.OK;
+                                        }
                                     }
                                 }
+                                else
+                                    errcode = ErrCode.CANSEL;
                             }
                             else
-                                errcode = ErrCode.CANSEL;
+                                errcode = ErrCode.EMAX;
                         }
                         else
-                            errcode = ErrCode.MAX;
-                    }
-                    else
-                        errcode = ErrCode.EPARAM;
-                }
-                else
-                    errcode = ErrCode.EPARAM;
+                            errcode = ErrCode.EPARAM;
+                        return errcode;
+                    }),
+                    dresponseErr: new Gui.dResponseErr(async (errcode) =>
+                    {
+                        if (progressBar != null)
+                            progressBar.Visible = false;
+                        if (errcode == ErrCode.EPARAM)
+                            return new List<string>() { "Wrong parameters,", "please choose the Farm / Service provider",
+                                "and the number of treatments" };
+                        else if (errcode == ErrCode.EMAX)
+                            return new List<string>() { "Wrong part number,", "the maximum number of treatments reached,",
+                                "please choose a smaller number of treatments" };
+                        else if (errcode == ErrCode.EERASE)
+                        {
+                            action.notify(new List<string>() { "Approve failed, restoring AM" }, NotifyButtons.OK, "Approve Failed");
+                            am.MaxiSet = 0;
+                            if (progressBar != null)
+                                progressBar.Value = progressBar.Minimum;
 
-                if (progressBar != null)
-                    progressBar.Visible = false;
+                            if (await am.AMDataWrite() == ErrCode.OK)
+                            {
+                                if (await am.AMDataRead() == ErrCode.OK)
+                                    return new List<string>() { "Approve failed,", "AM sucsessfully restored to original values" };
+                                else
+                                    return new List<string>() { "Approve failed,", "Faild to restore to original values" };
+                            }
+                            else
+                                return new List<string>() { "Approve failed,", "Faild to restore to original values" };
+                        }
+                        else if (errcode == ErrCode.CANSEL)
+                            return null;
 
-                if (errcode == ErrCode.EPARAM)
-                    action.notify(new List<string>() { "Wrong parameters,", "please choose the Farm / Service provider",
-                    "and the number of treatments" }, NotifyButtons.OK, "Approve Fail");
-                else if (errcode == ErrCode.MAX)
-                    action.notify(new List<string>() { "Wrong part number,", "the maximum number of treatments reached,",
-                    "please choose a smaller number of treatments" }, NotifyButtons.OK, "Approve Fail");
-                else if (errcode == ErrCode.ERROR)
-                    action.notify(new List<string>() { "The operation failed, the treatments were not added" }, NotifyButtons.OK, "Approve Fail");
-                if (errcode != ErrCode.OK)
-                    action.enableControls();
+                        return new List<string>() { "The operation failed, the treatments were not added" };
+                    }));
+                //                    }
+                //                }
+                //            }
+                //            else
+                //                errcode = ErrCode.CANSEL;
+                //        }
+                //        else
+                //            errcode = ErrCode.MAX;
+                //    }
+                //    else
+                //        errcode = ErrCode.EPARAM;
+                //}
+                //else
+                //    errcode = ErrCode.EPARAM;
+
+                //if (progressBar != null)
+                //    progressBar.Visible = false;
+
+                //if (errcode == ErrCode.EPARAM)
+                //    action.notify(new List<string>() { "Wrong parameters,", "please choose the Farm / Service provider",
+                //    "and the number of treatments" }, NotifyButtons.OK, "Approve Fail");
+                //else if (errcode == ErrCode.EMAX)
+                //    action.notify(new List<string>() { "Wrong part number,", "the maximum number of treatments reached,",
+                //    "please choose a smaller number of treatments" }, NotifyButtons.OK, "Approve Fail");
+                //else if (errcode == ErrCode.ERROR)
+                //    action.notify(new List<string>() { "The operation failed, the treatments were not added" }, NotifyButtons.OK, "Approve Fail");
+                //if (errcode != ErrCode.OK)
+                //    action.enableControls();
             }
         }
 

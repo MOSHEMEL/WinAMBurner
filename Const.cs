@@ -97,8 +97,8 @@ namespace WinAMBurner
         OK = 0,
         ERROR = -1,
         EPARAM = -2,
-        MAX = -3,
-        ERASE = -4,
+        EMAX = -3,
+        EERASE = -4,
         CANSEL = -5,
         EMATCH = -6,
         ELENGTH = -7
