@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -16,24 +17,11 @@ namespace WinAMBurner
         public string tablet { get; set; }
     }
 
-    //class JLogin
-    //{
-    //    public string email { get; set; }
-    //    public string password { get; set; }
-    //    public string tablet { get; set; }
-    //}
-
     interface LoginResponseJson
     {
         public string token { get; set; }
         public UserJson user { get; set; }
     }
-
-    //class JRLogin
-    //{
-    //    public string token { get; set; }
-    //    public UserJson user { get; set; }
-    //}
 
     class UserJson
     {
@@ -216,69 +204,7 @@ namespace WinAMBurner
             }
         }
 
-        //public void getFields<TJson>(TJson jentity)
-        //{
-        //    //PropertyInfo [] props = typeof(T).GetProperties();
-        //    PropertyInfo[] props = GetType().GetProperties();
-        //    PropertyInfo[] jprops = typeof(TJson).GetProperties();
-        //    for (int i = 0; i < jprops.Length; i++)
-        //    {
-        //        //Console.WriteLine("{0} = {1}", prop.Name, prop.GetValue(user, null));
-        //        if (i < props.Length)
-        //        {
-        //            object jval = jprops[i].GetValue(jentity);
-        //            PropertyInfo prop = props[i];
-        //            Field field = props[i].GetValue(this) as Field;
-        //            if (field != null)
-        //            {
-        //                field.val = jval;
-        //                prop.SetValue(this, field);
-        //            }
-        //        }
-        //        //prop.SetValue(entity, control.Text);
-        //    }
-        //}
-        
-        //public void setFields<TJson>(TJson jentity)
-        //{
-        //    //PropertyInfo [] props = typeof(T).GetProperties();
-        //    PropertyInfo[] props = GetType().GetProperties();
-        //    PropertyInfo[] jprops = typeof(TJson).GetProperties();
-        //    for (int i = 0; i < jprops.Length; i++)
-        //    {
-        //        //Console.WriteLine("{0} = {1}", prop.Name, prop.GetValue(user, null));
-        //        if (i < props.Length)
-        //        {
-        //            object jval = jprops[i].GetValue(jentity);
-        //            PropertyInfo jprop = jprops[i];
-        //            Field field = props[i].GetValue(this) as Field;
-        //            if (field != null)
-        //            {
-        //                jval = field.val;
-        //                jprop.SetValue(jentity, jval);
-        //            }
-        //        }
-        //        //prop.SetValue(entity, control.Text);
-        //    }
-        //}
-
-        //public void updateParams()
-        //{
-        //    //PropertyInfo [] props = typeof(T).GetProperties();
-        //    foreach (PropertyInfo prop in GetType().GetProperties())
-        //    {
-        //        //Console.WriteLine("{0} = {1}", prop.Name, prop.GetValue(user, null));
-        //        Field field = prop.GetValue(this) as Field;
-        //        if (field != null)
-        //        {
-        //            field.updateField();
-        //            prop.SetValue(this, field);
-        //        }
-        //        //prop.SetValue(entity, control.Text);
-        //    }
-        //}
-
-        public ErrCode checkParams()
+        public ErrCode checkFields()
         {
             ErrCode errcode = ErrCode.OK;
             //PropertyInfo [] props = typeof(T).GetProperties();
@@ -361,7 +287,7 @@ namespace WinAMBurner
 
                 if(errcode == ErrCode.OK)
                 {
-                    if ((errcode = checkParams()) == ErrCode.OK)
+                    if ((errcode = checkFields()) == ErrCode.OK)
                     {
                         if (dapprove != null)
                             errcode = await dapprove();
@@ -439,14 +365,8 @@ namespace WinAMBurner
         public string token { get; set; }
         public UserJson user { get; set; }
 
-        //public object pEmail { get { return email; } set { email = value as string; } }
-        //public Field fEmail;
-        //public Field Email { get { return Field.getField(fEmail, pEmail); } set { pEmail = Field.setField(ref fEmail, value, pEmail); } }
         public Field Email { get; set; }
 
-        //public object pPassword { get { return password; } set { password = value as string; } }
-        //public Field fPassword;
-        //public Field Password { get { return Field.getField(fPassword, pPassword); } set { pPassword = Field.setField(ref fPassword, value, pPassword); } }
         public Field Password { get; set; }
 
         public Field Forgot { get; set; }
@@ -469,7 +389,6 @@ namespace WinAMBurner
             Email = new Field(type: typeof(RichTextBox), dflt: "Username", width: Field.DefaultWidthLarge, placev: Place.Three);
             Password = new Field(type: typeof(TextBox), dflt: "Password", width: Field.DefaultWidthLarge, placev: Place.Five);
             Picture = new Field(ltype: typeof(PictureBox), lplacev: Place.One);
-            //Forgot = new Field(ltype: typeof(LinkLabel), ltext: "Forgot password", linkEventHandler: linkEventHandler, lplacev: Place.Seven);
             Forgot = new Field(ltype: typeof(LinkLabel), ltext: "Forgot password", lplacev: Place.Seven);
             Press = new Field(ltype: typeof(Button), ltext: "Login", lplacev: Place.End);
         }
@@ -481,64 +400,14 @@ namespace WinAMBurner
         }
     }
 
-    //class LLogin : Gui
-    //{
-    //    public JLogin jlogin;
-    //    public JRLogin jrlogin;
-    //
-    //    public Field Email { get; set; }
-    //    public Field Password { get; set; }
-    //    public Field Tablet { get; set; }
-    //
-    //    public Field Forgot { get; set; }
-    //    public Field Press { get; set; }
-    //
-    //    public LLogin()
-    //    {
-    //        initFields();
-    //    }
-    //
-    //    public LLogin(EventHandler forgotEventHandler, EventHandler buttonEventHandler)
-    //    {
-    //        initFields();
-    //        initFields(forgotEventHandler, buttonEventHandler);
-    //    }
-    //
-    //    private void initFields()
-    //    {
-    //        jlogin = new JLogin();
-    //        jrlogin = new JRLogin();
-    //
-    //        Email = new Field(type: typeof(RichTextBox), dflt: "Username", width: Field.DefaultWidthLarge, placev: Place.Three);
-    //        Password = new Field(type: typeof(TextBox), dflt: "Password", width: Field.DefaultWidthLarge, placev: Place.Five);
-    //        Tablet = new Field();
-    //        
-    //        Picture = new Field(ltype: typeof(PictureBox), lplacev: Place.One);
-    //        Forgot = new Field(ltype: typeof(LinkLabel), ltext: "Forgot password", lplacev: Place.Seven);
-    //        Press = new Field(ltype: typeof(Button), ltext: "Login", lplacev: Place.End);
-    //    }
-    //
-    //    private void initFields(EventHandler forgotEventHandler, EventHandler buttonEventHandler)
-    //    {
-    //        Forgot.eventHandler = forgotEventHandler;
-    //        Press.eventHandler = buttonEventHandler;
-    //    }
-    //}
-
     class Password : Gui, PasswordJson
     {
         public string new_password1 { get { return Password1.getValue(); } set { Password1.setValue(value); } }
         public string new_password2 { get { return Password2.getValue(); } set { Password2.setValue(value); } }
         public string detail { get; set; }
 
-        //public object pPassword1{ get { return new_password1; } set { new_password1 = value as string; } }
-        //public Field fPassword1;
-        //public Field Password1 { get { return Field.getField(fPassword1, pPassword1); } set { pPassword1 = Field.setField(ref fPassword1, value, pPassword1); } }
         public Field Password1 { get; set; }
 
-        //public object pPassword2 { get { return new_password2; } set { new_password2 = value as string; } }
-        //public Field fPassword2;
-        //public Field Password2 { get { return Field.getField(fPassword2, pPassword2); } set { pPassword2 = Field.setField(ref fPassword2, value, pPassword2); } }
         public Field Password2 { get; set; }
 
         public Field ChangePassword { get; set; }
@@ -574,9 +443,6 @@ namespace WinAMBurner
         public string email { get { return Email.getValue(); } set { Email.setValue(value); } }
         public string detail { get; set; }
 
-        //public object pEmail { get { return email; } set { email = value as string; } }
-        //public Field fEmail;
-        //public Field Email { get { return Field.getField(fEmail, pEmail); } set { pEmail = Field.setField(ref fEmail, value, pEmail); } }
         public Field Email { get; set; }
 
         public Field ResetPassword { get; set; }
@@ -627,9 +493,6 @@ namespace WinAMBurner
         public Field Cancel { get; set; }
         public Field Submit { get; set; }
 
-        //public object pContractType { get { return contract_type; } set { contract_type = value as string; } }
-        //public Field fContractType;
-        //public Field ContractType { get { return Field.getField(fContractType, pContractType); } set { pContractType = Field.setField(ref fContractType, value, pContractType); } }
         public Field ContractType { get; set; }
 
         //public object pName { get { return name; } set { name = value as string; } }
@@ -637,9 +500,6 @@ namespace WinAMBurner
         //public Field Name { get { return Field.getField(fName, pName); } set { pName = Field.setField(ref fName, value, pName); } }
         public Field Name { get; set; }
 
-        //public object pAddress { get { return address; } set { address = value as string; } }
-        //public Field fAddress;
-        //public Field Address { get { return Field.getField(fAddress, pAddress); } set { pAddress = Field.setField(ref fAddress, value, pAddress) ; } }
         public Field Address { get; set; }
 
         //public object pCountry
@@ -657,39 +517,14 @@ namespace WinAMBurner
         //public Field Country { get { return Field.getField(fCountry, pCountry); } set { pCountry = Field.setField(ref fCountry, value, pCountry) ; } }
         public Field Country { get; set; }
 
-        //public object pState
-        //{
-        //    get
-        //    {
-        //        return Const.getFromDictionary(Const.DSTATE, state);
-        //    }
-        //    set
-        //    {
-        //        state = Const.DSTATE.FirstOrDefault(c => c.Value == (value as string)).Key;
-        //    }
-        //}
-        //public Field fState;
-        //public Field State { get { fState.val = pState; return fState; } set { fState = value; pState = fState.val; } }
         public Field State { get; set; }
 
-        //public object pCity { get { return city; } set { city = value as string; } }
-        //public Field fCity;
-        //public Field City { get { return Field.getField(fCity, pCity); } set { pCity = Field.setField(ref fCity, value, pCity); } }
         public Field City { get; set; }
 
-        //public object pContactName { get { return contact_name; } set { contact_name = value as string; } }
-        //public Field fContactName;
-        //public Field ContactName { get { return Field.getField(fContactName, pContactName); } set { pContactName = Field.setField(ref fContactName, value, pContactName); } }
         public Field ContactName { get; set; }
 
-        //public object pMobile { get { return mobile; } set { mobile = value as string; } }
-        //public Field fMobile;
-        //public Field Mobile { get { return Field.getField(fMobile, pMobile); } set { pMobile = Field.setField(ref fMobile, value, pMobile); } }
         public Field Mobile { get; set; }
 
-        //public object pEmail { get { return email; } set { email = value as string; } }
-        //public Field fEmail;
-        //public Field Email { get { return Field.getField(fEmail, pEmail); } set { pEmail = Field.setField(ref fEmail, value, pEmail); } }
         public Field Email { get; set; }
 
         public object clone()
@@ -705,34 +540,18 @@ namespace WinAMBurner
 
     class Farm : Entity, FarmJson
     {
-        //public static int ID = 0;
         public static string[] DHI_TEST = new string[] { "No", "Yes" };
 
-        //public int id { get; set; }
-        //public string mobile { get; set; }
-        //public string address { get; set; }
-        //public string country { get; set; }
-        //public string city { get; set; }
-        //public string state { get; set; }
         public bool is_active { get; set; }
-        //public string email { get; set; }
-        //public string name { get; set; }
-        //public string contact_name { get; set; }
         public string farm_type { get { return FarmType.getValue(); } set { FarmType.setValue(value); } }
         public string breed_type { get { return BreedType.getValue(); } set { BreedType.setValue(value); } }
         public string milking_setup_type { get { return MilkingSetupType.getValue(); } set { MilkingSetupType.setValue(value); } }
         public string location_of_treatment_type { get { return LocationOfTreatmentType.getValue(); } set { LocationOfTreatmentType.setValue(value); } }
-        //public string contract_type { get; set; }
         public int number_of_lactating_cows  { get { return Field.stringToInt(NumberOfLactatingCows.getValue()); } set { NumberOfLactatingCows.setValue(Field.intToString(value)); } }
         public bool dhi_test { get { return Field.stringToBool(DhiTest.getValue()); } set { DhiTest.setValue(Field.boolToString(value)); } }
 
-        //public int Id { get { return id; } set { id = value; } }
-
         public object IsActive { get { return Field.boolToString(is_active); } set { is_active = Field.stringToBool(value as string); } }
 
-        //public object pFarmType { get { return farm_type; } set { farm_type = value as string; } }
-        //public Field fFarmType;
-        //public Field FarmType { get { return Field.getField(fFarmType, pFarmType); } set { pFarmType = Field.setField(ref fFarmType, value, pFarmType); } }
         public Field FarmType { get; set; }
 
         //public object pBreedType { get { return breed_type; } set { breed_type = value as string; } }
@@ -770,14 +589,8 @@ namespace WinAMBurner
         //public Field DhiTest { get { return Field.getField(fDhiTest, pDhiTest); } set { pDhiTest = Field.setField(ref fDhiTest, value, pDhiTest); } }
         public Field DhiTest { get; set; }
 
-        //public object pMilkingSetupType { get { return milking_setup_type; } set { milking_setup_type = value as string; } }
-        //public Field fMilkingSetupType;
-        //public Field MilkingSetupType { get { return Field.getField(fMilkingSetupType, pMilkingSetupType); } set { pMilkingSetupType = Field.setField(ref fMilkingSetupType, value, pMilkingSetupType); } }
         public Field MilkingSetupType { get; set; }
 
-        //public object pLocationOfTreatmentType { get { return location_of_treatment_type; } set { location_of_treatment_type = value as string; } }
-        //public Field fLocationOfTreatmentType;
-        //public Field LocationOfTreatmentType { get { return Field.getField(fLocationOfTreatmentType, pLocationOfTreatmentType); } set { pLocationOfTreatmentType = Field.setField(ref fLocationOfTreatmentType, value, pLocationOfTreatmentType); } }
         public Field LocationOfTreatmentType { get; set; }
 
         public Farm()
@@ -799,7 +612,6 @@ namespace WinAMBurner
             FarmType = new Field(type: typeof(ComboBox), ltype: typeof(Label), dflt: "Farm Type", ltext: "Farm Type:", autosize: false, items: Const.FARM_TYPE, placeh: Place.Three, lplaceh: Place.One, placev: Place.Three);
             BreedType = new Field(type: typeof(ComboBox), ltype: typeof(Label), dflt: "Breed Type", ltext: "Breed Type:", autosize: false, items: Const.BREED_TYPE, placeh: Place.Three, lplaceh: Place.One, placev: Place.Four);
             NumberOfLactatingCows = new Field(type: typeof(RichTextBox), ltype: typeof(Label), dflt: "# of Lactating Cows", ltext: "# of Lactating Cows:", autosize: false, placeh: Place.Three, lplaceh: Place.One, placev: Place.Five);
-            //NumberOfLactatingCows.pcheck = NumberOfLactatingCows.icheckValid;
             DhiTest = new Field(type: typeof(ComboBox), ltype: typeof(Label), dflt: "Milk Recording", ltext: "Milk Recording:", autosize: false, items: DHI_TEST, placeh: Place.Three, lplaceh: Place.One, placev: Place.Six);
             MilkingSetupType = new Field(type: typeof(ComboBox), ltype: typeof(Label), dflt: "Milking Setup", ltext: "Milking Setup:", autosize: false, items: Const.MILKING_SETUP_TYPE, placeh: Place.Three, lplaceh: Place.One, placev: Place.Seven);
             LocationOfTreatmentType = new Field(type: typeof(ComboBox), ltype: typeof(Label), dflt: "Treatment Location", ltext: "Treatment Location:", autosize: false, items: Const.LOCATION_OF_TREATMENT_TYPE, placeh: Place.Three, lplaceh: Place.One, placev: Place.Eight);
@@ -841,51 +653,11 @@ namespace WinAMBurner
 
     class Service : Entity, ServiceJson
     {
-        //public static int ID = 0;
-
-        //public int id { get; set; }
-        //public string mobile { get; set; }
-        //public string address { get; set; }
-        //public string country { get; set; }
-        //public string city { get; set; }
-        //public string state { get; set; }
-        //public string email { get; set; }
         public int number_of_dairy_farms { get { return Field.stringToInt(NumberOfDairyFarms.getValue()); } set { NumberOfDairyFarms.setValue(Field.intToString(value)); } }
         public int number_of_dairy_cows { get { return Field.stringToInt(NumberOfDairyCows.getValue()); } set { NumberOfDairyCows.setValue(Field.intToString(value)); } }
-        //public string name { get; set; }
-        //public string contact_name { get; set; }
-        //public string contract_type { get; set; }
 
-        //public int Id { get { return id; } set { id = value; } }
-
-        //public object pNumberOfDairyFarms
-        //{
-        //    get
-        //    {
-        //        return Field.intToString(number_of_dairy_farms);
-        //    }
-        //    set
-        //    {
-        //        number_of_dairy_farms = Field.stringToInt(value as string);
-        //    }
-        //}
-        //public Field fNumberOfDairyFarms;
-        //public Field NumberOfDairyFarms { get { return Field.getField(fNumberOfDairyFarms, pNumberOfDairyFarms); } set { pNumberOfDairyFarms = Field.setField(ref fNumberOfDairyFarms, value, pNumberOfDairyFarms); } }
         public Field NumberOfDairyFarms { get; set; }
 
-        //public object pNumberOfDairyCows
-        //{
-        //    get
-        //    {
-        //        return Field.intToString(number_of_dairy_cows);
-        //    }
-        //    set
-        //    {
-        //        number_of_dairy_cows = Field.stringToInt(value as string);
-        //    }
-        //}
-        //public Field fNumberOfDairyCows;
-        //public Field NumberOfDairyCows { get { return Field.getField(fNumberOfDairyCows, pNumberOfDairyCows); } set { pNumberOfDairyCows = Field.setField(ref fNumberOfDairyCows, value, pNumberOfDairyCows); } }
         public Field NumberOfDairyCows { get; set; }
 
         public Service()
@@ -896,9 +668,7 @@ namespace WinAMBurner
         private void initFields()
         {
             NumberOfDairyFarms = new Field(type: typeof(RichTextBox), ltype: typeof(Label), dflt: "# of dairy farms", ltext: "# of dairy farms:", autosize: false, placeh: Place.Six, lplaceh: Place.Four, placev: Place.Three);
-            //NumberOfDairyFarms.pcheck = NumberOfDairyFarms.icheckValid;
             NumberOfDairyCows = new Field(type: typeof(RichTextBox), ltype: typeof(Label), dflt: "# of dairy cows", ltext: "# of dairy cows:", autosize: false, placeh: Place.Six, lplaceh: Place.Four, placev: Place.Four);
-            //NumberOfDairyCows.pcheck = NumberOfDairyCows.icheckValid;
             Address = new Field(type: typeof(RichTextBox), ltype: typeof(Label), dflt: "Address", ltext: "Address:", autosize: false, placeh: Place.Six, lplaceh: Place.Four, placev: Place.Five);
             Country = new Field(type: typeof(ComboBox), ltype: typeof(Label), dflt: "Country", ltext: "Country:", autosize: false, items: Const.COUNTRY, placeh: Place.Six, lplaceh: Place.Four, placev: Place.Six);
             State = new Field(type: typeof(ComboBox), ltype: typeof(Label), dflt: "State", ltext: "State:", autosize: false, items: Const.STATE, enable: false, placeh: Place.Six, lplaceh: Place.Four, placev: Place.Seven);
@@ -957,7 +727,6 @@ namespace WinAMBurner
 
         public override string ToString()
         {
-            //return PartNumber.text;
             return description;
         }
     }
@@ -991,21 +760,6 @@ namespace WinAMBurner
         //public Field Farm { get { return Field.getField(fFarm, pFarm); } set { pFarm = Field.setField(ref fFarm, value, pFarm); } }
         public Field Farm { get; set; }
 
-        //private object ppService
-        //{
-        //    get
-        //    {
-        //        return Field.intToString(service_provider);
-        //    }
-        //    set
-        //    {
-        //        service_provider = Field.stringToIntOrNull(value as string);
-        //    }
-        //}
-        //private object ffService;
-        //private object pService { get { return Field.getObject(fService, ref ffService, ppService); } set { ppService = Field.setObject(fService, ref ffService, value, ppService); } }
-        //private Field fService;
-        //public Field Service { get { return Field.getField(fService, pService); } set { pService = Field.setField(ref fService, value, pService); } }
         public Field Service { get; set; }
 
         public Field RadioFarm { get; set; }
@@ -1035,14 +789,14 @@ namespace WinAMBurner
 
         private void initFields()
         {
-            PartNumber = new Field(type: typeof(ComboBox), ltype: typeof(Label), dflt: "Part Number", ltext: "Add treatments to AM – SN ", width: Field.DefaultWidthLarge, placev: Place.Eight, lplacev: Place.Seven);
-            Farm = new Field(type: typeof(ComboBox), ltype: typeof(Label), dflt: "Farm / Service provider", ltext: "Select Farm / Service provider", width: Field.DefaultWidthLarge, placev: Place.Five, lplacev: Place.Four);
-            Service = new Field(type: typeof(ComboBox), ltype: typeof(Label), dflt: "Farm / Service provider", ltext: "Select Farm / Service provider", width: Field.DefaultWidthLarge, placev: Place.Five, lplacev: Place.Four);
+            PartNumber = new Field(type: typeof(ComboBox), ltype: typeof(Label), dflt: "Part Number", ltext: "Add treatments to AM – SN ", width: Field.DefaultWidthMedium, placev: Place.Eight, lplacev: Place.Seven);
+            Farm = new Field(type: typeof(ComboBox), ltype: typeof(Label), dflt: "Farm / Service provider", ltext: "Select Farm / Service provider", width: Field.DefaultWidthMedium, placev: Place.Five, lplacev: Place.Four);
+            Service = new Field(type: typeof(ComboBox), ltype: typeof(Label), dflt: "Farm / Service provider", ltext: "Select Farm / Service provider", width: Field.DefaultWidthMedium, placev: Place.Five, lplacev: Place.Four);
 
             Picture = new Field(ltype: typeof(PictureBox), lplacev: Place.One);
             Welcome = new Field(ltype: typeof(Label), ltext: "Welcome distributor", font: Field.DefaultFontLarge, lplacev: Place.Two);
-            RadioFarm = new Field(ltype: typeof(RadioButton), ltext: "Farm", width: Field.DefaultWidthLarge, lplaceh: Place.Two, lplacev: Place.Five);
-            RadioService = new Field(ltype: typeof(RadioButton), ltext: "Service provider", width: Field.DefaultWidthLarge, lplaceh: Place.Two, lplacev: Place.Six);
+            RadioFarm = new Field(ltype: typeof(RadioButton), ltext: "Farm", width: Field.DefaultWidthMedium, lplaceh: Place.Two, lplacev: Place.Five);
+            RadioService = new Field(ltype: typeof(RadioButton), ltext: "Service provider", width: Field.DefaultWidthMedium, lplaceh: Place.Two, lplacev: Place.Six);
             Progress = new Field(ltype: typeof(ProgressBar), width: Field.DefaultWidthLarge, height: Field.DefaultHeightSmall, lplacev: Place.Ten);
             Cancel = new Field(ltype: typeof(Button), ltext: "Cancel", lplaceh: Place.Five, lplacev: Place.End);
             Approve = new Field(ltype: typeof(Button), ltext: "Approve", lplaceh: Place.Two, lplacev: Place.End);

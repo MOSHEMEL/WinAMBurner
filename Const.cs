@@ -10,6 +10,8 @@ namespace WinAMBurner
 {
     static class Const
     {
+        public const string Version = "1.0";
+
         public static Dictionary<string, string> DCOUNTRY;
         //public static List<string> COUNTRY;
         public static string[] COUNTRY;
