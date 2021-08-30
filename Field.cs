@@ -198,7 +198,7 @@ namespace WinAMBurner
             }
         }
 
-        public Control draw(Form thisForm, Type type, object val = null,
+        public Control draw(Form thisForm, Type type, string val = null,
             Place placeh = Place.Center, Place placev = Place.Center)
         {
             Control control = null;
@@ -211,7 +211,7 @@ namespace WinAMBurner
                 control.Size = new Size(width, height);
                 control.Scale(new SizeF(ScaleFactor, ScaleFactor));
                 control.TabIndex = 1;
-                control.Text = val as string;
+                control.Text = val;
                 control.Font = new Font("Segoe UI", font, FontStyle.Regular, GraphicsUnit.Point);
 
                 if (type == typeof(Label))
