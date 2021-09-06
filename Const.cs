@@ -100,10 +100,10 @@ namespace WinAMBurner
         ERROR = -1,
         EPARAM = -2,
         EMAX = -3,
-        EERASE = -4,
-        CANSEL = -5,
-        EMATCH = -6,
-        ELENGTH = -7
+        CANSEL = -4,
+        EMATCH = -5,
+        ELENGTH = -6,
+        SERROR = -7
     }
 
     static class LogFile

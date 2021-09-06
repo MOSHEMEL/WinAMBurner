@@ -13,7 +13,8 @@ namespace WinAMBurner
     class Web
     {
         private const string TEST_URL = "http://qa.armentavet.co/";
-        private const string URL = TEST_URL;
+        private const string PRODUCTION_URL = "https://api.armentavet.co/";
+        private const string URL = PRODUCTION_URL;
 
         private readonly HttpClient client = new HttpClient();
 

@@ -48,11 +48,16 @@ namespace WinAMBurner
         public LinkLabelLinkClickedEventHandler linkEventHandler;
         public bool view;
         public bool enable;
+        public bool check;
+        private delegate bool dFCheck();
+        private delegate bool dPCheck(string param);
+        private dFCheck dfcheck;
+        private dPCheck dpcheck;
 
         public Field(Type type = null, Type ltype = null, string dflt = null, object val = null, string ltext = null, object[] items = null,
             LinkLabelLinkClickedEventHandler linkEventHandler = null,
             EventHandler eventHandler = null,
-            bool enable = true,
+            bool enable = true, bool check = true,
             float font = DefaultFont, Color color = new Color(),
             int width = DefaultWidth, int height = DefaultHeight, bool autosize = true,
             Place placeh = Place.Center, Place lplaceh = Place.Center, Place placev = Place.None, Place lplacev = Place.None)
@@ -80,6 +85,9 @@ namespace WinAMBurner
             this.eventHandler = eventHandler;
             this.view = true;
             this.enable = enable;
+            this.check = check;
+            this.dfcheck = checkValid;
+            this.dpcheck = checkValid;
         }
 
         public void setValue(string value)
@@ -104,7 +112,9 @@ namespace WinAMBurner
 
         public bool checkValid()
         {
-                int ivalue= stringToInt(val);
+            int ivalue = stringToInt(val);
+            if (!check)
+                return true;
             if ((val != null) && (val != string.Empty) && (val != dflt) && (ivalue >= 0))
             {
                 return true;
@@ -114,6 +124,8 @@ namespace WinAMBurner
 
         public bool checkValid(string param)
         {
+            if (!check)
+                return true;
             if (param != null)
             {
                 if (param != string.Empty)
@@ -464,7 +476,7 @@ namespace WinAMBurner
             dataGridView.RowTemplate.Height = 33;
             dataGridView.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
             dataGridView.ReadOnly = true;
-            dataGridView.Size = new Size(1853, 800);
+            dataGridView.Size = new Size(2200, 800); //1853, 800);
             dataGridView.Scale(new SizeF(ScaleFactor, ScaleFactor));
             dataGridView.Font = new Font("Segoe UI", DefaultFont, FontStyle.Regular, GraphicsUnit.Point);
             dataGridView.Location = placeCalc(thisForm, dataGridView, placeh: placeh, placev: placev);

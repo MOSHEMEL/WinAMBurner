@@ -655,35 +655,40 @@ namespace WinAMBurner
                     }),
                     dresponseErr: new Gui.dResponseErr(async (errcode) =>
                     {
-                        if (progressBar != null)
-                            progressBar.Visible = false;
+                        List<string> errors;
                         if (errcode == ErrCode.EPARAM)
-                            return new List<string>() { "Wrong parameters,", "please choose the Farm / Service provider",
+                            errors = new List<string>() { "Wrong parameters,", "please choose the Farm / Service provider",
                                 "and the number of treatments" };
                         else if (errcode == ErrCode.EMAX)
-                            return new List<string>() { "Wrong part number,", "the maximum number of treatments reached,",
+                            errors = new List<string>() { "Wrong part number,", "the maximum number of treatments reached,",
                                 "please choose a smaller number of treatments" };
-                        else if (errcode == ErrCode.EERASE)
+                        else if (errcode == ErrCode.SERROR)
                         {
-                            action.notify(new List<string>() { "Approve failed, restoring AM" }, NotifyButtons.OK, "Approve Failed");
+                            am.Maxi -= am.MaxiSet;
                             am.MaxiSet = 0;
+                            action.notify(new List<string>() { string.Format("Approve failed, restoring AM to {0} treatments", am.Maxi / settings.number_of_pulses_per_treatment) }, NotifyButtons.OK, "Approve Failed");
                             if (progressBar != null)
                                 progressBar.Value = progressBar.Minimum;
 
                             if (await am.AMDataWrite() == ErrCode.OK)
                             {
                                 if (await am.AMDataRead() == ErrCode.OK)
-                                    return new List<string>() { "Approve failed,", "AM sucsessfully restored to original values" };
+                                    errors = new List<string>() { "Approve failed,", string.Format("AM sucsessfully restored to {0} treatments", am.Maxi / settings.number_of_pulses_per_treatment) };
                                 else
-                                    return new List<string>() { "Approve failed,", "Faild to restore to original values" };
+                                    errors = new List<string>() { "Approve failed,", string.Format("Failed to restore to {0} treatments", am.Maxi / settings.number_of_pulses_per_treatment) };
                             }
                             else
-                                return new List<string>() { "Approve failed,", "Faild to restore to original values" };
+                                errors = new List<string>() { "Approve failed,", "Faild to restore to original values" };
                         }
                         else if (errcode == ErrCode.CANSEL)
-                            return null;
+                            errors = null;
+                        else
+                            errors = new List<string>() { "The operation failed, the treatments were not added" };
 
-                        return new List<string>() { "The operation failed, the treatments were not added" };
+                        if (progressBar != null)
+                            progressBar.Visible = false;
+
+                        return errors;
                     }));
             }
         }
