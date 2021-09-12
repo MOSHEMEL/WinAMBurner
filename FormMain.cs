@@ -101,7 +101,7 @@ namespace WinAMBurner
             DialogResult dialogResult = default;
             if ((title != null) && (messages != null) && (cancel != null))
             {
-                FormNotify formNotify = new FormNotify(new List<string>() { messages }, NotifyButtons.OK, title);
+                FormNotify formNotify = new FormNotify(new List<string>() { messages }, NotifyButtons.YesNo, title);
                 formNotify.ShowDialog();
                 dialogResult = formNotify.DialogResult;
                 formNotify.Dispose();
@@ -171,7 +171,7 @@ namespace WinAMBurner
             if ((data != null) && (data.reset != null))
             {
                 data.login = new Login(forgot_Click, buttonLogin_Click, hide, enabled, notify, draw, dshow: screenActionShow) { tablet = TabletNo };
-                data.reset.send(data);
+                await data.reset.send(data);
             }
             //if ((reset != null) && (web != null) && (login != null))
             //{
@@ -228,7 +228,7 @@ namespace WinAMBurner
                 //        //login.email = "yaelv@armentavet.com";
                 //        //login.password = "Yyyaeeel123";
                 //        //login.tablet = "kjh1g234123";
-                data.login.send(data);
+                await data.login.send(data);
             }
             //if ((login != null) && (web != null))
             //{
@@ -300,7 +300,7 @@ namespace WinAMBurner
         {
             if ((data != null) && (data.password != null))
             {
-                data.password.send(data);
+                await data.password.send(data);
             }
             //if ((password != null) && (web != null) && (login != null))
             //{
@@ -467,13 +467,17 @@ namespace WinAMBurner
                 //button2.Enabled = false;
                 progressBar1.Visible = true;
                 data.am.serialPortProgressEvent += progressBar_Callback;
+                progressBar1.Minimum = 0;
                 progressBar1.Value = progressBar1.Minimum;
+                progressBar1.Maximum = 20;
 
                 ErrCode errcode = await data.am.AMDataCheckConnect();
 
                 if (errcode >= ErrCode.OK)
                     errcode = await data.am.AMDataRead();
+
                 progressBar1.Value = progressBar1.Maximum;
+                
                 if (errcode == ErrCode.OK)
                 {
                     //if ok
@@ -543,7 +547,7 @@ namespace WinAMBurner
             //    buttonTreatCansel_Click, buttonTreatApprove_Click);
             data.action = new Action(data.am, TabletNo, data.farms.ToArray(), data.services.ToArray(),
                 comboBoxPartNumber_SelectedIndexChanged, comboBoxFarm_SelectedIndexChanged, radioButton_CheckedChanged,
-                buttonTreatCansel_Click, buttonTreatApprove_Click, hide, enabled, notify, draw);
+                buttonTreatCansel_Click, buttonTreatApprove_Click, hide, enabled, notify, draw, dshow: screenActionShow, dnotifyAnswer: notify);
             //if ((action != null) && (action.RadioFarm != null) && (action.Progress != null))
             if ((data != null) && (data.action != null) && (data.action.RadioFarm != null) && (data.action.Progress != null))
             {
@@ -614,9 +618,9 @@ namespace WinAMBurner
                                 data.action.PartNumber.control.ForeColor = Color.Silver;
                                 data.action.PartNumber.val = data.action.PartNumber.dflt;
                                 if (data.action.PartNumber.items.Length == 0)
-                                    data.action.notify(new List<string>() { "The attached AM reached the max allowed treatments. ",
-                                       "There are no available part numbers.",
-                                       "Please replace the AM or contact support. " }, NotifyButtons.OK, "Part Number Error");
+                                    notify("Part Number Error", "The attached AM reached the max allowed treatments.\n" +
+                                       "There are no available part numbers.\n" +
+                                       "Please replace the AM or contact support.", "OK");
                             }
                             //action.PartNumber.addItems(treatmentPackages.Where(t => (t.contract_type == entity.contract_type)).ToArray());
                         }
@@ -688,8 +692,8 @@ namespace WinAMBurner
                 SerialPortEventArgs args = e as SerialPortEventArgs;
                 if (args != null)
                 {
-                    if (args.progress == 0)
-                        progressBar.Maximum = progressBar.Value + args.maximum * 2;
+                    //if (args.progress == 0)
+                    //    progressBar.Maximum = progressBar.Value + args.maximum * 2;
 
                     if ((progressBar.Value + args.progress) <= progressBar.Maximum)
                         progressBar.Value += args.progress;
@@ -727,12 +731,15 @@ namespace WinAMBurner
                 if (progressBar != null)
                 {
                     progressBar.Visible = true;
-                    data.am.serialPortProgressEvent += new EventHandler(progressBar_Callback);
+                    data.am.serialPortProgressEvent += progressBar_Callback;
+                    progressBar.Minimum = 0;
                     progressBar.Value = progressBar.Minimum;
+                    progressBar.Maximum = 90;
 
-                    data.action.send(data);
+                    await data.action.send(data);
 
-                    progressBar.Visible = false;
+                    progressBar.Value = progressBar.Maximum;
+                    //progressBar.Visible = false;
                 }
             }
             //ProgressBar progressBar = action.Progress.lcontrol as ProgressBar;
@@ -1016,27 +1023,21 @@ namespace WinAMBurner
 
         private void buttonFarmCancel_Click(object sender, EventArgs e)
         {
-            if ((data != null) && (data.farm != null))
-            {
-                data.farm.dhide();
-                screenFarmShow();
-            }
+            hide();
+            screenFarmShow();
         }
 
         private void buttonServiceCancel_Click(object sender, EventArgs e)
         {
-            if ((data != null) && (data.service != null))
-            {
-                data.service.dhide();
-                screenServiceShow();
-            }
+            hide();
+            screenServiceShow();
         }
 
         private async void buttonFarmAddSubmit_Click(object sender, EventArgs e)
         {
             if ((data != null) && (data.farm != null) && (data.web != null))
             {
-                data.farm.send(data, false);
+                await data.farm.send(data, false);
             }
             //if ((farm != null) && (web != null))
             //{
@@ -1057,7 +1058,7 @@ namespace WinAMBurner
         {
             if ((data != null) && (data.service != null) && (data.web != null))
             {
-                data.service.send(data, false);
+                await data.service.send(data, false);
             }
             //if ((service != null) && (web != null))
             //{
@@ -1079,7 +1080,7 @@ namespace WinAMBurner
         {
             if ((data != null) && (data.farm != null) && (data.web != null))
             {
-                data.farm.send(data, true);
+                await data.farm.send(data, true);
             }
             //if ((farm != null) && (web != null))
             //{
@@ -1101,7 +1102,7 @@ namespace WinAMBurner
         {
             if ((data != null) && (data.service != null) && (data.web != null))
             {
-                data.service.send(data, true);
+                await data.service.send(data, true);
             }
             //if ((service != null) && (web != null))
             //{

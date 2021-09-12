@@ -371,27 +371,36 @@ namespace WinAMBurner
                 if (errcode == ErrCode.OK)
                 {
                     if (showMsgs && (messages.Count() > 0))
-                        notify(messages, NotifyButtons.OK, captionOk);
+                        //notify(messages, NotifyButtons.OK, captionOk);
+                        await dnotify(captionOk, messages.Aggregate(string.Empty, (r, m) => r += "\n" + m), "Ok");
 
-                    if(messagesOk != null)
-                        notify(messagesOk, NotifyButtons.OK, captionOk);
+                    if (messagesOk != null)
+                        //notify(messagesOk, NotifyButtons.OK, captionOk);
+                        await dnotify(captionOk, messagesOk.Aggregate(string.Empty, (r, m) => r += "\n" + m), "Ok");
 
                     //if ((errcode = await dresponseOk(rentity)) == ErrCode.OK)
-                    if ((errcode = await dresponseOk(data, rentity)) == ErrCode.OK)
+                    //if ((errcode = await dresponseOk(data, rentity)) == ErrCode.OK)
+                    await dresponseOk(data, rentity);
                         //hide();
-                        dhide();
+                        //dhide();
                 }
                 if (errcode != ErrCode.OK)
                 {
                     if (errors.Count() > 0)
-                        notify(errors, NotifyButtons.OK, captionErr);
+                        //notify(errors, NotifyButtons.OK, captionErr);
+                        await dnotify(captionErr, errors.Aggregate(string.Empty, (r, m) => r += "\n" + m), "Ok");
 
-                    if(messagesErr != null)
-                        notify(messagesErr, NotifyButtons.OK, captionErr);
+                    if (messagesErr != null)
+                        //notify(messagesErr, NotifyButtons.OK, captionErr);
+                        await dnotify(captionErr, messagesErr.Aggregate(string.Empty, (r, m) => r += "\n" + m), "Ok");
 
                     if (dresponseErr != null)
-                        //notify(await dresponseErr(errcode), NotifyButtons.OK, captionErr);
-                        await dnotify(captionErr, (await dresponseErr(data, errcode)).Aggregate(string.Empty, (r, m) => r += m), "Ok");
+                    {
+                        List<string> responseErr = await dresponseErr(data, errcode);
+                        if (responseErr != null)
+                            //notify(await dresponseErr(errcode), NotifyButtons.OK, captionErr);
+                            await dnotify(captionErr, responseErr.Aggregate(string.Empty, (r, m) => r += "\n" + m), "Ok");
+                    }
 
                     //enableControls();
                     denabled(true);
@@ -400,18 +409,18 @@ namespace WinAMBurner
             return errcode;
         }
 
-        public DialogResult notify(List<string> text, NotifyButtons notifyButtons, string caption)
-        {
-            DialogResult dialogResult = default;
-            if ((text != null) && (text.Count > 0))
-            {
-                FormNotify formNotify = new FormNotify(text, notifyButtons, caption);
-                formNotify.ShowDialog();
-                dialogResult = formNotify.DialogResult;
-                formNotify.Dispose();
-            }
-            return dialogResult;
-        }
+        //public DialogResult notify(List<string> text, NotifyButtons notifyButtons, string caption)
+        //{
+        //    DialogResult dialogResult = default;
+        //    if ((text != null) && (text.Count > 0))
+        //    {
+        //        FormNotify formNotify = new FormNotify(text, notifyButtons, caption);
+        //        formNotify.ShowDialog();
+        //        dialogResult = formNotify.DialogResult;
+        //        formNotify.Dispose();
+        //    }
+        //    return dialogResult;
+        //}
     }
 
     class Login : Gui, LoginJson, LoginResponseJson
@@ -440,7 +449,7 @@ namespace WinAMBurner
 
         //public Login(EventHandler forgotEventHandler, EventHandler buttonEventHandler)
         public Login(EventHandler forgotEventHandler, EventHandler buttonEventHandler,
-            dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Login> ddraw, dShow dshow = null) : base(dhide, denabled, dnotify)
+            dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Login> ddraw, dShow dshow = null)
         {
             initFields();
             //initFields(forgotEventHandler, buttonEventHandler);
@@ -464,9 +473,9 @@ namespace WinAMBurner
             Forgot.eventHandler = forgotEventHandler;
             Press.eventHandler = buttonEventHandler;
 
-            //this.dhide = dhide;
-            //this.denabled = denabled;
-            //this.dnotify = dnotify;
+            this.dhide = dhide;
+            this.denabled = denabled;
+            this.dnotify = dnotify;
             this.ddraw = ddraw;
             if (dshow != null)
                 this.dshow = dshow;
@@ -474,7 +483,7 @@ namespace WinAMBurner
 
         public async Task<ErrCode> responseOk(Data data, Login rlogin)
         {
-            if ((data != null) && (data.web != null) && (rlogin != null) && (rlogin.token != null))
+            if ((data != null) && (data.web != null) && (rlogin != null) && (rlogin.token != null) && (dhide != null) && (dshow != null))
             {
                 // if ok
                 data.user = rlogin.user;
@@ -507,8 +516,8 @@ namespace WinAMBurner
                         (Const.FARM_TYPE != null) && (Const.BREED_TYPE != null) && (Const.MILKING_SETUP_TYPE != null) &&
                         (Const.LOCATION_OF_TREATMENT_TYPE != null) && (Const.CONTRACT_TYPE != null))
                     {
-                        if (dshow != null)
-                            dshow();
+                        dhide();
+                        dshow();
                     }
                     return ErrCode.OK;
                 }
@@ -516,10 +525,10 @@ namespace WinAMBurner
             return ErrCode.ERROR;
         }
 
-        public void send(Data data)
+        public async Task send(Data data)
         {
             if ((data != null) && (data.login != null) && (data.web != null))
-                send<LoginJson, Login>(data.login, "api/p/login/", data.web.login,
+                await send<LoginJson, Login>(data.login, "api/p/login/", data.web.login,
                     "Login Success", "Login Failed", false, responseOk, data,
                     messagesErr: new List<string>() { "Login failed, check your username and password, ",
                     "make sure your tablet is connected to the internet" });
@@ -547,7 +556,7 @@ namespace WinAMBurner
 
         //public Password(EventHandler buttonEventHandler)
         public Password(EventHandler buttonEventHandler,
-            dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Password> ddraw, dShow dshow = null) : base(dhide, denabled, dnotify)
+            dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Password> ddraw, dShow dshow = null)
         {
             initFields();
             //initFields(buttonEventHandler);
@@ -569,6 +578,9 @@ namespace WinAMBurner
             dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Password> ddraw, dShow dshow = null)
         {
             ChangePassword.eventHandler = buttonEventHandler;
+            this.dhide = dhide;
+            this.denabled = denabled;
+            this.dnotify = dnotify;
             this.ddraw = ddraw;
             if (dshow != null)
                 this.dshow = dshow;
@@ -576,8 +588,9 @@ namespace WinAMBurner
 
         public async Task<ErrCode> responseOk(Data data, Password newPassword)
         {
-            if ((data != null) && (data.login != null) && (data.login.ddraw != null))
+            if ((data != null) && (data.login != null) && (dhide != null) && (data.login.ddraw != null))
             {
+                dhide();
                 data.login.password = null;
                 data.login.ddraw(data.login);
             }
@@ -616,10 +629,10 @@ namespace WinAMBurner
             return errcode;
         }
 
-        public void send(Data data)
+        public async Task send(Data data)
         {
             if ((data != null) && (data.login != null) && (data.web != null))
-                send<PasswordJson, Password>(data.password, "api/p/password/change/", data.web.entityAdd,
+                await send<PasswordJson, Password>(data.password, "api/p/password/change/", data.web.entityAdd,
                     "Change Password Success", "Change Password Failed", true, responseOk, data, dcheck: check, dresponseErr: responseErr);
         }
     }
@@ -642,7 +655,7 @@ namespace WinAMBurner
 
         //public Reset(EventHandler buttonEventHandler)
         public Reset(EventHandler buttonEventHandler,
-            dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Reset> ddraw, dShow dshow = null) : base(dhide, denabled, dnotify)
+            dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Reset> ddraw, dShow dshow = null)
         {
             initFields();
             //initFields(buttonEventHandler);
@@ -662,6 +675,9 @@ namespace WinAMBurner
             dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Reset> ddraw, dShow dshow = null)
         {
             ResetPassword.eventHandler = buttonEventHandler;
+            this.dhide = dhide;
+            this.denabled = denabled;
+            this.dnotify = dnotify;
             this.ddraw = ddraw;
             if (dshow != null)
                 this.dshow = dshow;
@@ -670,15 +686,18 @@ namespace WinAMBurner
         public async Task<ErrCode> responseOk(Data data, Reset reset)
         {
             //data.loginData = new Login(new Command(forgot_Click), buttonLogin_Click, screenActionShow, hide, enabled, notify, draw) { tablet = TabletNo };
-            if (data.login != null)
+            if ((data != null) && (data.login != null) && (dhide != null) && (data.login.ddraw != null))
+            {
+                dhide();
                 data.login.ddraw(data.login);
+            }
             return ErrCode.OK;
         }
 
-        public void send(Data data)
+        public async Task send(Data data)
         {
             if ((data != null) && (data.reset != null) && (data.web != null))
-                send<ResetJson, Reset>(data.reset, "api/p/password_reset/", data.web.entityAdd,
+                await send<ResetJson, Reset>(data.reset, "api/p/password_reset/", data.web.entityAdd,
                     "Reset Password Success", "Reset Password Failed", true, responseOk, data,
                     messagesOk: new List<string>() { "An email with your logon details was sent.", "Please use those details to logon." },
                     messagesErr: new List<string>() { "Reset password failed,", "please enter a valid values" });
@@ -847,7 +866,7 @@ namespace WinAMBurner
 
         //public Farm(bool edit, EventHandler countryHandler, EventHandler cancelHandler, EventHandler submitHandler)
         public Farm(bool edit, EventHandler countryHandler, EventHandler cancelHandler, EventHandler submitHandler,
-            dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Farm> ddraw, dShow dshow = null) : base(dhide, denabled, dnotify)
+            dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Farm> ddraw, dShow dshow = null)
         {
             initFields();
             //initFields(edit, countryHandler, cancelHandler, submitHandler);
@@ -877,6 +896,9 @@ namespace WinAMBurner
             Submit.eventHandler = submitHandler;
             Country.eventHandler = countryHandler;
 
+            this.dhide = dhide;
+            this.denabled = denabled;
+            this.dnotify = dnotify;
             this.ddraw = ddraw;
             if (dshow != null)
                 this.dshow = dshow;
@@ -884,26 +906,27 @@ namespace WinAMBurner
 
         public async Task<ErrCode> responseOk(Data data, Farm rfarm)
         {
-            if ((data != null) && (data.farms != null) && (dshow != null))
+            if ((data != null) && (data.farms != null) && (dhide != null) && (dshow != null))
             {
                 data.farms.Add(rfarm);
+                dhide();
                 dshow();
             }
             return ErrCode.OK;
         }
 
-        public void send(Data data, bool edit)
+        public async Task send(Data data, bool edit)
         {
             if ((data != null) && (data.farm != null) && (data.web != null))
             {
                 if (edit)
-                    send<FarmJson, Farm>(data.farm, "api/p/farms/", data.web.entityEdit,
-                        "Submit Success", "Submit Failed", true, responseOk, data,
+                    await send<FarmJson, Farm>(data.farm, "api/p/farms/", data.web.entityEdit,
+                        "Submit Success", "Submit Failed", false, responseOk, data,
                         messagesErr: new List<string>() { "Submit failed, can't add empty or negative fields,",
                         "make sure all the fields are filled with valid values" });
                 else
-                    send<FarmJson, Farm>(data.farm, "api/p/farms/", data.web.entityAdd,
-                        "Submit Success", "Submit Failed", true, responseOk, data,
+                    await send<FarmJson, Farm>(data.farm, "api/p/farms/", data.web.entityAdd,
+                        "Submit Success", "Submit Failed", false, responseOk, data,
                         messagesErr: new List<string>() { "Submit failed, can't add empty or negative fields,",
                         "make sure all the fields are filled with valid values" });
             }
@@ -948,7 +971,7 @@ namespace WinAMBurner
 
         //public Service(bool edit, EventHandler countryHandler, EventHandler cancelHandler, EventHandler submitHandler)
         public Service(bool edit, EventHandler countryHandler, EventHandler cancelHandler, EventHandler submitHandler,
-            dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Service> ddraw, dShow dshow = null) : base(dhide, denabled, dnotify)
+            dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Service> ddraw, dShow dshow = null)
         {
             initFields();
             //initFields(edit, countryHandler, cancelHandler, submitHandler);
@@ -978,6 +1001,9 @@ namespace WinAMBurner
             Submit.eventHandler = submitHandler;
             Country.eventHandler = countryHandler;
 
+            this.dhide = dhide;
+            this.denabled = denabled;
+            this.dnotify = dnotify;
             this.ddraw = ddraw;
             if (dshow != null)
                 this.dshow = dshow;
@@ -985,26 +1011,27 @@ namespace WinAMBurner
 
         public async Task<ErrCode> responseOk(Data data, Service rservice)
         {
-            if ((data != null) && (data.services != null) && (dshow != null))
+            if ((data != null) && (data.services != null) && (dhide != null) && (dshow != null))
             {
                 data.services.Add(rservice);
+                dhide();
                 dshow();
             }
             return ErrCode.OK;
         }
 
-        public void send(Data data, bool edit)
+        public async Task send(Data data, bool edit)
         {
             if ((data != null) && (data.service != null) && (data.web != null))
             {
                 if (edit)
-                    send<ServiceJson, Service>(data.service, "api/p/service_providers/", data.web.entityEdit,
-                        "Submit Success", "Submit Failed", true, responseOk, data,
+                    await send<ServiceJson, Service>(data.service, "api/p/service_providers/", data.web.entityEdit,
+                        "Submit Success", "Submit Failed", false, responseOk, data,
                         messagesErr: new List<string>() { "Submit failed, can't add empty or negative fields,",
                         "make sure all the fields are filled with valid values" });
                 else
-                    send<ServiceJson, Service>(data.service, "api/p/service_providers/", data.web.entityAdd,
-                        "Submit Success", "Submit Failed", true, responseOk, data,
+                    await send<ServiceJson, Service>(data.service, "api/p/service_providers/", data.web.entityAdd,
+                        "Submit Success", "Submit Failed", false, responseOk, data,
                         messagesErr: new List<string>() { "Submit failed, can't add empty or negative fields,",
                         "make sure all the fields are filled with valid values" });
             }
@@ -1083,12 +1110,12 @@ namespace WinAMBurner
 
         //public Action(Am am, string tablet, object[] farms, object[] services, EventHandler partNumberEventHandler, EventHandler farmEventHandler, EventHandler radioEventHandler, EventHandler canselEventHandler, EventHandler approveEventHandler)
         public Action(Am am, string tablet, object[] farms, object[] services, EventHandler partNumberEventHandler, EventHandler farmEventHandler, EventHandler radioEventHandler, EventHandler canselEventHandler, EventHandler approveEventHandler,
-            dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Action> ddraw, dShow dshow = null) : base(dhide, denabled, dnotify)
+            dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Action> ddraw, dShow dshow = null, dNotifyAnswer dnotifyAnswer = null)
         {
             initFields();
             //initFields(am, tablet, farms, services, partNumberEventHandler, farmEventHandler, radioEventHandler, canselEventHandler, approveEventHandler);
             initFields(am, tablet, farms, services, partNumberEventHandler, farmEventHandler, radioEventHandler, canselEventHandler, approveEventHandler,
-                dhide, denabled, dnotify, ddraw, dshow);
+                dhide, denabled, dnotify, ddraw, dshow, dnotifyAnswer);
         }
 
         private void initFields()
@@ -1125,6 +1152,9 @@ namespace WinAMBurner
             RadioService.eventHandler = radioEventHandler;
             Cancel.eventHandler = canselEventHandler;
             Approve.eventHandler = approveEventHandler;
+            this.dhide = dhide;
+            this.denabled = denabled;
+            this.dnotify = dnotify;
             this.ddraw = ddraw;
             if (dshow != null)
                 this.dshow = dshow;
@@ -1139,12 +1169,12 @@ namespace WinAMBurner
             {
                 if ((data.am.Maxi + data.am.MaxiSet) < data.settings.max_am_pulses)
                 {
-                    bool answer = await dnotifyAnswer("Approve", string.Format("{0} current treatments available", data.am.Maxi / data.settings.number_of_pulses_per_treatment) +
-                                string.Format("{0} treatments will be added", data.am.MaxiSet / data.settings.number_of_pulses_per_treatment) +
-                                string.Format("AM - SN: {0}", data.am.SNum) +
-                                ((action.farm != null) ? string.Format("Farm: {0}", data.farms.Find(f => f.id == action.farm).Name.val) :
-                                ((action.service_provider != null) ? string.Format("Service Provider: {0}", data.services.Find(s => s.id == action.service_provider).Name.val) : string.Empty)) +
-                                "Press the button to proceed", "Yes", "No");
+                    bool answer = await dnotifyAnswer("Approve", string.Format("{0} current treatments available\n", data.am.Maxi / data.settings.number_of_pulses_per_treatment) +
+                                string.Format("{0} treatments will be added\n", data.am.MaxiSet / data.settings.number_of_pulses_per_treatment) +
+                                string.Format("AM - SN: {0}\n", data.am.SNum) +
+                                ((action.farm != null) ? string.Format("Farm: {0}\n", data.farms.Find(f => f.id == action.farm).Name.val) :
+                                ((action.service_provider != null) ? string.Format("Service Provider: {0}\n", data.services.Find(s => s.id == action.service_provider).Name.val) : string.Empty)) +
+                                "Do you want to proceed?", "Yes", "No");
                     if (answer)
                     {
                         //if (progressBar != null)
@@ -1157,7 +1187,7 @@ namespace WinAMBurner
                         {
                             if ((errcode = await data.am.AMDataRead()) == ErrCode.OK)
                             {
-                                return ErrCode.OK;
+                                errcode =  ErrCode.OK;
                             }
                         }
                     }
@@ -1174,13 +1204,14 @@ namespace WinAMBurner
 
         public async Task<ErrCode> responseOk(Data data, Action action)
         {
-            if ((data != null) && (data.am != null) && (data.settings != null))
+            if ((data != null) && (data.am != null) && (data.settings != null) && (dhide != null) && (dshow != null))
             {
-                await dnotify("Approve Success", string.Format("The original amount of treatments: {0}", data.am.MaxiPrev / data.settings.number_of_pulses_per_treatment) +
-                        string.Format("Added treatments: {0}", data.am.MaxiSet / data.settings.number_of_pulses_per_treatment) +
-                        string.Format("The treatments available on AM - SN {1}: {0}", data.am.Maxi / data.settings.number_of_pulses_per_treatment, data.am.SNum) +
+                await dnotify("Approve Success", string.Format("The original amount of treatments: {0}\n", data.am.MaxiPrev / data.settings.number_of_pulses_per_treatment) +
+                        string.Format("Added treatments: {0}\n", data.am.MaxiSet / data.settings.number_of_pulses_per_treatment) +
+                        string.Format("The treatments available on AM - SN {1}: {0}\n", data.am.Maxi / data.settings.number_of_pulses_per_treatment, data.am.SNum) +
                         "please disconnect the AM", "OK");
                 //clearAM();
+                dhide();
                 dshow();
             }
             return ErrCode.OK;
@@ -1225,10 +1256,10 @@ namespace WinAMBurner
             return errors;
         }
 
-        public void send(Data data)
+        public async Task send(Data data)
         {
             if ((data != null) && (data.action != null) && (data.web != null))
-                send<ActionJson, Action>(data.action, "api/p/actions/", data.web.entityAdd,
+                await send<ActionJson, Action>(data.action, "api/p/actions/", data.web.entityAdd,
                     "Approve Success", "Approve Failed", false, responseOk, data, dapprove: approve, dresponseErr: responseErr);
         }
     }
