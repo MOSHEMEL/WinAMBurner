@@ -141,68 +141,114 @@ namespace WinAMBurner
         //public int distributor { get; set; }
     }
 
+    class Data
+    {
+        public Am am = new Am();
+        public Web web;
+        public Login login;
+        public UserJson user;
+        public Password password;
+        public Reset reset;
+        public Farm farm;
+        public List<Farm> farms;
+        public Service service;
+        public List<Service> services;
+        public SettingsJson settings;
+        public TreatmentPackage treatmentPackage;
+        public List<TreatmentPackage> treatmentPackages;
+        public Action action;
+    }
+
     class Gui
     {
         public delegate Task<JsonDocument> dWeb<TJson>(TJson jentity, string entityUrl);
-        public delegate Task<ErrCode> dResponseOk<T>(T entity);
-        public delegate ErrCode dCheck();
-        public delegate Task<ErrCode> dApprove();
-        public delegate Task<List<string>> dResponseErr(ErrCode errcode);
+        //public delegate Task<ErrCode> dResponseOk<T>(T entity);
+        //public delegate ErrCode dCheck();
+        //public delegate Task<ErrCode> dApprove();
+        //public delegate Task<List<string>> dResponseErr(ErrCode errcode);
+
+        public delegate Task<ErrCode> dResponseOk<T>(Data data, T entity);
+        public delegate ErrCode dCheck(Data data);
+        public delegate Task<ErrCode> dApprove<T>(Data data, T entity);
+        public delegate Task<List<string>> dResponseErr(Data data, ErrCode errcode);
+
+        public delegate Task dNotify(string title, string messages, string cancel);
+        public delegate Task<bool> dNotifyAnswer(string title, string messages, string accept, string cancel);
+        public delegate void dEnabled(bool enabled);
+        public delegate void dShow();
+        public delegate void dHide();
+        public delegate void dDraw<T>(T entity);
+        public dShow dshow;
+        public dHide dhide;
+        public dEnabled denabled;
+        public dNotify dnotify;
+        public dNotifyAnswer dnotifyAnswer;
 
         public Field Picture { get; set; }
         public Field Welcome { get; set; }
 
-        public void drawFields(Form thisForm)
+        public Gui()
         {
-            foreach (PropertyInfo prop in GetType().GetProperties())
-            {
-                //Console.WriteLine("{0} = {1}", prop.Name, prop.GetValue(user, null));
-                //PropertyInfo prop = props.ElementAt(controls.IndexOf(control));
-                Field field = prop.GetValue(this) as Field;
-                if (field != null)
-                {
-                    if (field.view)
-                    {
-                        field.draw(thisForm, false);
-                        field.draw(thisForm, true);
-                    }
-                }
-            }
         }
 
-        public void enableControls()
+        public Gui(dHide dhide, dEnabled denabled, dNotify dnotify)
         {
-            foreach (PropertyInfo prop in GetType().GetProperties())
-            {
-                //Console.WriteLine("{0} = {1}", prop.Name, prop.GetValue(user, null));
-                //PropertyInfo prop = props.ElementAt(controls.IndexOf(control));
-                Field field = prop.GetValue(this) as Field;
-                if ((field != null) && field.enable)
-                {
-                    if (field.control != null)
-                        field.control.Enabled = true;
-                    if (field.lcontrol != null)
-                        field.lcontrol.Enabled = true;
-                }
-            }
+            this.dhide = dhide;
+            this.denabled = denabled;
+            this.dnotify = dnotify;
         }
+        
+        //public void drawFields(Form thisForm)
+        //{
+        //    foreach (PropertyInfo prop in GetType().GetProperties())
+        //    {
+        //        //Console.WriteLine("{0} = {1}", prop.Name, prop.GetValue(user, null));
+        //        //PropertyInfo prop = props.ElementAt(controls.IndexOf(control));
+        //        Field field = prop.GetValue(this) as Field;
+        //        if (field != null)
+        //        {
+        //            if (field.view)
+        //            {
+        //                field.draw(thisForm, false);
+        //                field.draw(thisForm, true);
+        //            }
+        //        }
+        //    }
+        //}
 
-        public void disableControls()
-        {
-            foreach (PropertyInfo prop in GetType().GetProperties())
-            {
-                //Console.WriteLine("{0} = {1}", prop.Name, prop.GetValue(user, null));
-                //PropertyInfo prop = props.ElementAt(controls.IndexOf(control));
-                Field field = prop.GetValue(this) as Field;
-                if (field != null)
-                {
-                    if (field.control != null)
-                        field.control.Enabled = false;
-                    if (field.lcontrol != null)
-                        field.lcontrol.Enabled = false;
-                }
-            }
-        }
+        //public void enableControls()
+        //{
+        //    foreach (PropertyInfo prop in GetType().GetProperties())
+        //    {
+        //        //Console.WriteLine("{0} = {1}", prop.Name, prop.GetValue(user, null));
+        //        //PropertyInfo prop = props.ElementAt(controls.IndexOf(control));
+        //        Field field = prop.GetValue(this) as Field;
+        //        if ((field != null) && field.enable)
+        //        {
+        //            if (field.control != null)
+        //                field.control.Enabled = true;
+        //            if (field.lcontrol != null)
+        //                field.lcontrol.Enabled = true;
+        //        }
+        //    }
+        //}
+        
+        //public void disableControls()
+        //{
+        //    foreach (PropertyInfo prop in GetType().GetProperties())
+        //    {
+        //        //Console.WriteLine("{0} = {1}", prop.Name, prop.GetValue(user, null));
+        //        //PropertyInfo prop = props.ElementAt(controls.IndexOf(control));
+        //        Field field = prop.GetValue(this) as Field;
+        //        if (field != null)
+        //        {
+        //            if (field.control != null)
+        //                field.control.Enabled = false;
+        //            if (field.lcontrol != null)
+        //                field.lcontrol.Enabled = false;
+        //        }
+        //    }
+        //}
 
         public ErrCode checkFields()
         {
@@ -248,40 +294,46 @@ namespace WinAMBurner
             return errcode;
         }
 
-        public void hide()
-        {
-            foreach (PropertyInfo prop in GetType().GetProperties())
-            {
-                //Console.WriteLine("{0} = {1}", prop.Name, prop.GetValue(user, null));
-                Field field = prop.GetValue(this) as Field;
-                if (field != null)
-                {
-                    if (field.control != null)
-                        field.control.Dispose();
-                    if (field.lcontrol != null)
-                        field.lcontrol.Dispose();
-                }
-                //prop.SetValue(entity, control.Text);
-            }
-        }
+        //public void hide()
+        //{
+        //    foreach (PropertyInfo prop in GetType().GetProperties())
+        //    {
+        //        //Console.WriteLine("{0} = {1}", prop.Name, prop.GetValue(user, null));
+        //        Field field = prop.GetValue(this) as Field;
+        //        if (field != null)
+        //        {
+        //            if (field.control != null)
+        //                field.control.Dispose();
+        //            if (field.lcontrol != null)
+        //                field.lcontrol.Dispose();
+        //        }
+        //        //prop.SetValue(entity, control.Text);
+        //    }
+        //}
 
         public async Task<ErrCode> send<TJson, T>(TJson jentity, string url, dWeb<TJson> dweb, string captionOk, string captionErr,
-            bool showMsgs, dResponseOk<T> dresponseOk, dCheck dcheck = null, dApprove dapprove = null, dResponseErr dresponseErr = null, List<string> messagesOk = null, List<string> messagesErr = null)
+            //bool showMsgs, dResponseOk<T> dresponseOk, dCheck dcheck = null, dApprove dapprove = null, dResponseErr dresponseErr = null, List<string> messagesOk = null, List<string> messagesErr = null)
+            //bool showMsgs, dResponseOk<T> dresponseOk, dIsEnabled disEnabled, dNotify dnotify, dHide dhide, dCheck dcheck = null, dApprove dapprove = null, dResponseErr dresponseErr = null, List<string> messagesOk = null, List<string> messagesErr = null)
+            //bool showMsgs, dResponseOk<T> dresponseOk, dCheck dcheck = null, dApprove dapprove = null, dResponseErr dresponseErr = null, List<string> messagesOk = null, List<string> messagesErr = null)
+            bool showMsgs, dResponseOk<T> dresponseOk, Data data, dCheck dcheck = null, dApprove<TJson> dapprove = null, dResponseErr dresponseErr = null, List<string> messagesOk = null, List<string> messagesErr = null)
         {
             ErrCode errcode = ErrCode.ERROR;
 
-            if ((jentity != null) && (url != null) && (dweb != null) && (captionOk != null) && (captionErr != null) && (dresponseOk != null))
+            //if ((jentity != null) && (url != null) && (dweb != null) && (captionOk != null) && (captionErr != null) && (dresponseOk != null))
+            if ((jentity != null) && (url != null) && (dweb != null) && (captionOk != null) && (captionErr != null) && (dresponseOk != null) && (data != null) && (denabled != null) && (dnotify != null) && (dhide != null))
             {
                 JsonDocument jsonDocument = null;
                 T rentity = default;
                 List<string> errors = new List<string>();
                 List<string> messages = new List<string>();
 
-                disableControls();
+                //disableControls();
+                denabled(false);
                 //updateParams();
 
                 if (dcheck != null)
-                    errcode = dcheck();
+                    //errcode = dcheck();
+                    errcode = dcheck(data);
                 else
                     errcode = ErrCode.OK;
 
@@ -290,7 +342,8 @@ namespace WinAMBurner
                     if ((errcode = checkFields()) == ErrCode.OK)
                     {
                         if (dapprove != null)
-                            errcode = await dapprove();
+                            //errcode = await dapprove();
+                            errcode = await dapprove(data, jentity);
                         else
                             errcode = ErrCode.OK;
 
@@ -309,6 +362,7 @@ namespace WinAMBurner
                                 else
                                     errcode = ErrCode.SERROR;
                             }
+
                             else
                                 errcode = ErrCode.SERROR;
                         }
@@ -322,8 +376,10 @@ namespace WinAMBurner
                     if(messagesOk != null)
                         notify(messagesOk, NotifyButtons.OK, captionOk);
 
-                    if ((errcode = await dresponseOk(rentity)) == ErrCode.OK)
-                        hide();
+                    //if ((errcode = await dresponseOk(rentity)) == ErrCode.OK)
+                    if ((errcode = await dresponseOk(data, rentity)) == ErrCode.OK)
+                        //hide();
+                        dhide();
                 }
                 if (errcode != ErrCode.OK)
                 {
@@ -334,9 +390,11 @@ namespace WinAMBurner
                         notify(messagesErr, NotifyButtons.OK, captionErr);
 
                     if (dresponseErr != null)
-                        notify(await dresponseErr(errcode), NotifyButtons.OK, captionErr);
+                        //notify(await dresponseErr(errcode), NotifyButtons.OK, captionErr);
+                        await dnotify(captionErr, (await dresponseErr(data, errcode)).Aggregate(string.Empty, (r, m) => r += m), "Ok");
 
-                    enableControls();
+                    //enableControls();
+                    denabled(true);
                 }
             }
             return errcode;
@@ -373,15 +431,21 @@ namespace WinAMBurner
 
         public Field Press { get; set; }
 
+        public dDraw<Login> ddraw;
+
         public Login()
         {
             initFields();
         }
 
-        public Login(EventHandler forgotEventHandler, EventHandler buttonEventHandler)
+        //public Login(EventHandler forgotEventHandler, EventHandler buttonEventHandler)
+        public Login(EventHandler forgotEventHandler, EventHandler buttonEventHandler,
+            dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Login> ddraw, dShow dshow = null) : base(dhide, denabled, dnotify)
         {
             initFields();
-            initFields(forgotEventHandler, buttonEventHandler);
+            //initFields(forgotEventHandler, buttonEventHandler);
+            initFields(forgotEventHandler, buttonEventHandler,
+                dhide, denabled, dnotify, ddraw, dshow);
         }
 
         private void initFields()
@@ -393,10 +457,72 @@ namespace WinAMBurner
             Press = new Field(ltype: typeof(Button), ltext: "Login", lplacev: Place.End);
         }
 
-        private void initFields(EventHandler forgotEventHandler, EventHandler buttonEventHandler)
+        //private void initFields(EventHandler forgotEventHandler, EventHandler buttonEventHandler)
+        private void initFields(EventHandler forgotEventHandler, EventHandler buttonEventHandler,
+            dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Login> ddraw, dShow dshow = null)
         {
             Forgot.eventHandler = forgotEventHandler;
             Press.eventHandler = buttonEventHandler;
+
+            //this.dhide = dhide;
+            //this.denabled = denabled;
+            //this.dnotify = dnotify;
+            this.ddraw = ddraw;
+            if (dshow != null)
+                this.dshow = dshow;
+        }
+
+        public async Task<ErrCode> responseOk(Data data, Login rlogin)
+        {
+            if ((data != null) && (data.web != null) && (rlogin != null) && (rlogin.token != null))
+            {
+                // if ok
+                data.user = rlogin.user;
+                if (data.user != null)
+                {
+                    if (!data.user.is_password_changed)
+                    {
+                        //data.passwordData = new Password(eventHandler);
+                        if (data.password != null)
+                        {
+                            data.password.ddraw(data.password);
+                            return ErrCode.OK;
+                        }
+                        return ErrCode.ERROR;
+                    }
+                    JsonDocument jsonDocument = await data.web.getConstants();
+                    if (jsonDocument != null)
+                        Const.parseConstants(jsonDocument);
+                    data.farms = await data.web.entityGet<List<Farm>>("api/p/farms/");
+                    if (data.farms != null)
+                        data.farms = data.farms.Where(f => f.is_active).ToList();
+                    data.services = await data.web.entityGet<List<Service>>("api/p/service_providers/");
+                    data.treatmentPackages = await data.web.entityGet<List<TreatmentPackage>>("api/p/treatment_package/");
+                    if (data.treatmentPackages != null)
+                        data.treatmentPackages = data.treatmentPackages.Where(t => t.is_active).ToList();
+                    data.settings = await data.web.entityGet<SettingsJson>("api/p/settings/");
+
+                    if ((data.user != null) && (data.farms != null) && (data.services != null) && (data.treatmentPackages != null) && (data.settings != null) &&
+                        (Const.DCOUNTRY != null) && (Const.COUNTRY != null) && (Const.DSTATE != null) && (Const.STATE != null) &&
+                        (Const.FARM_TYPE != null) && (Const.BREED_TYPE != null) && (Const.MILKING_SETUP_TYPE != null) &&
+                        (Const.LOCATION_OF_TREATMENT_TYPE != null) && (Const.CONTRACT_TYPE != null))
+                    {
+                        if (dshow != null)
+                            dshow();
+                    }
+                    return ErrCode.OK;
+                }
+            }
+            return ErrCode.ERROR;
+        }
+
+        public void send(Data data)
+        {
+            if ((data != null) && (data.login != null) && (data.web != null))
+                send<LoginJson, Login>(data.login, "api/p/login/", data.web.login,
+                    "Login Success", "Login Failed", false, responseOk, data,
+                    messagesErr: new List<string>() { "Login failed, check your username and password, ",
+                    "make sure your tablet is connected to the internet" });
         }
     }
 
@@ -412,15 +538,21 @@ namespace WinAMBurner
 
         public Field ChangePassword { get; set; }
 
+        public dDraw<Password> ddraw;
+
         public Password()
         {
             initFields();
         }
 
-        public Password(EventHandler buttonEventHandler)
+        //public Password(EventHandler buttonEventHandler)
+        public Password(EventHandler buttonEventHandler,
+            dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Password> ddraw, dShow dshow = null) : base(dhide, denabled, dnotify)
         {
             initFields();
-            initFields(buttonEventHandler);
+            //initFields(buttonEventHandler);
+            initFields(buttonEventHandler,
+                dhide, denabled, dnotify, ddraw, dshow);
         }
 
         private void initFields()
@@ -432,9 +564,63 @@ namespace WinAMBurner
             ChangePassword = new Field(ltype: typeof(Button), ltext: "Change Password", width: Field.DefaultWidthLarge, lplacev: Place.End);
         }
 
-        private void initFields(EventHandler buttonEventHandler)
+        //private void initFields(EventHandler buttonEventHandler)
+        private void initFields(EventHandler buttonEventHandler,
+            dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Password> ddraw, dShow dshow = null)
         {
             ChangePassword.eventHandler = buttonEventHandler;
+            this.ddraw = ddraw;
+            if (dshow != null)
+                this.dshow = dshow;
+        }
+
+        public async Task<ErrCode> responseOk(Data data, Password newPassword)
+        {
+            if ((data != null) && (data.login != null) && (data.login.ddraw != null))
+            {
+                data.login.password = null;
+                data.login.ddraw(data.login);
+            }
+            return ErrCode.OK;
+        }
+
+        public async Task<List<string>> responseErr(Data data, ErrCode errcode)
+        {
+            if (errcode == ErrCode.EMATCH)
+                return new List<string>() { "Can't confirm the password,", "the two values don't match" };
+            else if (errcode == ErrCode.ELENGTH)
+                return new List<string>() { "The password specified is less than 8 characters long" };
+            return new List<string>() { "Change password failed,", "please enter a valid values" };
+        }
+
+        public ErrCode check(Data data)
+        {
+            ErrCode errcode = ErrCode.OK;
+            if ((data != null) && (data.password != null) &&
+                (data.password.Password1 != null) && (data.password.Password2 != null) &&
+                (data.password.new_password1 != null))
+            {
+                if (data.password.new_password1 != data.password.new_password2)
+                    errcode = ErrCode.EMATCH;
+                else if (data.password.new_password1 == null)
+                    errcode = ErrCode.ELENGTH;
+                else if (data.password.new_password1.Length < 8)
+                    errcode = ErrCode.ELENGTH;
+
+                if (errcode != ErrCode.OK)
+                {
+                    data.password.Password1.error = ErrCode.EPARAM;
+                    data.password.Password2.error = ErrCode.EPARAM;
+                }
+            }
+            return errcode;
+        }
+
+        public void send(Data data)
+        {
+            if ((data != null) && (data.login != null) && (data.web != null))
+                send<PasswordJson, Password>(data.password, "api/p/password/change/", data.web.entityAdd,
+                    "Change Password Success", "Change Password Failed", true, responseOk, data, dcheck: check, dresponseErr: responseErr);
         }
     }
 
@@ -447,15 +633,21 @@ namespace WinAMBurner
 
         public Field ResetPassword { get; set; }
 
+        public dDraw<Reset> ddraw;
+
         public Reset()
         {
             initFields();
         }
 
-        public Reset(EventHandler buttonEventHandler)
+        //public Reset(EventHandler buttonEventHandler)
+        public Reset(EventHandler buttonEventHandler,
+            dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Reset> ddraw, dShow dshow = null) : base(dhide, denabled, dnotify)
         {
             initFields();
-            initFields(buttonEventHandler);
+            //initFields(buttonEventHandler);
+            initFields(buttonEventHandler,
+                dhide, denabled, dnotify, ddraw, dshow);
         }
 
         private void initFields()
@@ -465,9 +657,31 @@ namespace WinAMBurner
             ResetPassword = new Field(ltype: typeof(Button), ltext: "Reset Password", width: Field.DefaultWidthLarge, lplacev: Place.End);
         }
 
-        private void initFields(EventHandler buttonEventHandler)
+        //private void initFields(EventHandler buttonEventHandler)
+        private void initFields(EventHandler buttonEventHandler,
+            dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Reset> ddraw, dShow dshow = null)
         {
             ResetPassword.eventHandler = buttonEventHandler;
+            this.ddraw = ddraw;
+            if (dshow != null)
+                this.dshow = dshow;
+        }
+
+        public async Task<ErrCode> responseOk(Data data, Reset reset)
+        {
+            //data.loginData = new Login(new Command(forgot_Click), buttonLogin_Click, screenActionShow, hide, enabled, notify, draw) { tablet = TabletNo };
+            if (data.login != null)
+                data.login.ddraw(data.login);
+            return ErrCode.OK;
+        }
+
+        public void send(Data data)
+        {
+            if ((data != null) && (data.reset != null) && (data.web != null))
+                send<ResetJson, Reset>(data.reset, "api/p/password_reset/", data.web.entityAdd,
+                    "Reset Password Success", "Reset Password Failed", true, responseOk, data,
+                    messagesOk: new List<string>() { "An email with your logon details was sent.", "Please use those details to logon." },
+                    messagesErr: new List<string>() { "Reset password failed,", "please enter a valid values" });
         }
     }
 
@@ -527,10 +741,16 @@ namespace WinAMBurner
 
         public Field Email { get; set; }
 
-        public object clone()
-        {
-            return MemberwiseClone();
-        }
+        public Entity()
+        { }
+
+        public Entity(dHide dhide, dEnabled denabled, dNotify dnotify) : base(dhide, denabled, dnotify)
+        { }
+
+        //public object clone()
+        //{
+        //    return MemberwiseClone();
+        //}
 
         public override string ToString()
         {
@@ -593,6 +813,8 @@ namespace WinAMBurner
 
         public Field LocationOfTreatmentType { get; set; }
 
+        public dDraw<Farm> ddraw;
+
         public Farm()
         {
             initFields();
@@ -623,13 +845,19 @@ namespace WinAMBurner
             Submit = new Field(ltype: typeof(Button), ltext: "Submit", lplaceh: Place.Three, lplacev: Place.Eleven);
         }
 
-        public Farm(bool edit, EventHandler countryHandler, EventHandler cancelHandler, EventHandler submitHandler)
+        //public Farm(bool edit, EventHandler countryHandler, EventHandler cancelHandler, EventHandler submitHandler)
+        public Farm(bool edit, EventHandler countryHandler, EventHandler cancelHandler, EventHandler submitHandler,
+            dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Farm> ddraw, dShow dshow = null) : base(dhide, denabled, dnotify)
         {
             initFields();
-            initFields(edit, countryHandler, cancelHandler, submitHandler);
+            //initFields(edit, countryHandler, cancelHandler, submitHandler);
+            initFields(edit, countryHandler, cancelHandler, submitHandler,
+                dhide, denabled, dnotify, ddraw, dshow);
         }
 
-        public void initFields(bool edit, EventHandler countryHandler, EventHandler cancelHandler, EventHandler submitHandler)
+        //public void initFields(bool edit, EventHandler countryHandler, EventHandler cancelHandler, EventHandler submitHandler)
+        public void initFields(bool edit, EventHandler countryHandler, EventHandler cancelHandler, EventHandler submitHandler,
+            dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Farm> ddraw, dShow dshow = null)
         {
             if (edit)
             {
@@ -648,6 +876,37 @@ namespace WinAMBurner
             Cancel.eventHandler = cancelHandler;
             Submit.eventHandler = submitHandler;
             Country.eventHandler = countryHandler;
+
+            this.ddraw = ddraw;
+            if (dshow != null)
+                this.dshow = dshow;
+        }
+
+        public async Task<ErrCode> responseOk(Data data, Farm rfarm)
+        {
+            if ((data != null) && (data.farms != null) && (dshow != null))
+            {
+                data.farms.Add(rfarm);
+                dshow();
+            }
+            return ErrCode.OK;
+        }
+
+        public void send(Data data, bool edit)
+        {
+            if ((data != null) && (data.farm != null) && (data.web != null))
+            {
+                if (edit)
+                    send<FarmJson, Farm>(data.farm, "api/p/farms/", data.web.entityEdit,
+                        "Submit Success", "Submit Failed", true, responseOk, data,
+                        messagesErr: new List<string>() { "Submit failed, can't add empty or negative fields,",
+                        "make sure all the fields are filled with valid values" });
+                else
+                    send<FarmJson, Farm>(data.farm, "api/p/farms/", data.web.entityAdd,
+                        "Submit Success", "Submit Failed", true, responseOk, data,
+                        messagesErr: new List<string>() { "Submit failed, can't add empty or negative fields,",
+                        "make sure all the fields are filled with valid values" });
+            }
         }
     }
 
@@ -659,6 +918,8 @@ namespace WinAMBurner
         public Field NumberOfDairyFarms { get; set; }
 
         public Field NumberOfDairyCows { get; set; }
+
+        public dDraw<Service> ddraw;
 
         public Service()
         {
@@ -685,13 +946,19 @@ namespace WinAMBurner
             Submit = new Field(ltype: typeof(Button), ltext: "Submit", lplaceh: Place.Three, lplacev: Place.Eleven);
         }
 
-        public Service(bool edit, EventHandler countryHandler, EventHandler cancelHandler, EventHandler submitHandler)
+        //public Service(bool edit, EventHandler countryHandler, EventHandler cancelHandler, EventHandler submitHandler)
+        public Service(bool edit, EventHandler countryHandler, EventHandler cancelHandler, EventHandler submitHandler,
+            dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Service> ddraw, dShow dshow = null) : base(dhide, denabled, dnotify)
         {
             initFields();
-            initFields(edit, countryHandler, cancelHandler, submitHandler);
+            //initFields(edit, countryHandler, cancelHandler, submitHandler);
+            initFields(edit, countryHandler, cancelHandler, submitHandler,
+                dhide, denabled, dnotify, ddraw, dshow);
         }
 
-        public void initFields(bool edit, EventHandler countryHandler, EventHandler cancelHandler, EventHandler submitHandler)
+        //public void initFields(bool edit, EventHandler countryHandler, EventHandler cancelHandler, EventHandler submitHandler)
+        public void initFields(bool edit, EventHandler countryHandler, EventHandler cancelHandler, EventHandler submitHandler,
+            dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Service> ddraw, dShow dshow = null)
         {
             if (edit)
             {
@@ -710,6 +977,37 @@ namespace WinAMBurner
             Cancel.eventHandler = cancelHandler;
             Submit.eventHandler = submitHandler;
             Country.eventHandler = countryHandler;
+
+            this.ddraw = ddraw;
+            if (dshow != null)
+                this.dshow = dshow;
+        }
+
+        public async Task<ErrCode> responseOk(Data data, Service rservice)
+        {
+            if ((data != null) && (data.services != null) && (dshow != null))
+            {
+                data.services.Add(rservice);
+                dshow();
+            }
+            return ErrCode.OK;
+        }
+
+        public void send(Data data, bool edit)
+        {
+            if ((data != null) && (data.service != null) && (data.web != null))
+            {
+                if (edit)
+                    send<ServiceJson, Service>(data.service, "api/p/service_providers/", data.web.entityEdit,
+                        "Submit Success", "Submit Failed", true, responseOk, data,
+                        messagesErr: new List<string>() { "Submit failed, can't add empty or negative fields,",
+                        "make sure all the fields are filled with valid values" });
+                else
+                    send<ServiceJson, Service>(data.service, "api/p/service_providers/", data.web.entityAdd,
+                        "Submit Success", "Submit Failed", true, responseOk, data,
+                        messagesErr: new List<string>() { "Submit failed, can't add empty or negative fields,",
+                        "make sure all the fields are filled with valid values" });
+            }
         }
     }
 
@@ -776,15 +1074,21 @@ namespace WinAMBurner
         public Field Cancel { get; set; }
         public Field Approve { get; set; }
 
+        public dDraw<Action> ddraw;
+
         public Action()
         {
             initFields();
         }
 
-        public Action(AM am, string tablet, object[] farms, object[] services, EventHandler partNumberEventHandler, EventHandler farmEventHandler, EventHandler radioEventHandler, EventHandler canselEventHandler, EventHandler approveEventHandler)
+        //public Action(Am am, string tablet, object[] farms, object[] services, EventHandler partNumberEventHandler, EventHandler farmEventHandler, EventHandler radioEventHandler, EventHandler canselEventHandler, EventHandler approveEventHandler)
+        public Action(Am am, string tablet, object[] farms, object[] services, EventHandler partNumberEventHandler, EventHandler farmEventHandler, EventHandler radioEventHandler, EventHandler canselEventHandler, EventHandler approveEventHandler,
+            dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Action> ddraw, dShow dshow = null) : base(dhide, denabled, dnotify)
         {
             initFields();
-            initFields(am, tablet, farms, services, partNumberEventHandler, farmEventHandler, radioEventHandler, canselEventHandler, approveEventHandler);
+            //initFields(am, tablet, farms, services, partNumberEventHandler, farmEventHandler, radioEventHandler, canselEventHandler, approveEventHandler);
+            initFields(am, tablet, farms, services, partNumberEventHandler, farmEventHandler, radioEventHandler, canselEventHandler, approveEventHandler,
+                dhide, denabled, dnotify, ddraw, dshow);
         }
 
         private void initFields()
@@ -802,7 +1106,9 @@ namespace WinAMBurner
             Approve = new Field(ltype: typeof(Button), ltext: "Approve", lplaceh: Place.Two, lplacev: Place.End);
         }
 
-        private void initFields(AM am, string tablet, object[] farms, object[] services, EventHandler partNumberEventHandler, EventHandler farmEventHandler, EventHandler radioEventHandler, EventHandler canselEventHandler, EventHandler approveEventHandler)
+        //private void initFields(Am am, string tablet, object[] farms, object[] services, EventHandler partNumberEventHandler, EventHandler farmEventHandler, EventHandler radioEventHandler, EventHandler canselEventHandler, EventHandler approveEventHandler)
+        private void initFields(Am am, string tablet, object[] farms, object[] services, EventHandler partNumberEventHandler, EventHandler farmEventHandler, EventHandler radioEventHandler, EventHandler canselEventHandler, EventHandler approveEventHandler,
+            dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Action> ddraw, dShow dshow = null, dNotifyAnswer dnotifyAnswer = null)
         {
             PartNumber.ltext += am.SNum.ToString();
             PartNumber.eventHandler = partNumberEventHandler;
@@ -819,6 +1125,111 @@ namespace WinAMBurner
             RadioService.eventHandler = radioEventHandler;
             Cancel.eventHandler = canselEventHandler;
             Approve.eventHandler = approveEventHandler;
+            this.ddraw = ddraw;
+            if (dshow != null)
+                this.dshow = dshow;
+            if (dnotifyAnswer != null)
+                this.dnotifyAnswer = dnotifyAnswer;
+        }
+
+        public async Task<ErrCode> approve(Data data, ActionJson action)
+        {
+            ErrCode errcode = ErrCode.ERROR;
+            if (((action.farm != null) || (action.service_provider != null)))
+            {
+                if ((data.am.Maxi + data.am.MaxiSet) < data.settings.max_am_pulses)
+                {
+                    bool answer = await dnotifyAnswer("Approve", string.Format("{0} current treatments available", data.am.Maxi / data.settings.number_of_pulses_per_treatment) +
+                                string.Format("{0} treatments will be added", data.am.MaxiSet / data.settings.number_of_pulses_per_treatment) +
+                                string.Format("AM - SN: {0}", data.am.SNum) +
+                                ((action.farm != null) ? string.Format("Farm: {0}", data.farms.Find(f => f.id == action.farm).Name.val) :
+                                ((action.service_provider != null) ? string.Format("Service Provider: {0}", data.services.Find(s => s.id == action.service_provider).Name.val) : string.Empty)) +
+                                "Press the button to proceed", "Yes", "No");
+                    if (answer)
+                    {
+                        //if (progressBar != null)
+                        //    progressBar.IsVisible = true;
+                        //data.amData.serialPortProgressEvent += new EventHandler(progressBar_Callback);
+                        //if (progressBar != null)
+                        //    progressBar.Progress = 0;
+
+                        if ((errcode = await data.am.AMDataWrite()) == ErrCode.OK)
+                        {
+                            if ((errcode = await data.am.AMDataRead()) == ErrCode.OK)
+                            {
+                                return ErrCode.OK;
+                            }
+                        }
+                    }
+                    else
+                        errcode = ErrCode.CANSEL;
+                }
+                else
+                    errcode = ErrCode.EMAX;
+            }
+            else
+                errcode = ErrCode.EPARAM;
+            return errcode;
+        }
+
+        public async Task<ErrCode> responseOk(Data data, Action action)
+        {
+            if ((data != null) && (data.am != null) && (data.settings != null))
+            {
+                await dnotify("Approve Success", string.Format("The original amount of treatments: {0}", data.am.MaxiPrev / data.settings.number_of_pulses_per_treatment) +
+                        string.Format("Added treatments: {0}", data.am.MaxiSet / data.settings.number_of_pulses_per_treatment) +
+                        string.Format("The treatments available on AM - SN {1}: {0}", data.am.Maxi / data.settings.number_of_pulses_per_treatment, data.am.SNum) +
+                        "please disconnect the AM", "OK");
+                //clearAM();
+                dshow();
+            }
+            return ErrCode.OK;
+        }
+
+        public async Task<List<string>> responseErr(Data data, ErrCode errcode)
+        {
+            //if (progressBar != null)
+            //    progressBar.IsVisible = false;
+            //action.notify(new List<string>() { "Approve failed, restoring AM" }, NotifyButtons.OK, "Approve Failed");
+            //if (progressBar != null)
+            //    progressBar.Progress = 0;
+
+            List<string> errors;
+            if (errcode == ErrCode.EPARAM)
+                errors = new List<string>() { "Wrong parameters,", "please choose the Farm / Service provider",
+                                "and the number of treatments" };
+            else if (errcode == ErrCode.EMAX)
+                errors = new List<string>() { "Wrong part number,", "the maximum number of treatments reached,",
+                                "please choose a smaller number of treatments" };
+            else if (errcode == ErrCode.SERROR)
+            {
+                data.am.Maxi -= data.am.MaxiSet;
+                data.am.MaxiSet = 0;
+                await dnotify("Approve Failed", string.Format("Approve failed, restoring AM to {0} treatments", data.am.Maxi / data.settings.number_of_pulses_per_treatment), "OK");
+
+                if (await data.am.AMDataWrite() == ErrCode.OK)
+                {
+                    if (await data.am.AMDataRead() == ErrCode.OK)
+                        errors = new List<string>() { "Approve failed,", string.Format("AM sucsessfully restored to {0} treatments", data.am.Maxi / data.settings.number_of_pulses_per_treatment) };
+                    else
+                        errors = new List<string>() { "Approve failed,", string.Format("Failed to restore to {0} treatments", data.am.Maxi / data.settings.number_of_pulses_per_treatment) };
+                }
+                else
+                    errors = new List<string>() { "Approve failed,", "Faild to restore to original values" };
+            }
+            else if (errcode == ErrCode.CANSEL)
+                errors = null;
+            else
+                errors = new List<string>() { "The operation failed, the treatments were not added" };
+
+            return errors;
+        }
+
+        public void send(Data data)
+        {
+            if ((data != null) && (data.action != null) && (data.web != null))
+                send<ActionJson, Action>(data.action, "api/p/actions/", data.web.entityAdd,
+                    "Approve Success", "Approve Failed", false, responseOk, data, dapprove: approve, dresponseErr: responseErr);
         }
     }
 }

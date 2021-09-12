@@ -28,7 +28,7 @@ namespace WinAMBurner
         }
     }
 
-    class AM
+    class Am
     {
         private SerialPort serialPort;
         private const int serialPortBaudRate = 115200;
@@ -43,6 +43,7 @@ namespace WinAMBurner
 
         private uint snum = ERROR;
         private uint maxi = ERROR;
+        private uint maxiprev = ERROR;
         private uint maxiSet = ERROR;
         private double date = 0;
         private uint[] id = new uint[ID_LENGTH] { ERROR, ERROR, ERROR };
@@ -51,6 +52,7 @@ namespace WinAMBurner
 
         public uint SNum { get => snum; set => snum = value; }
         public uint Maxi { get => maxi; set => maxi = value; }
+        public uint MaxiPrev { get => maxiprev; set => maxiprev = value; }
         public uint MaxiSet { get => maxiSet; set => maxiSet = value; }
         public uint Factor { get => factor; set => factor = value; }
         public uint[] AptxId
@@ -85,7 +87,7 @@ namespace WinAMBurner
 
         public event EventHandler serialPortProgressEvent;
 
-        public AM()
+        public Am()
         {
             serialPort = new SerialPort();
             serialPort.BaudRate = serialPortBaudRate;
@@ -321,6 +323,7 @@ namespace WinAMBurner
                         }
                     }
                 }
+                maxiprev = maxi;
                 maxi = lmaxi;
                 date = ldate;
                 if (factor == ERROR)

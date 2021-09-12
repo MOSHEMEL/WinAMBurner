@@ -6,6 +6,7 @@ using System.Linq;
 using System.Management;
 using System.Reflection;
 using System.Text.Json;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace WinAMBurner
@@ -17,29 +18,31 @@ namespace WinAMBurner
         private ProgressBar progressBar1;
         private DataGridView dataGridView1;
         private bool AMConnected = false;
-        private AM am = new AM();
+        //private Am am = new Am();
 
-        private Web web = new Web();
+        //private Web web = new Web();
 
-        private List<Farm> farms = null;
-        private Farm farm = null;
+        //private List<Farm> farms = null;
+        //private Farm farm = null;
 
-        private List<Service> services = null;
-        private Service service = null;
+        //private List<Service> services = null;
+        //private Service service = null;
 
         private string tabletNo = null;
 
-        private List<TreatmentPackage> treatmentPackages = null;
+        //private List<TreatmentPackage> treatmentPackages = null;
 
-        private SettingsJson settings = null;
+        //private SettingsJson settings = null;
 
-        private Login login = null;
-        private UserJson user = null;
+        //private Login login = null;
+        //private UserJson user = null;
 
-        private Action action;
-        private Password password;
-        private Reset reset;
+        //private Action action;
+        //private Password password;
+        //private Reset reset;
         private Field search;
+
+        private Data data = new Data();
 
         private string TabletNo
         {
@@ -62,6 +65,69 @@ namespace WinAMBurner
             return "BIOS Serial Number: Unknown";
         }
 
+        //private void hide()
+        //{
+        //    while (layout.Children.Count > 0)
+        //        layout.Children.RemoveAt(0);
+        //}
+        public void hide()
+        {
+            while (Controls.Count > 0)
+                Controls[0].Dispose();
+        }
+
+        private void enabled(bool enabled)
+        {
+            foreach (Control control in this.Controls)
+                control.Enabled = enabled;
+        }
+
+        private async Task notify(string title, string messages, string cancel)
+        //private DialogResult notify(List<string> text, NotifyButtons notifyButtons, string caption)
+        {
+            DialogResult dialogResult = default;
+            if ((title != null) && (messages != null) && (cancel != null))
+            {
+                FormNotify formNotify = new FormNotify(new List<string>() { messages}, NotifyButtons.OK, title);
+                formNotify.ShowDialog();
+                dialogResult = formNotify.DialogResult;
+                formNotify.Dispose();
+            }
+            //return dialogResult;
+        }
+
+        private async Task<bool> notify(string title, string messages, string accept, string cancel)
+        {
+            DialogResult dialogResult = default;
+            if ((title != null) && (messages != null) && (cancel != null))
+            {
+                FormNotify formNotify = new FormNotify(new List<string>() { messages }, NotifyButtons.OK, title);
+                formNotify.ShowDialog();
+                dialogResult = formNotify.DialogResult;
+                formNotify.Dispose();
+            }
+            return dialogResult == DialogResult.Yes ? true : false;
+        }
+
+        //private void draw<T>(StackLayout layout, T entity)
+        private void draw<T>(T entity)
+        {
+            foreach (PropertyInfo prop in entity.GetType().GetProperties())
+            {
+                //Console.WriteLine("{0} = {1}", prop.Name, prop.GetValue(user, null));
+                //PropertyInfo prop = props.ElementAt(controls.IndexOf(control));
+                Field field = prop.GetValue(entity) as Field;
+                if (field != null)
+                {
+                    if (field.view)
+                    {
+                        field.draw(this, false);
+                        field.draw(this, true);
+                    }
+                }
+            }
+        }
+
         public FormMain()
         {
             InitializeComponent();
@@ -70,179 +136,217 @@ namespace WinAMBurner
             this.Font = new Font("Segoe UI", Field.DefaultFont, FontStyle.Regular, GraphicsUnit.Point);
             //pictureBoxTitle.Scale(new SizeF(Misc.ScaleFactor, Misc.ScaleFactor));
             this.Text += " Version " + Const.Version;
-            login = new Login(forgot_Click, buttonLogin_Click) { tablet = TabletNo };
-            if (login != null)
-                login.drawFields(this);
+            //login = new Login(forgot_Click, buttonLogin_Click) { tablet = TabletNo };
+            //if (login != null)
+            //    login.drawFields(this);
+            if (data != null)
+            {
+                data.web = new Web();
+                data.am = new Am();
+                data.login = new Login(forgot_Click, buttonLogin_Click, hide, enabled, notify, draw, dshow: screenActionShow) { tablet = TabletNo };
+                data.password = new Password(buttonChangePassword_Click, hide, enabled, notify, draw);
+                if (data.login != null)
+                    data.login.ddraw(data.login);
+                //draw(data.login);
+            }
         }
 
         private void forgot_Click(object sender, EventArgs e)
         {
-            if (login != null)
-                login.hide();
-            reset = new Reset(buttonResetPassword_Click);
-            if (reset != null)
-                reset.drawFields(this);
+            //if (login != null)
+            //    login.hide();
+            //reset = new Reset(buttonResetPassword_Click);
+            //if (reset != null)
+            //    reset.drawFields(this);
+            if (data.login != null)
+                //login.hide();
+                hide();
+            data.reset = new Reset(buttonResetPassword_Click, hide, enabled, notify, draw);
+            if (data.reset != null)
+                data.reset.ddraw(data.reset);
         }
 
         private async void buttonResetPassword_Click(object sender, EventArgs e)
         {
-            if ((reset != null) && (web != null) && (login != null))
+            if ((data != null) && (data.reset != null))
             {
-                reset.send<ResetJson, Reset>(reset, "api/p/password_reset/", web.entityAdd,
-                    "Reset Password Success", "Reset Password Failed", true,
-                    new Gui.dResponseOk<Reset>(async (rreset) =>
-                    {
-                        login = new Login(forgot_Click, buttonLogin_Click) { tablet = TabletNo };
-                        if (login != null)
-                            login.drawFields(this);
-                        return ErrCode.OK;
-                    }),
-                    messagesOk: new List<string>() { "An email with your logon details was sent.", "Please use those details to logon." },
-                    messagesErr: new List<string>() { "Reset password failed,", "please enter a valid values" });
+                data.login = new Login(forgot_Click, buttonLogin_Click, hide, enabled, notify, draw, dshow: screenActionShow) { tablet = TabletNo };
+                data.reset.send(data);
             }
+            //if ((reset != null) && (web != null) && (login != null))
+            //{
+            //    reset.send<ResetJson, Reset>(reset, "api/p/password_reset/", web.entityAdd,
+            //        "Reset Password Success", "Reset Password Failed", true,
+            //        new Gui.dResponseOk<Reset>(async (rreset) =>
+            //        {
+            //            login = new Login(forgot_Click, buttonLogin_Click) { tablet = TabletNo };
+            //            if (login != null)
+            //                login.drawFields(this);
+            //            return ErrCode.OK;
+            //        }),
+            //        messagesOk: new List<string>() { "An email with your logon details was sent.", "Please use those details to logon." },
+            //        messagesErr: new List<string>() { "Reset password failed,", "please enter a valid values" });
+            //}
         }
 
         private void logout()
         {
             clearAM();
 
-            web = new Web();
+            data.web = new Web();
 
-            farms = null;
-            farm = null;
+            data.farms = null;
+            data.farm = null;
 
-            services = null;
-            service = null;
+            data.services = null;
+            data.service = null;
 
             tabletNo = null;
 
-            treatmentPackages = null;
+            data.treatmentPackages = null;
 
-            settings = null;
+            data.settings = null;
 
-            login = new Login(forgot_Click, buttonLogin_Click) { tablet = TabletNo };
-            user = null;
+            //login = new Login(forgot_Click, buttonLogin_Click) { tablet = TabletNo };
+            data.login = new Login(forgot_Click, buttonLogin_Click, hide, enabled, notify, draw, dshow: screenActionShow) { tablet = TabletNo };
+            data.user = null;
         }
 
         private void clearAM()
         {
             AMConnected = false;
-            am = new AM();
+            data.am = new Am();
         }
 
         private async void buttonLogin_Click(object sender, EventArgs e)
         {
-            if ((login != null) && (web != null))
+            if ((data != null) && (data.login != null))
             {
-                login.Email.control.Text = "yael@gmail.com";
-                login.Password.control.Text = "yael1234";
+                data.login.Email.control.Text = "yael@gmail.com";
+                data.login.Password.control.Text = "yael1234";
+                //data.login.tablet = "PF1C9VKU";
                 //        //login.email = "yaelv@armentavet.com";
                 //        //login.password = "Yyyaeeel123";
                 //        //login.tablet = "kjh1g234123";
-                login.send<LoginJson, Login>(login, "api/p/login/", web.login,
-                    "Login Success", "Login Failed", false,
-                    new Gui.dResponseOk<Login>(async (rlogin) =>
-                    {
-                        if (rlogin.token != null)
-                        {
-                            // if ok
-                            user = rlogin.user;
-                            if (!user.is_password_changed)
-                            {
-                                password = new Password(buttonChangePassword_Click);
-                                if (password != null)
-                                {
-                                    password.drawFields(this);
-                                    return ErrCode.OK;
-                                }
-                                return ErrCode.ERROR;
-                            }
-                            JsonDocument jsonDocument = await web.getConstants();
-                            if (jsonDocument != null)
-                                Const.parseConstants(jsonDocument);
-                            farms = await web.entityGet<List<Farm>>("api/p/farms/");
-                            if (farms != null)
-                                farms = farms.Where(f => f.is_active).ToList();
-                            services = await web.entityGet<List<Service>>("api/p/service_providers/");
-                            treatmentPackages = await web.entityGet<List<TreatmentPackage>>("api/p/treatment_package/");
-                            if (treatmentPackages != null)
-                                treatmentPackages = treatmentPackages.Where(t => t.is_active).ToList();
-                            settings = await web.entityGet<SettingsJson>("api/p/settings/");
-
-                            if ((user != null) && (farms != null) && (services != null) && (treatmentPackages != null) && (settings != null) &&
-                                (Const.DCOUNTRY != null) && (Const.COUNTRY != null) && (Const.DSTATE != null) && (Const.STATE != null) &&
-                                (Const.FARM_TYPE != null) && (Const.BREED_TYPE != null) && (Const.MILKING_SETUP_TYPE != null) &&
-                                (Const.LOCATION_OF_TREATMENT_TYPE != null) && (Const.CONTRACT_TYPE != null))
-                            {
-                                screenActionShow();
-                            }
-                            return ErrCode.OK;
-                        }
-                        return ErrCode.ERROR;
-                    }),
-                    messagesErr: new List<string>() { "Login failed, check your username and password,",
-                        "make sure your tablet is connected to the internet" });
+                data.login.send(data);
             }
+            //if ((login != null) && (web != null))
+            //{
+            //    login.Email.control.Text = "yael@gmail.com";
+            //    login.Password.control.Text = "yael1234";
+            //    //        //login.email = "yaelv@armentavet.com";
+            //    //        //login.password = "Yyyaeeel123";
+            //    //        //login.tablet = "kjh1g234123";
+            //    login.send<LoginJson, Login>(login, "api/p/login/", web.login,
+            //        "Login Success", "Login Failed", false,
+            //        new Gui.dResponseOk<Login>(async (rlogin) =>
+            //        {
+            //            if (rlogin.token != null)
+            //            {
+            //                // if ok
+            //                user = rlogin.user;
+            //                if (!user.is_password_changed)
+            //                {
+            //                    password = new Password(buttonChangePassword_Click);
+            //                    if (password != null)
+            //                    {
+            //                        password.drawFields(this);
+            //                        return ErrCode.OK;
+            //                    }
+            //                    return ErrCode.ERROR;
+            //                }
+            //                JsonDocument jsonDocument = await web.getConstants();
+            //                if (jsonDocument != null)
+            //                    Const.parseConstants(jsonDocument);
+            //                farms = await web.entityGet<List<Farm>>("api/p/farms/");
+            //                if (farms != null)
+            //                    farms = farms.Where(f => f.is_active).ToList();
+            //                services = await web.entityGet<List<Service>>("api/p/service_providers/");
+            //                treatmentPackages = await web.entityGet<List<TreatmentPackage>>("api/p/treatment_package/");
+            //                if (treatmentPackages != null)
+            //                    treatmentPackages = treatmentPackages.Where(t => t.is_active).ToList();
+            //                settings = await web.entityGet<SettingsJson>("api/p/settings/");
+            //
+            //                if ((user != null) && (farms != null) && (services != null) && (treatmentPackages != null) && (settings != null) &&
+            //                    (Const.DCOUNTRY != null) && (Const.COUNTRY != null) && (Const.DSTATE != null) && (Const.STATE != null) &&
+            //                    (Const.FARM_TYPE != null) && (Const.BREED_TYPE != null) && (Const.MILKING_SETUP_TYPE != null) &&
+            //                    (Const.LOCATION_OF_TREATMENT_TYPE != null) && (Const.CONTRACT_TYPE != null))
+            //                {
+            //                    screenActionShow();
+            //                }
+            //                return ErrCode.OK;
+            //            }
+            //            return ErrCode.ERROR;
+            //        }),
+            //        messagesErr: new List<string>() { "Login failed, check your username and password,",
+            //            "make sure your tablet is connected to the internet" });
+            //}
         }
 
-        private DialogResult notify(List<string> text, NotifyButtons notifyButtons, string caption)
-        {
-            DialogResult dialogResult = default;
-            if (text.Count > 0)
-            {
-                FormNotify formNotify = new FormNotify(text, notifyButtons, caption);
-                formNotify.ShowDialog();
-                dialogResult = formNotify.DialogResult;
-                formNotify.Dispose();
-            }
-            return dialogResult;
-        }
+        //private DialogResult notify(List<string> text, NotifyButtons notifyButtons, string caption)
+        //{
+        //    DialogResult dialogResult = default;
+        //    if (text.Count > 0)
+        //    {
+        //        FormNotify formNotify = new FormNotify(text, notifyButtons, caption);
+        //        formNotify.ShowDialog();
+        //        dialogResult = formNotify.DialogResult;
+        //        formNotify.Dispose();
+        //    }
+        //    return dialogResult;
+        //}
 
         private async void buttonChangePassword_Click(object sender, EventArgs e)
         {
-            if ((password != null) && (web != null) && (login != null))
+            if ((data != null) && (data.password != null))
             {
-                password.send<PasswordJson, Password>(password, "api/p/password/change/", web.entityAdd,
-                    "Change Password Success", "Change Password Failed", true,
-                    new Gui.dResponseOk<Password>(async (rpassword) =>
-                    {
-                        if (login != null)
-                        {
-                            login.password = null;
-                            login.drawFields(this);
-                        }
-                        return ErrCode.OK;
-                    }),
-                    dcheck: new Gui.dCheck(() =>
-                    {
-                        ErrCode errcode = ErrCode.OK;
-                        if (password.new_password1 != password.new_password2)
-                            errcode = ErrCode.EMATCH;
-                        else if (password.new_password1 == null)
-                            errcode = ErrCode.ELENGTH;
-                        else if (password.new_password1.Length < 8)
-                            errcode = ErrCode.ELENGTH;
-                        
-                        if (errcode != ErrCode.OK)
-                        {
-                            password.Password1.error = ErrCode.EPARAM;
-                            password.Password2.error = ErrCode.EPARAM;
-                        }
-                        return errcode;
-                    }),
-                    dresponseErr: new Gui.dResponseErr(async (errcode) =>
-                    {
-                        if (errcode == ErrCode.EMATCH)
-                            return new List<string>() { "Can't confirm the password,", "the two values don't match" };
-                        else if (errcode == ErrCode.ELENGTH)
-                            return new List<string>() { "The password specified is less than 8 characters long" };
-                        return new List<string>() { "Change password failed,", "please enter a valid values" };
-                    }));
+                data.password.send(data);
             }
+            //if ((password != null) && (web != null) && (login != null))
+            //{
+            //    password.send<PasswordJson, Password>(password, "api/p/password/change/", web.entityAdd,
+            //        "Change Password Success", "Change Password Failed", true,
+            //        new Gui.dResponseOk<Password>(async (rpassword) =>
+            //        {
+            //            if (login != null)
+            //            {
+            //                login.password = null;
+            //                login.drawFields(this);
+            //            }
+            //            return ErrCode.OK;
+            //        }),
+            //        dcheck: new Gui.dCheck(() =>
+            //        {
+            //            ErrCode errcode = ErrCode.OK;
+            //            if (password.new_password1 != password.new_password2)
+            //                errcode = ErrCode.EMATCH;
+            //            else if (password.new_password1 == null)
+            //                errcode = ErrCode.ELENGTH;
+            //            else if (password.new_password1.Length < 8)
+            //                errcode = ErrCode.ELENGTH;
+            //            
+            //            if (errcode != ErrCode.OK)
+            //            {
+            //                password.Password1.error = ErrCode.EPARAM;
+            //                password.Password2.error = ErrCode.EPARAM;
+            //            }
+            //            return errcode;
+            //        }),
+            //        dresponseErr: new Gui.dResponseErr(async (errcode) =>
+            //        {
+            //            if (errcode == ErrCode.EMATCH)
+            //                return new List<string>() { "Can't confirm the password,", "the two values don't match" };
+            //            else if (errcode == ErrCode.ELENGTH)
+            //                return new List<string>() { "The password specified is less than 8 characters long" };
+            //            return new List<string>() { "Change password failed,", "please enter a valid values" };
+            //        }));
+            //}
         }
 
         private void screenActionShow()
         {
+            clearAM();
+            
             new Field(ltype: typeof(PictureBox), lplacev: Place.One).draw(this, true);
             new Field(ltype: typeof(Label), ltext: "Welcome distributor", font: Field.DefaultFontLarge, lplacev: Place.Two).draw(this, true);
             new Field(ltype: typeof(Label), ltext: "Choose Action: ", lplacev: Place.Four).draw(this, true);
@@ -254,52 +358,57 @@ namespace WinAMBurner
             new Field(ltype: typeof(Button), ltext: "Logout", eventHandler: buttonLogout_Click, lplacev: Place.End).draw(this, true);
         }
 
-        public void hide()
-        {
-            while (Controls.Count > 0)
-                Controls[0].Dispose();
-        }
+        //public void hide()
+        //{
+        //    while (Controls.Count > 0)
+        //        Controls[0].Dispose();
+        //}
 
         private void buttonLogout_Click(object sender, EventArgs e)
         {
             logout();
             hide();
-            if (login != null)
-                login.drawFields(this);
+            //if (login != null)
+            //    login.drawFields(this);
+            if ((data != null) && (data.login != null))
+                data.login.ddraw(data.login);
         }
 
         private void buttonUpdateAM_Click(object sender, EventArgs e)
         {
-            allControlsDisable();
+            //allControlsDisable();
+            enabled(false);
             hide();
             screenConnectShow();
         }
 
         private async void buttonFarm_Click(object sender, EventArgs e)
         {
-            allControlsDisable();
+            //allControlsDisable();
+            enabled(false);
             hide();
             screenFarmShow();
         }
 
         private async void buttonService_Click(object sender, EventArgs e)
         {
-            allControlsDisable();
+            //allControlsDisable();
+            enabled(false);
             hide();
             screenServiceShow();
         }
 
-        private void allControlsDisable()
-        {
-            foreach (Control control in this.Controls)
-                control.Enabled = false;
-        }
+        //private void allControlsDisable()
+        //{
+        //    foreach (Control control in this.Controls)
+        //        control.Enabled = false;
+        //}
 
-        private void allControlsEnable()
-        {
-            foreach (Control control in this.Controls)
-                control.Enabled = true;
-        }
+        //private void allControlsEnable()
+        //{
+        //    foreach (Control control in this.Controls)
+        //        control.Enabled = true;
+        //}
 
         private DataTable entityTableGet(List<Entity> entities)
         {
@@ -357,13 +466,13 @@ namespace WinAMBurner
                 button1.Enabled = false;
                 //button2.Enabled = false;
                 progressBar1.Visible = true;
-                am.serialPortProgressEvent += progressBar_Callback;
+                data.am.serialPortProgressEvent += progressBar_Callback;
                 progressBar1.Value = progressBar1.Minimum;
 
-                ErrCode errcode = await am.AMDataCheckConnect();
+                ErrCode errcode = await data.am.AMDataCheckConnect();
 
                 if (errcode >= ErrCode.OK)
-                    errcode = await am.AMDataRead();
+                    errcode = await data.am.AMDataRead();
                 progressBar1.Value = progressBar1.Maximum;
                 if (errcode == ErrCode.OK)
                 {
@@ -378,8 +487,9 @@ namespace WinAMBurner
                     clearAM();
                     AMDisconnectedShow();
 
-                    notify(new List<string>() { "AM not found make sure the AM is connected", "to the tablet by using a USB cable" },
-                        NotifyButtons.OK, caption: "Am not connected");
+                    //notify(new List<string>() { "AM not found make sure the AM is connected", "to the tablet by using a USB cable" },
+                    //    NotifyButtons.OK, caption: "Am not connected");
+                    await notify("Am not connected", "AM not found make sure the AM is connected\nto the tablet by using a USB cable", "OK");
                 }
                 label1.Visible = true;
                 button1.Enabled = true;
@@ -413,8 +523,8 @@ namespace WinAMBurner
         {
             new Field(ltype: typeof(PictureBox), lplacev: Place.One).draw(this, true);
             new Field(ltype: typeof(Label), ltext: "Welcome distributor", font: Field.DefaultFontLarge, lplacev: Place.Two).draw(this, true);
-            new Field(ltype: typeof(Label), ltext: "AM identified with SN: " + am.SNum, lplacev: Place.Four).draw(this, true);
-            new Field(ltype: typeof(Label), ltext: "Current available treatments: " + am.Maxi / settings.number_of_pulses_per_treatment, lplacev: Place.Six).draw(this, true);
+            new Field(ltype: typeof(Label), ltext: "AM identified with SN: " + data.am.SNum, lplacev: Place.Four).draw(this, true);
+            new Field(ltype: typeof(Label), ltext: "Current available treatments: " + data.am.Maxi / data.settings.number_of_pulses_per_treatment, lplacev: Place.Six).draw(this, true);
             new Field(ltype: typeof(Button), ltext: "Back", eventHandler: buttonInfoBack_Click, lplaceh: Place.Five, lplacev: Place.End).draw(this, true);
             new Field(ltype: typeof(Button), ltext: "Continue", eventHandler: buttonInfoContinue_Click, lplaceh: Place.Two, lplacev: Place.End).draw(this, true);
         }
@@ -428,17 +538,22 @@ namespace WinAMBurner
         private void buttonInfoContinue_Click(object sender, EventArgs e)
         {
             hide();
-            action = new Action(am, TabletNo, farms.ToArray(), services.ToArray(),
+            //action = new Action(am, TabletNo, farms.ToArray(), services.ToArray(),
+            //    comboBoxPartNumber_SelectedIndexChanged, comboBoxFarm_SelectedIndexChanged, radioButton_CheckedChanged,
+            //    buttonTreatCansel_Click, buttonTreatApprove_Click);
+            data.action = new Action(data.am, TabletNo, data.farms.ToArray(), data.services.ToArray(),
                 comboBoxPartNumber_SelectedIndexChanged, comboBoxFarm_SelectedIndexChanged, radioButton_CheckedChanged,
-                buttonTreatCansel_Click, buttonTreatApprove_Click);
-            if ((action != null) && (action.RadioFarm != null) && (action.Progress != null))
+                buttonTreatCansel_Click, buttonTreatApprove_Click, hide, enabled, notify, draw);
+            //if ((action != null) && (action.RadioFarm != null) && (action.Progress != null))
+            if ((data != null) && (data.action != null) && (data.action.RadioFarm != null) && (data.action.Progress != null))
             {
-                action.drawFields(this);
+                //action.drawFields(this);
+                data.action.ddraw(data.action);
 
-                RadioButton radioButton = action.RadioFarm.lcontrol as RadioButton;
+                RadioButton radioButton = data.action.RadioFarm.lcontrol as RadioButton;
                 if (radioButton != null)
                     radioButton.Checked = true;
-                ProgressBar progressBar = action.Progress.lcontrol as ProgressBar;
+                ProgressBar progressBar = data.action.Progress.lcontrol as ProgressBar;
                 if (progressBar != null)
                     progressBar.Visible = false;
             }
@@ -450,10 +565,13 @@ namespace WinAMBurner
             if (comboBox != null)
             {
                 TreatmentPackage treatmentPackage = comboBox.SelectedItem as TreatmentPackage;
-                if ((treatmentPackage != null) &&(settings != null))
+                //if ((treatmentPackage != null) &&(settings != null))
+                if ((treatmentPackage != null) && (data != null) && (data.settings != null))
                 {
-                    action.PartNumber.val = treatmentPackage.PartNumber;
-                    am.MaxiSet = (uint)(treatmentPackage.amount_of_treatments * settings.number_of_pulses_per_treatment);
+                    //action.PartNumber.val = treatmentPackage.PartNumber;
+                    //am.MaxiSet = (uint)(treatmentPackage.amount_of_treatments * settings.number_of_pulses_per_treatment);
+                    data.action.PartNumber.val = treatmentPackage.PartNumber;
+                    data.am.MaxiSet = (uint)(treatmentPackage.amount_of_treatments * data.settings.number_of_pulses_per_treatment);
                 }
             }
         }
@@ -461,41 +579,42 @@ namespace WinAMBurner
         private void comboBoxFarm_SelectedIndexChanged(object sender, EventArgs e)
         {
             ComboBox comboBox = sender as ComboBox;
-            if ((action != null) && (action.PartNumber != null))
+            //if ((action != null) && (action.PartNumber != null))
+            if ((data != null) && (data.action != null) && (data.action.PartNumber != null))
             {
-                ComboBox comboBoxPN = action.PartNumber.control as ComboBox;
-                if ((comboBox != null) && (comboBox.SelectedItem != null) && (comboBoxPN != null) && (treatmentPackages != null))
+                ComboBox comboBoxPN = data.action.PartNumber.control as ComboBox;
+                if ((comboBox != null) && (comboBox.SelectedItem != null) && (comboBoxPN != null) && (data.treatmentPackages != null))
                 {
-                    action.PartNumber.removeItems();
+                    data.action.PartNumber.removeItems();
                     Farm farm = comboBox.SelectedItem as Farm;
                     Service service = comboBox.SelectedItem as Service;
                     Entity entity = null;
                     if (farm != null)
                     {
                         entity = farm;
-                        action.Farm.val = farm.Id;
+                        data.action.Farm.val = farm.Id;
                         //action.Service.val = null;
                     }
                     if (service != null)
                     {
                         entity = service;
                         //action.Farm.val = null;
-                        action.Service.val = service.Id;
+                        data.action.Service.val = service.Id;
                     }
                     if (entity != null)
                     {
-                        if ((treatmentPackages != null) && (settings != null) && (am != null))
+                        if ((data.treatmentPackages != null) && (data.settings != null) && (data.am != null))
                         {
                             //action.PartNumber.items = treatmentPackages.Where(t => (t.contract_type == entity.contract_type)).ToArray();
-                            if ((action.PartNumber.items = treatmentPackages.Where(t => (t.contract_type == entity.contract_type) &&
-                                 ((t.amount_of_treatments * settings.number_of_pulses_per_treatment + am.Maxi) < settings.max_am_pulses)).ToArray()) != null)
+                            if ((data.action.PartNumber.items = data.treatmentPackages.Where(t => (t.contract_type == entity.contract_type) &&
+                                 ((t.amount_of_treatments * data.settings.number_of_pulses_per_treatment + data.am.Maxi) < data.settings.max_am_pulses)).ToArray()) != null)
                             {
-                                action.PartNumber.addItems(action.PartNumber.items);
-                                action.PartNumber.control.Text = action.PartNumber.dflt;
-                                action.PartNumber.control.ForeColor = Color.Silver;
-                                action.PartNumber.val = action.PartNumber.dflt;
-                                if (action.PartNumber.items.Length == 0)
-                                    action.notify(new List<string>() { "The attached AM reached the max allowed treatments. ",
+                                data.action.PartNumber.addItems(data.action.PartNumber.items);
+                                data.action.PartNumber.control.Text = data.action.PartNumber.dflt;
+                                data.action.PartNumber.control.ForeColor = Color.Silver;
+                                data.action.PartNumber.val = data.action.PartNumber.dflt;
+                                if (data.action.PartNumber.items.Length == 0)
+                                    data.action.notify(new List<string>() { "The attached AM reached the max allowed treatments. ",
                                        "There are no available part numbers.",
                                        "Please replace the AM or contact support. " }, NotifyButtons.OK, "Part Number Error");
                             }
@@ -509,48 +628,48 @@ namespace WinAMBurner
         private void radioButton_CheckedChanged(object sender, EventArgs e)
         {
             RadioButton radioButton = sender as RadioButton;
-            if ((action != null) && (action.RadioFarm != null) && (action.RadioService != null))
+            if ((data != null) && (data.action != null) && (data.action.RadioFarm != null) && (data.action.RadioService != null))
             {
-                RadioButton radioFarm = action.RadioFarm.lcontrol as RadioButton;
-                RadioButton radioService = action.RadioService.lcontrol as RadioButton;
+                RadioButton radioFarm = data.action.RadioFarm.lcontrol as RadioButton;
+                RadioButton radioService = data.action.RadioService.lcontrol as RadioButton;
                 if ((radioButton != null) && (radioFarm != null) && (radioService != null)
-                     && (action.Farm != null) && (action.Farm.control != null)
-                     && (action.Service != null) && (action.Service.control != null)
-                     && (action.PartNumber != null) && (action.PartNumber.control != null))
+                     && (data.action.Farm != null) && (data.action.Farm.control != null)
+                     && (data.action.Service != null) && (data.action.Service.control != null)
+                     && (data.action.PartNumber != null) && (data.action.PartNumber.control != null))
                 {
                     if (radioButton.Checked)
                     {
                         if (radioButton == radioFarm)
                         {
                             radioService.Checked = false;
-                            action.Farm.control.Visible = true;
-                            action.Farm.view = true;
+                            data.action.Farm.control.Visible = true;
+                            data.action.Farm.view = true;
 
-                            action.Service.control.Visible = false;
-                            action.Service.view = false;
+                            data.action.Service.control.Visible = false;
+                            data.action.Service.view = false;
                         }
                         if (radioButton == radioService)
                         {
                             radioFarm.Checked = false;
-                            action.Farm.control.Visible = false;
-                            action.Farm.view = false;
+                            data.action.Farm.control.Visible = false;
+                            data.action.Farm.view = false;
 
-                            action.Service.control.Visible = true;
-                            action.Service.view = true;
+                            data.action.Service.control.Visible = true;
+                            data.action.Service.view = true;
                         }
-                        action.Farm.control.Text = action.Farm.dflt;
-                        action.Farm.control.ForeColor = Color.Silver;
-                        action.Farm.val = action.Farm.dflt;
-                        action.Service.control.Text = action.Service.dflt;
-                        action.Service.control.ForeColor = Color.Silver;
-                        action.Service.val = action.Service.dflt;
+                        data.action.Farm.control.Text = data.action.Farm.dflt;
+                        data.action.Farm.control.ForeColor = Color.Silver;
+                        data.action.Farm.val = data.action.Farm.dflt;
+                        data.action.Service.control.Text = data.action.Service.dflt;
+                        data.action.Service.control.ForeColor = Color.Silver;
+                        data.action.Service.val = data.action.Service.dflt;
                     }
                     else
                     {
-                        action.PartNumber.removeItems();
-                        action.PartNumber.control.Text = action.PartNumber.dflt;
-                        action.PartNumber.control.ForeColor = Color.Silver;
-                        action.PartNumber.val = action.PartNumber.dflt;
+                        data.action.PartNumber.removeItems();
+                        data.action.PartNumber.control.Text = data.action.PartNumber.dflt;
+                        data.action.PartNumber.control.ForeColor = Color.Silver;
+                        data.action.PartNumber.val = data.action.PartNumber.dflt;
                     }
                 }
             }
@@ -559,8 +678,8 @@ namespace WinAMBurner
         private void progressBar_Callback(object sender, EventArgs e)
         {
             ProgressBar progressBar;
-            if ((action != null) && (action.Progress != null))
-                progressBar = action.Progress.lcontrol as ProgressBar;
+            if ((data != null) && (data.action != null) && (data.action.Progress != null))
+                progressBar = data.action.Progress.lcontrol as ProgressBar;
             else
                 progressBar = progressBar1;
 
@@ -578,15 +697,18 @@ namespace WinAMBurner
             }
         }
 
-        private void buttonTreatCansel_Click(object sender, EventArgs e)
+        private async void buttonTreatCansel_Click(object sender, EventArgs e)
         {
-            if (action != null)
+            if ((data != null) && (data.action != null))
             {
-                DialogResult dialogResult = action.notify(new List<string>() { "Are you sure you want to cancel the operation?" }, NotifyButtons.YesNo, caption: "Abort");
-                if (dialogResult == DialogResult.Yes)
+                //DialogResult dialogResult = action.notify(new List<string>() { "Are you sure you want to cancel the operation?" }, NotifyButtons.YesNo, caption: "Abort");
+                bool answer = await notify("Abort", "Are you sure you want to cancel the operation?", "Yes", "No");
+                //if (dialogResult == DialogResult.Yes)
+                if (answer)
                 {
-                    action.hide();
-                    clearAM();
+                    //action.hide();
+                    data.action.dhide();
+                    //clearAM();
                     screenActionShow();
                 }
             }
@@ -594,103 +716,117 @@ namespace WinAMBurner
 
         private async void buttonTreatApprove_Click(object sender, EventArgs e)
         {
-            if ((action != null) && (am != null) && (settings != null))
+            //if ((action != null) && (am != null) && (settings != null))
+            if ((data != null) && (data.action != null))
             {
-                ErrCode errcode = ErrCode.ERROR;
-                uint maxi = am.Maxi;
+                //ErrCode errcode = ErrCode.ERROR;
+                //uint maxi = am.Maxi;
 
-                ProgressBar progressBar = action.Progress.lcontrol as ProgressBar;
+                ProgressBar progressBar = data.action.Progress.lcontrol as ProgressBar;
 
-                await action.send<ActionJson, Action>(action, "api/p/actions/", web.entityAdd,
-                    "Approve Success", "Approve Failed", false,
-                    new Gui.dResponseOk<Action>(async (raction) =>
-                    {
-                        action.notify(new List<string>() {
-                                string.Format("The original amount of treatments: {0}", maxi / settings.number_of_pulses_per_treatment),
-                                string.Format("Added treatments: {0}",am.MaxiSet / settings.number_of_pulses_per_treatment),
-                                string.Format("The treatments available on AM - SN {1}: {0}", am.Maxi / settings.number_of_pulses_per_treatment, am.SNum),
-                                "please disconnect the AM"}, NotifyButtons.OK, "Approve Failed");
-                        clearAM();
-                        screenActionShow();
-                        return ErrCode.OK;
-                    }),
-                    dapprove: new Gui.dApprove(async () =>
-                    {
-                        if (((action.farm != null) || (action.service_provider != null)))
-                        {
-                            if ((am.Maxi + am.MaxiSet) < settings.max_am_pulses)
-                            {
-                                DialogResult dialogResult = action.notify(new List<string>() {
-                                            string.Format("{0} current treatments available",am.Maxi / settings.number_of_pulses_per_treatment),
-                                            string.Format("{0} treatments will be added",am.MaxiSet / settings.number_of_pulses_per_treatment),
-                                            string.Format("AM - SN: {0}", am.SNum),
-                                            (action.farm != null) ? string.Format("Farm: {0}", farms.Find(f => f.id == action.farm).Name.val) :
-                                            ((action.service_provider != null) ? string.Format("Service Provider: {0}", services.Find(s => s.id == action.service_provider).Name.val) : string.Empty),
-                                            "Press the button to proceed"}, NotifyButtons.YesNo, caption: "Approve");
-                                if (dialogResult == DialogResult.Yes)
-                                {
-                                    if (progressBar != null)
-                                        progressBar.Visible = true;
-                                    am.serialPortProgressEvent += new EventHandler(progressBar_Callback);
-                                    if (progressBar != null)
-                                        progressBar.Value = progressBar.Minimum;
+                if (progressBar != null)
+                {
+                    progressBar.Visible = true;
+                    data.am.serialPortProgressEvent += new EventHandler(progressBar_Callback);
+                    progressBar.Value = progressBar.Minimum;
 
-                                    if ((errcode = await am.AMDataWrite()) == ErrCode.OK)
-                                    {
-                                        if ((errcode = await am.AMDataRead()) == ErrCode.OK)
-                                        {
-                                            return ErrCode.OK;
-                                        }
-                                    }
-                                }
-                                else
-                                    errcode = ErrCode.CANSEL;
-                            }
-                            else
-                                errcode = ErrCode.EMAX;
-                        }
-                        else
-                            errcode = ErrCode.EPARAM;
-                        return errcode;
-                    }),
-                    dresponseErr: new Gui.dResponseErr(async (errcode) =>
-                    {
-                        List<string> errors;
-                        if (errcode == ErrCode.EPARAM)
-                            errors = new List<string>() { "Wrong parameters,", "please choose the Farm / Service provider",
-                                "and the number of treatments" };
-                        else if (errcode == ErrCode.EMAX)
-                            errors = new List<string>() { "Wrong part number,", "the maximum number of treatments reached,",
-                                "please choose a smaller number of treatments" };
-                        else if (errcode == ErrCode.SERROR)
-                        {
-                            am.Maxi -= am.MaxiSet;
-                            am.MaxiSet = 0;
-                            action.notify(new List<string>() { string.Format("Approve failed, restoring AM to {0} treatments", am.Maxi / settings.number_of_pulses_per_treatment) }, NotifyButtons.OK, "Approve Failed");
-                            if (progressBar != null)
-                                progressBar.Value = progressBar.Minimum;
+                    data.action.send(data);
 
-                            if (await am.AMDataWrite() == ErrCode.OK)
-                            {
-                                if (await am.AMDataRead() == ErrCode.OK)
-                                    errors = new List<string>() { "Approve failed,", string.Format("AM sucsessfully restored to {0} treatments", am.Maxi / settings.number_of_pulses_per_treatment) };
-                                else
-                                    errors = new List<string>() { "Approve failed,", string.Format("Failed to restore to {0} treatments", am.Maxi / settings.number_of_pulses_per_treatment) };
-                            }
-                            else
-                                errors = new List<string>() { "Approve failed,", "Faild to restore to original values" };
-                        }
-                        else if (errcode == ErrCode.CANSEL)
-                            errors = null;
-                        else
-                            errors = new List<string>() { "The operation failed, the treatments were not added" };
-
-                        if (progressBar != null)
-                            progressBar.Visible = false;
-
-                        return errors;
-                    }));
+                    progressBar.Visible = false;
+                }
             }
+            //ProgressBar progressBar = action.Progress.lcontrol as ProgressBar;
+
+            //await action.send<ActionJson, Action>(action, "api/p/actions/", web.entityAdd,
+            //    "Approve Success", "Approve Failed", false,
+            //    new Gui.dResponseOk<Action>(async (raction) =>
+            //    {
+            //        action.notify(new List<string>() {
+            //                string.Format("The original amount of treatments: {0}", maxi / settings.number_of_pulses_per_treatment),
+            //                string.Format("Added treatments: {0}",am.MaxiSet / settings.number_of_pulses_per_treatment),
+            //                string.Format("The treatments available on AM - SN {1}: {0}", am.Maxi / settings.number_of_pulses_per_treatment, am.SNum),
+            //                "please disconnect the AM"}, NotifyButtons.OK, "Approve Failed");
+            //        clearAM();
+            //        screenActionShow();
+            //        return ErrCode.OK;
+            //    }),
+            //    dapprove: new Gui.dApprove(async () =>
+            //    {
+            //        if (((action.farm != null) || (action.service_provider != null)))
+            //        {
+            //            if ((am.Maxi + am.MaxiSet) < settings.max_am_pulses)
+            //            {
+            //                DialogResult dialogResult = action.notify(new List<string>() {
+            //                            string.Format("{0} current treatments available",am.Maxi / settings.number_of_pulses_per_treatment),
+            //                            string.Format("{0} treatments will be added",am.MaxiSet / settings.number_of_pulses_per_treatment),
+            //                            string.Format("AM - SN: {0}", am.SNum),
+            //                            (action.farm != null) ? string.Format("Farm: {0}", farms.Find(f => f.id == action.farm).Name.val) :
+            //                            ((action.service_provider != null) ? string.Format("Service Provider: {0}", services.Find(s => s.id == action.service_provider).Name.val) : string.Empty),
+            //                            "Press the button to proceed"}, NotifyButtons.YesNo, caption: "Approve");
+            //                if (dialogResult == DialogResult.Yes)
+            //                {
+            //                    if (progressBar != null)
+            //                        progressBar.Visible = true;
+            //                    am.serialPortProgressEvent += new EventHandler(progressBar_Callback);
+            //                    if (progressBar != null)
+            //                        progressBar.Value = progressBar.Minimum;
+            //
+            //                    if ((errcode = await am.AMDataWrite()) == ErrCode.OK)
+            //                    {
+            //                        if ((errcode = await am.AMDataRead()) == ErrCode.OK)
+            //                        {
+            //                            return ErrCode.OK;
+            //                        }
+            //                    }
+            //                }
+            //                else
+            //                    errcode = ErrCode.CANSEL;
+            //            }
+            //            else
+            //                errcode = ErrCode.EMAX;
+            //        }
+            //        else
+            //            errcode = ErrCode.EPARAM;
+            //        return errcode;
+            //    }),
+            //    dresponseErr: new Gui.dResponseErr(async (errcode) =>
+            //    {
+            //        List<string> errors;
+            //        if (errcode == ErrCode.EPARAM)
+            //            errors = new List<string>() { "Wrong parameters,", "please choose the Farm / Service provider",
+            //                "and the number of treatments" };
+            //        else if (errcode == ErrCode.EMAX)
+            //            errors = new List<string>() { "Wrong part number,", "the maximum number of treatments reached,",
+            //                "please choose a smaller number of treatments" };
+            //        else if (errcode == ErrCode.SERROR)
+            //        {
+            //            am.Maxi -= am.MaxiSet;
+            //            am.MaxiSet = 0;
+            //            action.notify(new List<string>() { string.Format("Approve failed, restoring AM to {0} treatments", am.Maxi / settings.number_of_pulses_per_treatment) }, NotifyButtons.OK, "Approve Failed");
+            //            if (progressBar != null)
+            //                progressBar.Value = progressBar.Minimum;
+            //
+            //            if (await am.AMDataWrite() == ErrCode.OK)
+            //            {
+            //                if (await am.AMDataRead() == ErrCode.OK)
+            //                    errors = new List<string>() { "Approve failed,", string.Format("AM sucsessfully restored to {0} treatments", am.Maxi / settings.number_of_pulses_per_treatment) };
+            //                else
+            //                    errors = new List<string>() { "Approve failed,", string.Format("Failed to restore to {0} treatments", am.Maxi / settings.number_of_pulses_per_treatment) };
+            //            }
+            //            else
+            //                errors = new List<string>() { "Approve failed,", "Faild to restore to original values" };
+            //        }
+            //        else if (errcode == ErrCode.CANSEL)
+            //            errors = null;
+            //        else
+            //            errors = new List<string>() { "The operation failed, the treatments were not added" };
+            //
+            //        if (progressBar != null)
+            //            progressBar.Visible = false;
+            //
+            //        return errors;
+            //    }));
+            //}
         }
 
         //
@@ -704,8 +840,8 @@ namespace WinAMBurner
                 new EventHandler(this.buttonFarmAdd_Click),
                 new EventHandler(richTextBoxFarmSearch_TextChanged),
                 new EventHandler(this.buttonBackToAction_Click));
-            if (dataGridView1 != null)
-                dataGridView1.DataSource = entityTableGet(farms.Cast<Entity>().ToList());
+            if ((dataGridView1 != null) && (data != null) && (data.farms != null))
+                dataGridView1.DataSource = entityTableGet(data.farms.Cast<Entity>().ToList());
         }
 
         private void screenServiceShow()
@@ -715,26 +851,26 @@ namespace WinAMBurner
                 new EventHandler(buttonServiceAdd_Click),
                 new EventHandler(richTextBoxServiceSearch_TextChanged),
                 new EventHandler(buttonBackToAction_Click));
-            if (dataGridView1 != null)
-                dataGridView1.DataSource = entityTableGet(services.Cast<Entity>().ToList());
+            if ((dataGridView1 != null) && (data != null) && (data.services != null))
+                dataGridView1.DataSource = entityTableGet(data.services.Cast<Entity>().ToList());
         }
 
         private void richTextBoxFarmSearch_TextChanged(object sender, EventArgs e)
         {
-            if ((dataGridView1 != null) && (farms != null) && (sender != null))
+            if ((dataGridView1 != null) && (data != null) && (data.farms != null) && (sender != null))
             {
                 DataTable table = null;
-                if ((table = richTextBoxSearch(sender, farms.Cast<Entity>())) != null)
+                if ((table = richTextBoxSearch(sender, data.farms.Cast<Entity>())) != null)
                     dataGridView1.DataSource = table;
             }
         }
 
         private void richTextBoxServiceSearch_TextChanged(object sender, EventArgs e)
         {
-            if ((dataGridView1 != null) && (services != null) && (sender != null))
+            if ((dataGridView1 != null) && (data != null) && (data.services != null) && (sender != null))
             {
                 DataTable table = null;
-                if ((table = richTextBoxSearch(sender, services.Cast<Entity>())) != null)
+                if ((table = richTextBoxSearch(sender, data.services.Cast<Entity>())) != null)
                     dataGridView1.DataSource = table;
             }
         }
@@ -775,29 +911,46 @@ namespace WinAMBurner
         private void buttonFarmAdd_Click(object sender, EventArgs e)
         {
             hide();
-            farm = new Farm(false, comboBoxCountry_SelectedIndexChanged, buttonFarmCancel_Click, buttonFarmAddSubmit_Click);
-            if (farm != null)
-                farm.drawFields(this);
+            //farm = new Farm(false, comboBoxCountry_SelectedIndexChanged, buttonFarmCancel_Click, buttonFarmAddSubmit_Click);
+            //if (farm != null)
+            //    farm.drawFields(this);
+            if (data != null)
+            {
+                data.farm = new Farm(false, comboBoxCountry_SelectedIndexChanged, buttonFarmCancel_Click, buttonFarmAddSubmit_Click,
+                    hide, enabled, notify, draw, dshow: screenFarmShow);
+                if (data.farm != null)
+                    data.farm.ddraw(data.farm);
+            }
         }
 
         private void buttonServiceAdd_Click(object sender, EventArgs e)
         {
             hide();
-            service = new Service(false, comboBoxCountry_SelectedIndexChanged, buttonServiceCancel_Click, buttonServiceAddSubmit_Click);
-            if (service != null)
-                service.drawFields(this);
+            //service = new Service(false, comboBoxCountry_SelectedIndexChanged, buttonServiceCancel_Click, buttonServiceAddSubmit_Click);
+            //if (service != null)
+            //    service.drawFields(this);
+            if (data != null)
+            {
+                data.service = new Service(false, comboBoxCountry_SelectedIndexChanged, buttonServiceCancel_Click, buttonServiceAddSubmit_Click,
+                hide, enabled, notify, draw, dshow: screenServiceShow);
+                if (data.service != null)
+                    data.service.ddraw(data.service);
+            }
         }
 
         private void buttonFarmEdit_Click(object sender, EventArgs e)
         {
-            if (farms != null)
+            if ((data != null) && (data.farms != null))
             {
-                farm = getCurrentEntity(farms.Cast<Entity>()) as Farm;
-                if (farm != null)
+                data.farm = getCurrentEntity(data.farms.Cast<Entity>()) as Farm;
+                if (data.farm != null)
                 {
                     hide();
-                    farm.initFields(true, comboBoxCountry_SelectedIndexChanged, buttonFarmCancel_Click, buttonFarmEditSubmit_Click);
-                    farm.drawFields(this);
+                    //farm.initFields(true, comboBoxCountry_SelectedIndexChanged, buttonFarmCancel_Click, buttonFarmEditSubmit_Click);
+                    //farm.drawFields(this);
+                    data.farm.initFields(true, comboBoxCountry_SelectedIndexChanged, buttonFarmCancel_Click, buttonFarmEditSubmit_Click,
+                        hide, enabled, notify, draw, dshow: screenFarmShow);
+                    data.farm.ddraw(data.farm);
                 }
             }
         }
@@ -813,14 +966,17 @@ namespace WinAMBurner
 
         private void buttonServiceEdit_Click(object sender, EventArgs e)
         {
-            if (services != null)
+            if ((data != null) && (data.services != null))
             {
-                service = getCurrentEntity(services.Cast<Entity>()) as Service;
-                if (service != null)
+                data.service = getCurrentEntity(data.services.Cast<Entity>()) as Service;
+                if (data.service != null)
                 {
                     hide();
-                    service.initFields(true, comboBoxCountry_SelectedIndexChanged, buttonServiceCancel_Click, buttonServiceEditSubmit_Click);
-                    service.drawFields(this);
+                    //service.initFields(true, comboBoxCountry_SelectedIndexChanged, buttonServiceCancel_Click, buttonServiceEditSubmit_Click);
+                    //service.drawFields(this);
+                    data.service.initFields(true, comboBoxCountry_SelectedIndexChanged, buttonServiceCancel_Click, buttonServiceEditSubmit_Click,
+                        hide, enabled, notify, draw, dshow: screenServiceShow);
+                    data.service.ddraw(data.service);
                 }
             }
         }
@@ -831,15 +987,15 @@ namespace WinAMBurner
             if (comboBox != null)
             {
                 Entity entity = null;
-                if ((farm != null) && (farm.Country != null))
+                if ((data != null) && (data.farm != null) && (data.farm.Country != null))
                 {
-                    if (comboBox == farm.Country.control)
-                        entity = farm;
+                    if (comboBox == data.farm.Country.control)
+                        entity = data.farm;
                 }
-                if ((service != null) && (service.Country != null))
+                if ((data.service != null) && (data.service.Country != null))
                 {
-                    if (comboBox == service.Country.control)
-                        entity = service;
+                    if (comboBox == data.service.Country.control)
+                        entity = data.service;
                 }
                 if ((entity != null) && (entity.State != null) && (entity.State.control != null))
                 {
@@ -860,91 +1016,107 @@ namespace WinAMBurner
 
         private void buttonFarmCancel_Click(object sender, EventArgs e)
         {
-            if (farm != null)
+            if ((data != null) && (data.farm != null))
             {
-                farm.hide();
+                data.farm.dhide();
                 screenFarmShow();
             }
         }
 
         private void buttonServiceCancel_Click(object sender, EventArgs e)
         {
-            if (service != null)
+            if ((data != null) && (data.service != null))
             {
-                service.hide();
+                data.service.dhide();
                 screenServiceShow();
             }
         }
 
         private async void buttonFarmAddSubmit_Click(object sender, EventArgs e)
         {
-            if ((farm != null) && (web != null))
+            if ((data != null) && (data.farm != null) && (data.web != null))
             {
-                farm.send<FarmJson, Farm>(farm, "api/p/farms/", web.entityAdd,
-                    "Submit Success", "Submit Failed", false,
-                    new Gui.dResponseOk<Farm>(async (rfarm) =>
-                    {
-                        farms.Add(rfarm);
-                        screenFarmShow();
-                        return ErrCode.OK;
-                    }),
-                    messagesErr: new List<string>() { "Submit failed, can't add empty or negative fields,",
-                        "make sure all the fields are filled with valid values" });
+                data.farm.send(data, false);
             }
+            //if ((farm != null) && (web != null))
+            //{
+            //    farm.send<FarmJson, Farm>(farm, "api/p/farms/", web.entityAdd,
+            //        "Submit Success", "Submit Failed", false,
+            //        new Gui.dResponseOk<Farm>(async (rfarm) =>
+            //        {
+            //            farms.Add(rfarm);
+            //            screenFarmShow();
+            //            return ErrCode.OK;
+            //        }),
+            //        messagesErr: new List<string>() { "Submit failed, can't add empty or negative fields,",
+            //            "make sure all the fields are filled with valid values" });
+            //}
         }
 
         private async void buttonServiceAddSubmit_Click(object sender, EventArgs e)
         {
-            if ((service != null) && (web != null))
+            if ((data != null) && (data.service != null) && (data.web != null))
             {
-                service.send<ServiceJson, Service>(service, "api/p/service_providers/", web.entityAdd,
-                    "Submit Success", "Submit Failed",
-                    false,
-                    new Gui.dResponseOk<Service>(async (rservice) =>
-                    {
-                        services.Add(rservice);
-                        screenServiceShow();
-                        return ErrCode.OK;
-                    }),
-                    messagesErr: new List<string>() { "Submit failed, can't add empty or negative fields,",
-                        "make sure all the fields are filled with valid values" });
+                data.service.send(data, false);
             }
+            //if ((service != null) && (web != null))
+            //{
+            //    service.send<ServiceJson, Service>(service, "api/p/service_providers/", web.entityAdd,
+            //        "Submit Success", "Submit Failed",
+            //        false,
+            //        new Gui.dResponseOk<Service>(async (rservice) =>
+            //        {
+            //            services.Add(rservice);
+            //            screenServiceShow();
+            //            return ErrCode.OK;
+            //        }),
+            //        messagesErr: new List<string>() { "Submit failed, can't add empty or negative fields,",
+            //            "make sure all the fields are filled with valid values" });
+            //}
         }
 
         private async void buttonFarmEditSubmit_Click(object sender, EventArgs e)
         {
-            if ((farm != null) && (web != null))
+            if ((data != null) && (data.farm != null) && (data.web != null))
             {
-                farm.send<FarmJson, Farm>(farm, "api/p/farms/" + farm.Id + "/", web.entityEdit,
-                    "Submit Success", "Submit Failed", false,
-                    new Gui.dResponseOk<Farm>(async (rfarm) =>
-                    {
-                        farms.Insert(farms.IndexOf(farm), rfarm);
-                        farms.Remove(farm);
-                        screenFarmShow();
-                        return ErrCode.OK;
-                    }),
-                    messagesErr: new List<string>() { "Submit failed, can't add empty or negative fields,",
-                        "make sure all the fields are filled with valid values" });
+                data.farm.send(data, true);
             }
+            //if ((farm != null) && (web != null))
+            //{
+            //    farm.send<FarmJson, Farm>(farm, "api/p/farms/" + farm.Id + "/", web.entityEdit,
+            //        "Submit Success", "Submit Failed", false,
+            //        new Gui.dResponseOk<Farm>(async (rfarm) =>
+            //        {
+            //            farms.Insert(farms.IndexOf(farm), rfarm);
+            //            farms.Remove(farm);
+            //            screenFarmShow();
+            //            return ErrCode.OK;
+            //        }),
+            //        messagesErr: new List<string>() { "Submit failed, can't add empty or negative fields,",
+            //            "make sure all the fields are filled with valid values" });
+            //}
         }
         
         private async void buttonServiceEditSubmit_Click(object sender, EventArgs e)
         {
-            if ((service != null) && (web != null))
+            if ((data != null) && (data.service != null) && (data.web != null))
             {
-                service.send<ServiceJson, Service>(service, "api/p/service_providers/" + service.Id + "/", web.entityEdit,
-                    "Submit Success", "Submit Failed", false,
-                    new Gui.dResponseOk<Service>(async (rservice) =>
-                    {
-                        services.Insert(services.IndexOf(service), rservice);
-                        services.Remove(service);
-                        screenServiceShow();
-                        return ErrCode.OK;
-                    }),
-                    messagesErr: new List<string>() { "Submit failed, can't add empty or negative fields,",
-                        "make sure all the fields are filled with valid values" });
+                data.service.send(data, true);
             }
+            //if ((service != null) && (web != null))
+            //{
+            //    service.send<ServiceJson, Service>(service, "api/p/service_providers/" + service.Id + "/", web.entityEdit,
+            //        "Submit Success", "Submit Failed", false,
+            //        new Gui.dResponseOk<Service>(async (rservice) =>
+            //        {
+            //            services.Insert(services.IndexOf(service), rservice);
+            //            services.Remove(service);
+            //            screenServiceShow();
+            //            return ErrCode.OK;
+            //        }),
+            //        messagesErr: new List<string>() { "Submit failed, can't add empty or negative fields,",
+            //            "make sure all the fields are filled with valid values" });
+            //}
         }
 
         private void linkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
