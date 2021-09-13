@@ -269,7 +269,7 @@ namespace WinAMBurner
 
         public ErrCode responseParse(JsonDocument jsonDocument, List<string> errors, List<string> messages)
         {
-            ErrCode errcode = ErrCode.ERROR;
+            ErrCode errcode = ErrCode.SERROR;
 
             if (jsonDocument != null)
             {
@@ -286,10 +286,11 @@ namespace WinAMBurner
                 }
             }
 
-            if (errors.Count == 0)
+            if ((messages.Count != 0) && (errors.Count == 0))
+            //if (errors.Count == 0)
                 errcode = ErrCode.OK;
-            else
-                errcode = ErrCode.EPARAM;
+            //else
+            //    errcode = ErrCode.EPARAM;
 
             return errcode;
         }
@@ -352,17 +353,17 @@ namespace WinAMBurner
                             jsonDocument = await dweb(jentity, url);
                             if (jsonDocument != null)
                             {
-                                responseParse(jsonDocument, errors, messages);
+                                if ((errcode = responseParse(jsonDocument, errors, messages)) == ErrCode.OK)
+                                {
+                                    try { rentity = JsonSerializer.Deserialize<T>(jsonDocument.RootElement.ToString()); }
+                                    catch (Exception ex) { LogFile.logWrite(ex.ToString()); }
 
-                                try { rentity = JsonSerializer.Deserialize<T>(jsonDocument.RootElement.ToString()); }
-                                catch (Exception ex) { LogFile.logWrite(ex.ToString()); }
-
-                                if (rentity != null)
-                                    errcode = ErrCode.OK;
-                                else
-                                    errcode = ErrCode.SERROR;
+                                    if (rentity != null)
+                                        errcode = ErrCode.OK;
+                                    else
+                                        errcode = ErrCode.SERROR;
+                                }
                             }
-
                             else
                                 errcode = ErrCode.SERROR;
                         }
@@ -483,22 +484,27 @@ namespace WinAMBurner
 
         public async Task<ErrCode> responseOk(Data data, Login rlogin)
         {
-            if ((data != null) && (data.web != null) && (rlogin != null) && (rlogin.token != null) && (dhide != null) && (dshow != null))
+            ErrCode errcode = ErrCode.ERROR;
+            if ((data != null) && (data.web != null) && (data.password != null) && (data.password.ddraw != null) && (rlogin != null) && 
+                (rlogin.user != null) && (rlogin.token != null) && (dhide != null) && (dshow != null))
             {
                 // if ok
                 data.user = rlogin.user;
-                if (data.user != null)
+                //if (data.user != null)
+                //{
+                if (!data.user.is_password_changed)
                 {
-                    if (!data.user.is_password_changed)
-                    {
-                        //data.passwordData = new Password(eventHandler);
-                        if (data.password != null)
-                        {
-                            data.password.ddraw(data.password);
-                            return ErrCode.OK;
-                        }
-                        return ErrCode.ERROR;
-                    }
+                    //data.passwordData = new Password(eventHandler);
+                    //if ((data.password != null) && (data.password.ddraw != null))
+                    //{
+                    dhide();
+                    data.password.ddraw(data.password);
+                    errcode = ErrCode.OK;
+                    //}
+                    //return ErrCode.ERROR;
+                }
+                else
+                {
                     JsonDocument jsonDocument = await data.web.getConstants();
                     if (jsonDocument != null)
                         Const.parseConstants(jsonDocument);
@@ -518,20 +524,23 @@ namespace WinAMBurner
                     {
                         dhide();
                         dshow();
+                        errcode = ErrCode.OK;
                     }
-                    return ErrCode.OK;
+                    //}
                 }
             }
-            return ErrCode.ERROR;
+            return errcode;
         }
 
         public async Task send(Data data)
         {
             if ((data != null) && (data.login != null) && (data.web != null))
+            { 
                 await send<LoginJson, Login>(data.login, "api/p/login/", data.web.login,
                     "Login Success", "Login Failed", false, responseOk, data,
                     messagesErr: new List<string>() { "Login failed, check your username and password, ",
                     "make sure your tablet is connected to the internet" });
+            }
         }
     }
 
@@ -588,13 +597,15 @@ namespace WinAMBurner
 
         public async Task<ErrCode> responseOk(Data data, Password newPassword)
         {
-            if ((data != null) && (data.login != null) && (dhide != null) && (data.login.ddraw != null))
+            ErrCode errcode = ErrCode.ERROR;
+            if ((data != null) && (data.login != null) && (dhide != null) && (data.login.password != null) && (data.login.ddraw != null))
             {
                 dhide();
                 data.login.password = null;
                 data.login.ddraw(data.login);
+                errcode = ErrCode.OK;
             }
-            return ErrCode.OK;
+            return errcode;
         }
 
         public async Task<List<string>> responseErr(Data data, ErrCode errcode)
@@ -631,16 +642,18 @@ namespace WinAMBurner
 
         public async Task send(Data data)
         {
-            if ((data != null) && (data.login != null) && (data.web != null))
+            if ((data != null) && (data.password != null) && (data.web != null))
+            { 
                 await send<PasswordJson, Password>(data.password, "api/p/password/change/", data.web.entityAdd,
                     "Change Password Success", "Change Password Failed", true, responseOk, data, dcheck: check, dresponseErr: responseErr);
+            }
         }
     }
 
     class Reset : Gui, ResetJson
     {
         public string email { get { return Email.getValue(); } set { Email.setValue(value); } }
-        public string detail { get; set; }
+        public string message { get; set; }
 
         public Field Email { get; set; }
 
@@ -685,22 +698,26 @@ namespace WinAMBurner
 
         public async Task<ErrCode> responseOk(Data data, Reset reset)
         {
+            ErrCode errcode = ErrCode.ERROR;
             //data.loginData = new Login(new Command(forgot_Click), buttonLogin_Click, screenActionShow, hide, enabled, notify, draw) { tablet = TabletNo };
             if ((data != null) && (data.login != null) && (dhide != null) && (data.login.ddraw != null))
             {
                 dhide();
                 data.login.ddraw(data.login);
+                errcode = ErrCode.OK;
             }
-            return ErrCode.OK;
+            return errcode;
         }
 
         public async Task send(Data data)
         {
             if ((data != null) && (data.reset != null) && (data.web != null))
+            { 
                 await send<ResetJson, Reset>(data.reset, "api/p/password_reset/", data.web.entityAdd,
                     "Reset Password Success", "Reset Password Failed", true, responseOk, data,
                     messagesOk: new List<string>() { "An email with your logon details was sent.", "Please use those details to logon." },
                     messagesErr: new List<string>() { "Reset password failed,", "please enter a valid values" });
+            }
         }
     }
 
@@ -904,15 +921,31 @@ namespace WinAMBurner
                 this.dshow = dshow;
         }
 
-        public async Task<ErrCode> responseOk(Data data, Farm rfarm)
+        public async Task<ErrCode> responseAddOk(Data data, Farm rfarm)
         {
-            if ((data != null) && (data.farms != null) && (dhide != null) && (dshow != null))
+            ErrCode errcode = ErrCode.ERROR;
+            if ((data != null) && (data.farms != null) && (rfarm != null) && (dhide != null) && (dshow != null))
             {
                 data.farms.Add(rfarm);
                 dhide();
                 dshow();
+                errcode = ErrCode.OK;
             }
-            return ErrCode.OK;
+            return errcode;
+        }
+
+        public async Task<ErrCode> responseEditOk(Data data, Farm rfarm)
+        {
+            ErrCode errcode = ErrCode.ERROR;
+            if ((data != null) && (data.farms != null) && (data.farm != null) && (rfarm != null) && (dhide != null) && (dshow != null))
+            {
+                data.farms.Insert(data.farms.IndexOf(data.farm), rfarm);
+                data.farms.Remove(data.farm);
+                dhide();
+                dshow();
+                errcode = ErrCode.OK;
+            }
+            return errcode;
         }
 
         public async Task send(Data data, bool edit)
@@ -920,15 +953,19 @@ namespace WinAMBurner
             if ((data != null) && (data.farm != null) && (data.web != null))
             {
                 if (edit)
-                    await send<FarmJson, Farm>(data.farm, "api/p/farms/", data.web.entityEdit,
-                        "Submit Success", "Submit Failed", false, responseOk, data,
+                {
+                    await send<FarmJson, Farm>(data.farm, "api/p/farms/" + data.farm.Id + "/", data.web.entityEdit,
+                        "Submit Success", "Submit Failed", false, responseEditOk, data,
                         messagesErr: new List<string>() { "Submit failed, can't add empty or negative fields,",
                         "make sure all the fields are filled with valid values" });
+                }
                 else
+                { 
                     await send<FarmJson, Farm>(data.farm, "api/p/farms/", data.web.entityAdd,
-                        "Submit Success", "Submit Failed", false, responseOk, data,
+                        "Submit Success", "Submit Failed", false, responseAddOk, data,
                         messagesErr: new List<string>() { "Submit failed, can't add empty or negative fields,",
                         "make sure all the fields are filled with valid values" });
+                }
             }
         }
     }
@@ -1009,15 +1046,31 @@ namespace WinAMBurner
                 this.dshow = dshow;
         }
 
-        public async Task<ErrCode> responseOk(Data data, Service rservice)
+        public async Task<ErrCode> responseAddOk(Data data, Service rservice)
         {
-            if ((data != null) && (data.services != null) && (dhide != null) && (dshow != null))
+            ErrCode errcode = ErrCode.ERROR;
+            if ((data != null) && (data.services != null) && (rservice != null) && (dhide != null) && (dshow != null))
             {
                 data.services.Add(rservice);
                 dhide();
                 dshow();
+                errcode = ErrCode.OK;
             }
-            return ErrCode.OK;
+            return errcode;
+        }
+
+        public async Task<ErrCode> responseEditOk(Data data, Service rservice)
+        {
+            ErrCode errcode = ErrCode.ERROR;
+            if ((data != null) && (data.services != null) && (data.service != null) && (rservice != null) && (dhide != null) && (dshow != null))
+            {
+                data.services.Insert(data.services.IndexOf(data.service), rservice);
+                data.services.Remove(data.service);
+                dhide();
+                dshow();
+                errcode = ErrCode.OK;
+            }
+            return errcode;
         }
 
         public async Task send(Data data, bool edit)
@@ -1025,15 +1078,19 @@ namespace WinAMBurner
             if ((data != null) && (data.service != null) && (data.web != null))
             {
                 if (edit)
-                    await send<ServiceJson, Service>(data.service, "api/p/service_providers/", data.web.entityEdit,
-                        "Submit Success", "Submit Failed", false, responseOk, data,
+                { 
+                    await send<ServiceJson, Service>(data.service, "api/p/service_providers/" + data.service.Id + "/", data.web.entityEdit,
+                        "Submit Success", "Submit Failed", false, responseEditOk, data,
                         messagesErr: new List<string>() { "Submit failed, can't add empty or negative fields,",
                         "make sure all the fields are filled with valid values" });
+                }
                 else
+                { 
                     await send<ServiceJson, Service>(data.service, "api/p/service_providers/", data.web.entityAdd,
-                        "Submit Success", "Submit Failed", false, responseOk, data,
+                        "Submit Success", "Submit Failed", false, responseAddOk, data,
                         messagesErr: new List<string>() { "Submit failed, can't add empty or negative fields,",
                         "make sure all the fields are filled with valid values" });
+                }
             }
         }
     }
@@ -1204,6 +1261,7 @@ namespace WinAMBurner
 
         public async Task<ErrCode> responseOk(Data data, Action action)
         {
+            ErrCode errcode = ErrCode.ERROR;
             if ((data != null) && (data.am != null) && (data.settings != null) && (dhide != null) && (dshow != null))
             {
                 await dnotify("Approve Success", string.Format("The original amount of treatments: {0}\n", data.am.MaxiPrev / data.settings.number_of_pulses_per_treatment) +
@@ -1213,8 +1271,9 @@ namespace WinAMBurner
                 //clearAM();
                 dhide();
                 dshow();
+                errcode = ErrCode.OK;
             }
-            return ErrCode.OK;
+            return errcode;
         }
 
         public async Task<List<string>> responseErr(Data data, ErrCode errcode)
@@ -1256,11 +1315,15 @@ namespace WinAMBurner
             return errors;
         }
 
-        public async Task send(Data data)
+        public async Task<ErrCode> send(Data data)
         {
+            ErrCode errcode = ErrCode.ERROR;
             if ((data != null) && (data.action != null) && (data.web != null))
-                await send<ActionJson, Action>(data.action, "api/p/actions/", data.web.entityAdd,
+            {
+                errcode = await send<ActionJson, Action>(data.action, "api/p/actions/", data.web.entityAdd,
                     "Approve Success", "Approve Failed", false, responseOk, data, dapprove: approve, dresponseErr: responseErr);
+            }
+            return errcode;
         }
     }
 }

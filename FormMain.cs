@@ -471,9 +471,9 @@ namespace WinAMBurner
                 progressBar1.Value = progressBar1.Minimum;
                 progressBar1.Maximum = 20;
 
-                ErrCode errcode = await data.am.AMDataCheckConnect();
+                ErrCode errcode = ErrCode.ERROR;
 
-                if (errcode >= ErrCode.OK)
+                if ((errcode = await data.am.AMDataCheckConnect()) == ErrCode.OK)
                     errcode = await data.am.AMDataRead();
 
                 progressBar1.Value = progressBar1.Maximum;
@@ -723,9 +723,8 @@ namespace WinAMBurner
             //if ((action != null) && (am != null) && (settings != null))
             if ((data != null) && (data.action != null))
             {
-                //ErrCode errcode = ErrCode.ERROR;
+                ErrCode errcode = ErrCode.ERROR;
                 //uint maxi = am.Maxi;
-
                 ProgressBar progressBar = data.action.Progress.lcontrol as ProgressBar;
 
                 if (progressBar != null)
@@ -736,10 +735,12 @@ namespace WinAMBurner
                     progressBar.Value = progressBar.Minimum;
                     progressBar.Maximum = 90;
 
-                    await data.action.send(data);
+                    errcode = await data.action.send(data);
 
-                    progressBar.Value = progressBar.Maximum;
-                    //progressBar.Visible = false;
+                    if (errcode == ErrCode.OK)
+                        progressBar.Value = progressBar.Maximum;
+                    else
+                        progressBar.Visible = false;
                 }
             }
             //ProgressBar progressBar = action.Progress.lcontrol as ProgressBar;
