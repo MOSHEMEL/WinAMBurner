@@ -580,7 +580,7 @@ namespace WinAMBurner
             }
         }
 
-        private void comboBoxFarm_SelectedIndexChanged(object sender, EventArgs e)
+        private async void comboBoxFarm_SelectedIndexChanged(object sender, EventArgs e)
         {
             ComboBox comboBox = sender as ComboBox;
             //if ((action != null) && (action.PartNumber != null))
@@ -618,9 +618,11 @@ namespace WinAMBurner
                                 data.action.PartNumber.control.ForeColor = Color.Silver;
                                 data.action.PartNumber.val = data.action.PartNumber.dflt;
                                 if (data.action.PartNumber.items.Length == 0)
-                                    notify("Part Number Error", "The attached AM reached the max allowed treatments.\n" +
+                                { 
+                                    await notify("Part Number Error", "The attached AM reached the max allowed treatments.\n" +
                                        "There are no available part numbers.\n" +
                                        "Please replace the AM or contact support.", "OK");
+                                }
                             }
                             //action.PartNumber.addItems(treatmentPackages.Where(t => (t.contract_type == entity.contract_type)).ToArray());
                         }
