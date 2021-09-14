@@ -94,9 +94,10 @@ namespace WinAMBurner
             serialPort.DataBits = 8;
             serialPort.Parity = Parity.None;
             serialPort.StopBits = StopBits.One;
-            serialPort.Handshake = Handshake.None;
+            //serialPort.Handshake = Handshake.None;
             serialPort.ReadTimeout = RD_TIMEOUT;
             serialPort.WriteTimeout = WR_TIMEOUT;
+            serialPort.ReadBufferSize = 8192;
         }
 
         public async Task<ErrCode> AMDataCheckConnect()
