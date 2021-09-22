@@ -10,7 +10,7 @@ namespace WinAMBurner
 {
     static class Const
     {
-        public const string Version = "1.0";
+        public const string Version = "1.1";
 
         public static Dictionary<string, string> DCOUNTRY;
         //public static List<string> COUNTRY;
@@ -103,7 +103,8 @@ namespace WinAMBurner
         CANSEL = -4,
         EMATCH = -5,
         ELENGTH = -6,
-        SERROR = -7
+        SERROR = -7,
+        EPARSE = -8
     }
 
     static class LogFile

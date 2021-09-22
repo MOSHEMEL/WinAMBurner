@@ -271,73 +271,99 @@ namespace WinAMBurner
         private ErrCode amDataParse(string dataRdStr)
         {
             ErrCode errcode = ErrCode.ERROR;
-            //uint[] lid = new uint[3] { ERROR, ERROR, ERROR };
-            uint lmaxi = ERROR;
-            uint ldate = ERROR;
-            uint lsnum = ERROR;
-            uint[] laptxId = new uint[ID_LENGTH] { ERROR, ERROR, ERROR };
-            uint lfactor = ERROR;
-            //parse to lines
-            string[] dataRd = amDataParseStr(dataRdStr);
-            //maxi
-            //if ((dataLineParse(dataRd, "0x1f-0x85-0x01", ref lid) >= 0) &&
-            if ((amDataParseId(dataRdStr) >= 0) &&
-                //maxi
-                (dataLineParse(dataRd, "0xFFFE6", ref lmaxi) == ErrCode.OK) &&
-                //date
-                (dataLineParse(dataRd, "0xFFFEE", ref ldate) == ErrCode.OK) &&
-                //snum
-                (dataLineParse(dataRd, "0xFFFF6", ref lsnum) == ErrCode.OK) &&
-                //aptx_id[0]
-                (dataLineParse(dataRd, "0x1000", ref laptxId[0]) == ErrCode.OK) &&
-                //aptx_id[1]
-                (dataLineParse(dataRd, "0x1004", ref laptxId[1]) == ErrCode.OK) &&
-                //aptx_id[2]
-                (dataLineParse(dataRd, "0x1008", ref laptxId[2]) == ErrCode.OK) &&
-                //factor
-                (dataLineParse(dataRd, "pulses written", ref lfactor) == ErrCode.OK))
+            if (dataRdStr != null)
             {
-                if (snum == ERROR)
-                    snum = lsnum;
-                else
+                //uint[] lid = new uint[3] { ERROR, ERROR, ERROR };
+                uint lmaxi = ERROR;
+                uint ldate = ERROR;
+                uint lsnum = ERROR;
+                uint[] laptxId = new uint[ID_LENGTH] { ERROR, ERROR, ERROR };
+                uint lfactor = ERROR;
+                //parse to lines
+                string[] dataRd = amDataParseStr(dataRdStr);
+                if (dataRd != null)
                 {
-                    if (lsnum != snum)
+                    //maxi
+                    //if ((dataLineParse(dataRd, "0x1f-0x85-0x01", ref lid) >= 0) &&
+                    if ((amDataParseId(dataRdStr) == ErrCode.OK) &&
+                        //maxi
+                        (dataLineParse(dataRd, "0xFFFE6", ref lmaxi) == ErrCode.OK) &&
+                        //date
+                        (dataLineParse(dataRd, "0xFFFEE", ref ldate) == ErrCode.OK) &&
+                        //snum
+                        (dataLineParse(dataRd, "0xFFFF6", ref lsnum) == ErrCode.OK) &&
+                        //aptx_id[0]
+                        (dataLineParse(dataRd, "0x1000", ref laptxId[0]) == ErrCode.OK) &&
+                        //aptx_id[1]
+                        (dataLineParse(dataRd, "0x1004", ref laptxId[1]) == ErrCode.OK) &&
+                        //aptx_id[2]
+                        (dataLineParse(dataRd, "0x1008", ref laptxId[2]) == ErrCode.OK) &&
+                        //factor
+                        (dataLineParse(dataRd, "pulses written", ref lfactor) == ErrCode.OK))
                     {
-                        errcode = ErrCode.ERROR;
-                        return errcode;
-                    }
-                }
-
-                if (checkError(aptxId))
-                {
-                    for (int i = 0; i < laptxId.Length; i++)
-                        aptxId[i] = laptxId[i];
-                }
-                else
-                {
-                    for (int i = 0; i < laptxId.Length; i++)
-                    {
-                        if (laptxId[i] != aptxId[i])
+                        if (snum == ERROR)
+                            snum = lsnum;
+                        else
                         {
-                            errcode = ErrCode.ERROR;
-                            return errcode;
+                            if (lsnum != snum)
+                            {
+                                errcode = ErrCode.EPARSE;
+                                LogFile.logWrite(string.Format("{0} lsnum {1} snum {2}", errcode, lsnum, snum));
+                                return errcode;
+                            }
                         }
+
+                        if (checkError(aptxId))
+                        {
+                            for (int i = 0; i < laptxId.Length; i++)
+                                aptxId[i] = laptxId[i];
+                        }
+                        else
+                        {
+                            for (int i = 0; i < laptxId.Length; i++)
+                            {
+                                if (laptxId[i] != aptxId[i])
+                                {
+                                    errcode = ErrCode.EPARSE;
+                                    LogFile.logWrite(string.Format("{0} laptxId[{1}] {2} aptxId[{3}] {4}", errcode, i, laptxId[i], i, aptxId[i]));
+                                    return errcode;
+                                }
+                            }
+                        }
+                        maxiprev = maxi;
+                        maxi = lmaxi;
+                        date = ldate;
+                        if (factor == ERROR)
+                            factor = lfactor;
+                        else
+                        {
+                            if (lfactor != factor)
+                            {
+                                errcode = ErrCode.EPARSE;
+                                LogFile.logWrite(string.Format("{0} lfactor {1} factor {2}", errcode, lfactor, factor));
+                                return errcode;
+                            }
+                        }
+                        errcode = ErrCode.OK;
                     }
-                }
-                maxiprev = maxi;
-                maxi = lmaxi;
-                date = ldate;
-                if (factor == ERROR)
-                    factor = lfactor;
-                else
-                {
-                    if (lfactor != factor)
+                    else
                     {
-                        errcode = ErrCode.ERROR;
+                        errcode = ErrCode.EPARSE;
                         return errcode;
                     }
                 }
-                errcode = ErrCode.OK;
+                else
+                {
+                    errcode = ErrCode.EPARSE;
+                    LogFile.logWrite(string.Format("{0} dataRd {1}", errcode, dataRd));
+                    return errcode;
+                }
+            }
+            else
+            {
+                errcode = ErrCode.EPARSE;
+                LogFile.logWrite(string.Format("{0} dataRdStr {1}", errcode, dataRdStr));
+                return errcode;
             }
             return errcode;
         }
@@ -345,29 +371,48 @@ namespace WinAMBurner
         private ErrCode amDataParseId(string dataRdStr)
         {
             ErrCode errcode = ErrCode.ERROR;
-            uint[] lid = new uint[ID_LENGTH] { ERROR, ERROR, ERROR };
-            //parse to lines
-            string[] dataRd = amDataParseStr(dataRdStr);
-            //maxi
-            if ((dataLineParse(dataRd, "0x1f-0x85-0x01", ref lid) >= 0))
+            if (dataRdStr != null)
             {
-                if (checkError(id))
+                uint[] lid = new uint[ID_LENGTH] { ERROR, ERROR, ERROR };
+                //parse to lines
+                string[] dataRd = amDataParseStr(dataRdStr);
+                if (dataRd != null)
                 {
-                    for (int i = 0; i < lid.Length; i++)
-                        id[i] = lid[i];
+                    //maxi
+                    if ((errcode = dataLineParse(dataRd, "0x1f-0x85-0x01", ref lid)) == ErrCode.OK)
+                    {
+                        if (checkError(id))
+                        {
+                            for (int i = 0; i < lid.Length; i++)
+                                id[i] = lid[i];
+                        }
+                        else
+                        {
+                            for (int i = 0; i < lid.Length; i++)
+                            {
+                                if (lid[i] != id[i])
+                                {
+                                    errcode = ErrCode.EPARSE;
+                                    LogFile.logWrite(string.Format("{0} lid[{1}] {2} id[{3}] {4}", errcode, i, lid[i], i, id[i]));
+                                    return errcode;
+                                }
+                            }
+                        }
+                        errcode = ErrCode.OK;
+                    }
                 }
                 else
                 {
-                    for (int i = 0; i < lid.Length; i++)
-                    {
-                        if (lid[i] != id[i])
-                        {
-                            errcode = ErrCode.ERROR;
-                            return errcode;
-                        }
-                    }
+                    errcode = ErrCode.EPARSE;
+                    LogFile.logWrite(string.Format("{0} dataRd {1}", errcode, dataRd));
+                    return errcode;
                 }
-                errcode = ErrCode.OK;
+            }
+            else
+            {
+                errcode = ErrCode.EPARSE;
+                LogFile.logWrite(string.Format("{0} dataRdStr {1}", errcode, dataRdStr));
+                return errcode;
             }
             return errcode;
         }
@@ -382,37 +427,75 @@ namespace WinAMBurner
 
         private string[] amDataParseStr(string dataRdStr)
         {
-            return dataRdStr.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+            string[] dataSplit = null;
+            if (dataRdStr != null)
+                dataSplit = dataRdStr.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+            return dataSplit;
         }
 
         private ErrCode dataLineParse(string[] dataRd, string pattern, ref uint number)
         {
             ErrCode errcode = ErrCode.ERROR;
-            string? dataFind = dataRd.ToList().Find(data => data.Contains(pattern));
-            if (dataFind != null)
+            if (dataRd != null)
             {
-                string? snumber = new string(dataFind.SkipWhile(c => c != 'x').Skip(1).TakeWhile(c => c != ':').ToArray());
-                if (snumber != null)
+                string? dataFind = dataRd.ToList().Find(data => data.Contains(pattern));
+                if (dataFind != null)
                 {
-                    if (uint.TryParse(snumber, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out number))
+                    string? snumber = new string(dataFind.SkipWhile(c => c != 'x').Skip(1).TakeWhile(c => c != ':').ToArray());
+                    if (snumber != null)
                     {
-                        errcode = ErrCode.OK;
+                        if (uint.TryParse(snumber, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out number))
+                        {
+                            errcode = ErrCode.OK;
+                        }
+                        else
+                        {
+                            string? logsnum = snumber;
+                            snumber = new string(dataFind.SkipWhile(c => (c < '0') || (c > '9')).ToArray());
+                            if (snumber != null)
+                            {
+                                if (uint.TryParse(snumber, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
+                                {
+                                    errcode = ErrCode.OK;
+                                }
+                                else
+                                {
+                                    errcode = ErrCode.EPARSE;
+                                    LogFile.logWrite(string.Format("{0} pattern {1} logsnum {2} snumber {3} number {4}", errcode, pattern, logsnum, snumber, number));
+                                    return errcode;
+                                }
+                            }
+                            else
+                            {
+                                errcode = ErrCode.EPARSE;
+                                LogFile.logWrite(string.Format("{0} pattern {1} logsnum {2} snumber {3}", errcode, pattern, logsnum, snumber));
+                                return errcode;
+                            }
+                        }
                     }
                     else
                     {
-                        snumber = new string(dataFind.SkipWhile(c => (c < '0') || (c > '9')).ToArray());
-                        if (snumber != null)
-                        {
-                            if (uint.TryParse(snumber, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
-                                errcode = ErrCode.OK;
-                        }
+                        errcode = ErrCode.EPARSE;
+                        LogFile.logWrite(string.Format("{0} pattern {1} snumber {2}", errcode, pattern, snumber));
+                        return errcode;
                     }
+                    //string[] dataSplit = dataFind.Split(new char[] { ' ', ':', 'x' }, StringSplitOptions.RemoveEmptyEntries);
+                    //if (uint.TryParse(dataSplit[3], NumberStyles.HexNumber,
+                    //    CultureInfo.InvariantCulture, out number))
+                    //    errcode = ErrCode.OK;
                 }
-
-                //string[] dataSplit = dataFind.Split(new char[] { ' ', ':', 'x' }, StringSplitOptions.RemoveEmptyEntries);
-                //if (uint.TryParse(dataSplit[3], NumberStyles.HexNumber,
-                //    CultureInfo.InvariantCulture, out number))
-                //    errcode = ErrCode.OK;
+                else
+                {
+                    errcode = ErrCode.EPARSE;
+                    LogFile.logWrite(string.Format("{0} dataFind {1}", errcode, dataFind));
+                    return errcode;
+                }
+            }
+            else
+            {
+                errcode = ErrCode.EPARSE;
+                LogFile.logWrite(string.Format("{0} dataRd {1}", errcode, dataRd));
+                return errcode;
             }
             return errcode;
         }
@@ -421,26 +504,58 @@ namespace WinAMBurner
         {
             //ErrCode errcode = ErrCode.ERROR;
             ErrCode errcode = ErrCode.OK;
-            string? dataFind = dataRd.ToList().Find(data => data.Contains(pattern));
-            if (dataFind != null)
+            if (dataRd != null)
             {
-                string[] dataSplit = dataFind.Split(new char[] { '-' }, StringSplitOptions.RemoveEmptyEntries);
-                for (int i = 0; i < number.Count(); i++)
+                string? dataFind = dataRd.ToList().Find(data => data.Contains(pattern));
+                if (dataFind != null)
                 {
-                    if (i < dataSplit.Count())
+                    string[] dataSplit = dataFind.Split(new char[] { '-' }, StringSplitOptions.RemoveEmptyEntries);
+                    if (dataSplit != null)
                     {
-                        if (!uint.TryParse(new string(dataSplit[i].SkipWhile(c => c != 'x').Skip(1).ToArray())
-                            , NumberStyles.HexNumber, CultureInfo.InvariantCulture, out number[i]))
-                            errcode = ErrCode.ERROR;
+                        for (int i = 0; i < number.Count(); i++)
+                        {
+                            if (i < dataSplit.Count())
+                            {
+                                if (!uint.TryParse(new string(dataSplit[i].SkipWhile(c => c != 'x').Skip(1).ToArray())
+                                    , NumberStyles.HexNumber, CultureInfo.InvariantCulture, out number[i]))
+                                {
+                                    errcode = ErrCode.EPARSE;
+                                    LogFile.logWrite(string.Format("{0} pattern {1} number[{2}] {3}", errcode, pattern, i, number));
+                                    return errcode;
+                                }
+                            }
+                            else
+                            {
+                                errcode = ErrCode.EPARSE;
+                                LogFile.logWrite(string.Format("{0} dataSplit.Count() {1}", errcode, dataSplit.Count()));
+                                return errcode;
+                            }
+                        }
+                        //string[] dataSplit = dataFind.Split(new char[] { 'x', '-' }, StringSplitOptions.RemoveEmptyEntries);
+                        //if (uint.TryParse(dataSplit[1], NumberStyles.HexNumber, CultureInfo.InvariantCulture, out number[0]) &&
+                        //    uint.TryParse(dataSplit[3], NumberStyles.HexNumber, CultureInfo.InvariantCulture, out number[1]) &&
+                        //    uint.TryParse(dataSplit[5], NumberStyles.HexNumber, CultureInfo.InvariantCulture, out number[2]))
+                        //    errcode = ErrCode.OK;
                     }
                     else
-                        errcode = ErrCode.ERROR;
+                    {
+                        errcode = ErrCode.EPARSE;
+                        LogFile.logWrite(string.Format("{0} dataSplit {1}", errcode, dataSplit));
+                        return errcode;
+                    }
                 }
-                //string[] dataSplit = dataFind.Split(new char[] { 'x', '-' }, StringSplitOptions.RemoveEmptyEntries);
-                //if (uint.TryParse(dataSplit[1], NumberStyles.HexNumber, CultureInfo.InvariantCulture, out number[0]) &&
-                //    uint.TryParse(dataSplit[3], NumberStyles.HexNumber, CultureInfo.InvariantCulture, out number[1]) &&
-                //    uint.TryParse(dataSplit[5], NumberStyles.HexNumber, CultureInfo.InvariantCulture, out number[2]))
-                //    errcode = ErrCode.OK;
+                else
+                {
+                    errcode = ErrCode.EPARSE;
+                    LogFile.logWrite(string.Format("{0} dataFind {1}", errcode, dataFind));
+                    return errcode;
+                }
+            }
+            else
+            {
+                errcode = ErrCode.EPARSE;
+                LogFile.logWrite(string.Format("{0} dataRd {1}", errcode, dataRd));
+                return errcode;
             }
             return errcode;
         }

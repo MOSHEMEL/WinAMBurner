@@ -367,6 +367,8 @@ namespace WinAMBurner
                             else
                                 errcode = ErrCode.SERROR;
                         }
+                        else
+                            errcode = ErrCode.SERROR;
                     }
                 }
                 if (errcode == ErrCode.OK)
