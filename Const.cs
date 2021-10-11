@@ -104,7 +104,8 @@ namespace WinAMBurner
         EMATCH = -5,
         ELENGTH = -6,
         SERROR = -7,
-        EPARSE = -8
+        EPARSE = -8,
+        EXPIRE = -9
     }
 
     static class LogFile

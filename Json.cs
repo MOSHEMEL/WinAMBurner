@@ -10,15 +10,20 @@ using System.Windows.Forms;
 
 namespace WinAMBurner
 {
+    interface Expire
+    {
+        public string detail { get; set; }
+    }
+
     interface LoginJson
     {
         public string email { get; set; }
         public string password { get; set; }
         public string tablet { get; set; }
-    }
+    //}
 
-    interface LoginResponseJson
-    {
+    //interface LoginResponseJson
+    //{
         public string token { get; set; }
         public UserJson user { get; set; }
     }
@@ -58,7 +63,7 @@ namespace WinAMBurner
         public string email { get; set; }
     }
 
-    class ContactJson
+    class ContactJson : Expire
     {
         public int id { get; set; }
         public DistributorJson distributor { get; set; }
@@ -71,6 +76,7 @@ namespace WinAMBurner
         public string last_name { get; set; }
         public string mobile { get; set; }
         public string email { get; set; }
+        public string detail { get; set; }
     }
 
     interface FarmJson
@@ -159,8 +165,10 @@ namespace WinAMBurner
         public Action action;
     }
 
-    class Gui
+    class Gui: Expire
     {
+        public string detail { get; set; }
+
         public delegate Task<JsonDocument> dWeb<TJson>(TJson jentity, string entityUrl);
         //public delegate Task<ErrCode> dResponseOk<T>(T entity);
         //public delegate ErrCode dCheck();
@@ -172,18 +180,19 @@ namespace WinAMBurner
         public delegate Task<ErrCode> dApprove<T>(Data data, T entity);
         public delegate Task<List<string>> dResponseErr(Data data, ErrCode errcode);
 
+        public delegate void dLogout();
         public delegate Task dNotify(string title, string messages, string cancel);
         public delegate Task<bool> dNotifyAnswer(string title, string messages, string accept, string cancel);
         public delegate void dEnabled(bool enabled);
         public delegate void dShow();
         public delegate void dHide();
         public delegate void dDraw<T>(T entity);
+        public dLogout dlogout;
         public dShow dshow;
         public dHide dhide;
         public dEnabled denabled;
         public dNotify dnotify;
         public dNotifyAnswer dnotifyAnswer;
-
         public Field Picture { get; set; }
         public Field Welcome { get; set; }
 
@@ -191,8 +200,9 @@ namespace WinAMBurner
         {
         }
 
-        public Gui(dHide dhide, dEnabled denabled, dNotify dnotify)
+        public Gui(dLogout dlogout, dHide dhide, dEnabled denabled, dNotify dnotify)
         {
+            this.dlogout = dlogout;
             this.dhide = dhide;
             this.denabled = denabled;
             this.dnotify = dnotify;
@@ -321,7 +331,7 @@ namespace WinAMBurner
             ErrCode errcode = ErrCode.ERROR;
 
             //if ((jentity != null) && (url != null) && (dweb != null) && (captionOk != null) && (captionErr != null) && (dresponseOk != null))
-            if ((jentity != null) && (url != null) && (dweb != null) && (captionOk != null) && (captionErr != null) && (dresponseOk != null) && (data != null) && (denabled != null) && (dnotify != null) && (dhide != null))
+            if ((jentity != null) && (url != null) && (dweb != null) && (captionOk != null) && (captionErr != null) && (dresponseOk != null) && (data != null) && (denabled != null) && (dnotify != null) && (dhide != null) && (dlogout != null))
             {
                 JsonDocument jsonDocument = null;
                 T rentity = default;
@@ -359,7 +369,8 @@ namespace WinAMBurner
                                     catch (Exception ex) { LogFile.logWrite(ex.ToString()); }
 
                                     if (rentity != null)
-                                        errcode = ErrCode.OK;
+                                    //errcode = ErrCode.OK;
+                                        errcode = checkExpire(rentity);
                                     else
                                         errcode = ErrCode.SERROR;
                                 }
@@ -367,10 +378,11 @@ namespace WinAMBurner
                             else
                                 errcode = ErrCode.SERROR;
                         }
-                        else
-                            errcode = ErrCode.SERROR;
+                        //else
+                        //    errcode = ErrCode.SERROR;
                     }
                 }
+
                 if (errcode == ErrCode.OK)
                 {
                     if (showMsgs && (messages.Count() > 0))
@@ -387,28 +399,53 @@ namespace WinAMBurner
                         //hide();
                         //dhide();
                 }
+
                 if (errcode != ErrCode.OK)
                 {
-                    if (errors.Count() > 0)
-                        //notify(errors, NotifyButtons.OK, captionErr);
-                        await dnotify(captionErr, errors.Aggregate(string.Empty, (r, m) => r += "\n" + m), "Ok");
-
-                    if (messagesErr != null)
-                        //notify(messagesErr, NotifyButtons.OK, captionErr);
-                        await dnotify(captionErr, messagesErr.Aggregate(string.Empty, (r, m) => r += "\n" + m), "Ok");
-
-                    if (dresponseErr != null)
+                    if (errcode == ErrCode.EXPIRE)
                     {
-                        List<string> responseErr = await dresponseErr(data, errcode);
-                        if (responseErr != null)
-                            //notify(await dresponseErr(errcode), NotifyButtons.OK, captionErr);
-                            await dnotify(captionErr, responseErr.Aggregate(string.Empty, (r, m) => r += "\n" + m), "Ok");
+                        await dnotify(captionErr, "The session is expired, please login to continue", "Ok");
+                        dlogout();
                     }
+                    else
+                    {
+                        if (errors.Count() > 0)
+                            //notify(errors, NotifyButtons.OK, captionErr);
+                            await dnotify(captionErr, errors.Aggregate(string.Empty, (r, m) => r += "\n" + m), "Ok");
 
-                    //enableControls();
-                    denabled(true);
+                        if (messagesErr != null)
+                            //notify(messagesErr, NotifyButtons.OK, captionErr);
+                            await dnotify(captionErr, messagesErr.Aggregate(string.Empty, (r, m) => r += "\n" + m), "Ok");
+
+                        if (dresponseErr != null)
+                        {
+                            List<string> responseErr = await dresponseErr(data, errcode);
+                            if (responseErr != null)
+                                //notify(await dresponseErr(errcode), NotifyButtons.OK, captionErr);
+                                await dnotify(captionErr, responseErr.Aggregate(string.Empty, (r, m) => r += "\n" + m), "Ok");
+                        }
+
+                        //enableControls();
+                        denabled(true);
+                    }
                 }
             }
+            return errcode;
+        }
+
+        public ErrCode checkExpire<T>(T rentity)
+        {
+            ErrCode errcode;
+            Expire expire = rentity as Expire;
+            if (expire != null)
+            {
+                if ((expire.detail != null) && (expire.detail.Contains("Signature has expired")))
+                    errcode = ErrCode.EXPIRE;
+                else
+                    errcode = ErrCode.OK;
+            }
+            else
+                errcode = ErrCode.EXPIRE;
             return errcode;
         }
 
@@ -426,7 +463,7 @@ namespace WinAMBurner
         //}
     }
 
-    class Login : Gui, LoginJson, LoginResponseJson
+    class Login : Gui, LoginJson
     {
         public string email { get { return Email.getValue(); } set { Email.setValue(value); } }
         public string password { get { return Password.getValue(); } set { Password.setValue(value); } }
@@ -452,12 +489,12 @@ namespace WinAMBurner
 
         //public Login(EventHandler forgotEventHandler, EventHandler buttonEventHandler)
         public Login(EventHandler forgotEventHandler, EventHandler buttonEventHandler,
-            dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Login> ddraw, dShow dshow = null)
+            dLogout dlogout, dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Login> ddraw, dShow dshow = null)
         {
             initFields();
             //initFields(forgotEventHandler, buttonEventHandler);
             initFields(forgotEventHandler, buttonEventHandler,
-                dhide, denabled, dnotify, ddraw, dshow);
+                dlogout, dhide, denabled, dnotify, ddraw, dshow);
         }
 
         private void initFields()
@@ -471,11 +508,12 @@ namespace WinAMBurner
 
         //private void initFields(EventHandler forgotEventHandler, EventHandler buttonEventHandler)
         private void initFields(EventHandler forgotEventHandler, EventHandler buttonEventHandler,
-            dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Login> ddraw, dShow dshow = null)
+            dLogout dlogout, dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Login> ddraw, dShow dshow = null)
         {
             Forgot.eventHandler = forgotEventHandler;
             Press.eventHandler = buttonEventHandler;
 
+            this.dlogout = dlogout;
             this.dhide = dhide;
             this.denabled = denabled;
             this.dnotify = dnotify;
@@ -550,7 +588,7 @@ namespace WinAMBurner
     {
         public string new_password1 { get { return Password1.getValue(); } set { Password1.setValue(value); } }
         public string new_password2 { get { return Password2.getValue(); } set { Password2.setValue(value); } }
-        public string detail { get; set; }
+        //public string detail { get; set; }
 
         public Field Password1 { get; set; }
 
@@ -567,12 +605,12 @@ namespace WinAMBurner
 
         //public Password(EventHandler buttonEventHandler)
         public Password(EventHandler buttonEventHandler,
-            dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Password> ddraw, dShow dshow = null)
+            dLogout dlogout, dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Password> ddraw, dShow dshow = null)
         {
             initFields();
             //initFields(buttonEventHandler);
             initFields(buttonEventHandler,
-                dhide, denabled, dnotify, ddraw, dshow);
+                dlogout, dhide, denabled, dnotify, ddraw, dshow);
         }
 
         private void initFields()
@@ -586,9 +624,10 @@ namespace WinAMBurner
 
         //private void initFields(EventHandler buttonEventHandler)
         private void initFields(EventHandler buttonEventHandler,
-            dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Password> ddraw, dShow dshow = null)
+            dLogout dlogout, dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Password> ddraw, dShow dshow = null)
         {
             ChangePassword.eventHandler = buttonEventHandler;
+            this.dlogout = dlogout;
             this.dhide = dhide;
             this.denabled = denabled;
             this.dnotify = dnotify;
@@ -670,12 +709,12 @@ namespace WinAMBurner
 
         //public Reset(EventHandler buttonEventHandler)
         public Reset(EventHandler buttonEventHandler,
-            dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Reset> ddraw, dShow dshow = null)
+            dLogout dlogout, dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Reset> ddraw, dShow dshow = null)
         {
             initFields();
             //initFields(buttonEventHandler);
             initFields(buttonEventHandler,
-                dhide, denabled, dnotify, ddraw, dshow);
+                dlogout, dhide, denabled, dnotify, ddraw, dshow);
         }
 
         private void initFields()
@@ -687,9 +726,10 @@ namespace WinAMBurner
 
         //private void initFields(EventHandler buttonEventHandler)
         private void initFields(EventHandler buttonEventHandler,
-            dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Reset> ddraw, dShow dshow = null)
+            dLogout dlogout, dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Reset> ddraw, dShow dshow = null)
         {
             ResetPassword.eventHandler = buttonEventHandler;
+            this.dlogout = dlogout;
             this.dhide = dhide;
             this.denabled = denabled;
             this.dnotify = dnotify;
@@ -782,7 +822,7 @@ namespace WinAMBurner
         public Entity()
         { }
 
-        public Entity(dHide dhide, dEnabled denabled, dNotify dnotify) : base(dhide, denabled, dnotify)
+        public Entity(dLogout dlogout, dHide dhide, dEnabled denabled, dNotify dnotify) : base(dlogout, dhide, denabled, dnotify)
         { }
 
         //public object clone()
@@ -885,17 +925,17 @@ namespace WinAMBurner
 
         //public Farm(bool edit, EventHandler countryHandler, EventHandler cancelHandler, EventHandler submitHandler)
         public Farm(bool edit, EventHandler countryHandler, EventHandler cancelHandler, EventHandler submitHandler,
-            dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Farm> ddraw, dShow dshow = null)
+            dLogout dlogout, dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Farm> ddraw, dShow dshow = null)
         {
             initFields();
             //initFields(edit, countryHandler, cancelHandler, submitHandler);
             initFields(edit, countryHandler, cancelHandler, submitHandler,
-                dhide, denabled, dnotify, ddraw, dshow);
+                dlogout, dhide, denabled, dnotify, ddraw, dshow);
         }
 
         //public void initFields(bool edit, EventHandler countryHandler, EventHandler cancelHandler, EventHandler submitHandler)
         public void initFields(bool edit, EventHandler countryHandler, EventHandler cancelHandler, EventHandler submitHandler,
-            dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Farm> ddraw, dShow dshow = null)
+            dLogout dlogout, dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Farm> ddraw, dShow dshow = null)
         {
             if (edit)
             {
@@ -915,6 +955,7 @@ namespace WinAMBurner
             Submit.eventHandler = submitHandler;
             Country.eventHandler = countryHandler;
 
+            this.dlogout = dlogout;
             this.dhide = dhide;
             this.denabled = denabled;
             this.dnotify = dnotify;
@@ -1010,17 +1051,17 @@ namespace WinAMBurner
 
         //public Service(bool edit, EventHandler countryHandler, EventHandler cancelHandler, EventHandler submitHandler)
         public Service(bool edit, EventHandler countryHandler, EventHandler cancelHandler, EventHandler submitHandler,
-            dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Service> ddraw, dShow dshow = null)
+            dLogout dlogout, dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Service> ddraw, dShow dshow = null)
         {
             initFields();
             //initFields(edit, countryHandler, cancelHandler, submitHandler);
             initFields(edit, countryHandler, cancelHandler, submitHandler,
-                dhide, denabled, dnotify, ddraw, dshow);
+                dlogout, dhide, denabled, dnotify, ddraw, dshow);
         }
 
         //public void initFields(bool edit, EventHandler countryHandler, EventHandler cancelHandler, EventHandler submitHandler)
         public void initFields(bool edit, EventHandler countryHandler, EventHandler cancelHandler, EventHandler submitHandler,
-            dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Service> ddraw, dShow dshow = null)
+            dLogout dlogout, dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Service> ddraw, dShow dshow = null)
         {
             if (edit)
             {
@@ -1040,6 +1081,7 @@ namespace WinAMBurner
             Submit.eventHandler = submitHandler;
             Country.eventHandler = countryHandler;
 
+            this.dlogout = dlogout;
             this.dhide = dhide;
             this.denabled = denabled;
             this.dnotify = dnotify;
@@ -1097,7 +1139,7 @@ namespace WinAMBurner
         }
     }
 
-    class TreatmentPackage : TreatmentPackageJson
+    class TreatmentPackage : Gui, TreatmentPackageJson
     {
         public int id { get; set; }
         public bool is_active { get; set; }
@@ -1169,12 +1211,12 @@ namespace WinAMBurner
 
         //public Action(Am am, string tablet, object[] farms, object[] services, EventHandler partNumberEventHandler, EventHandler farmEventHandler, EventHandler radioEventHandler, EventHandler canselEventHandler, EventHandler approveEventHandler)
         public Action(Am am, string tablet, object[] farms, object[] services, EventHandler partNumberEventHandler, EventHandler farmEventHandler, EventHandler radioEventHandler, EventHandler canselEventHandler, EventHandler approveEventHandler,
-            dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Action> ddraw, dShow dshow = null, dNotifyAnswer dnotifyAnswer = null)
+            dLogout dlogout, dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Action> ddraw, dShow dshow = null, dNotifyAnswer dnotifyAnswer = null)
         {
             initFields();
             //initFields(am, tablet, farms, services, partNumberEventHandler, farmEventHandler, radioEventHandler, canselEventHandler, approveEventHandler);
             initFields(am, tablet, farms, services, partNumberEventHandler, farmEventHandler, radioEventHandler, canselEventHandler, approveEventHandler,
-                dhide, denabled, dnotify, ddraw, dshow, dnotifyAnswer);
+                dlogout, dhide, denabled, dnotify, ddraw, dshow, dnotifyAnswer);
         }
 
         private void initFields()
@@ -1194,7 +1236,7 @@ namespace WinAMBurner
 
         //private void initFields(Am am, string tablet, object[] farms, object[] services, EventHandler partNumberEventHandler, EventHandler farmEventHandler, EventHandler radioEventHandler, EventHandler canselEventHandler, EventHandler approveEventHandler)
         private void initFields(Am am, string tablet, object[] farms, object[] services, EventHandler partNumberEventHandler, EventHandler farmEventHandler, EventHandler radioEventHandler, EventHandler canselEventHandler, EventHandler approveEventHandler,
-            dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Action> ddraw, dShow dshow = null, dNotifyAnswer dnotifyAnswer = null)
+            dLogout dlogout, dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Action> ddraw, dShow dshow = null, dNotifyAnswer dnotifyAnswer = null)
         {
             PartNumber.ltext += am.SNum.ToString();
             PartNumber.eventHandler = partNumberEventHandler;
@@ -1211,6 +1253,7 @@ namespace WinAMBurner
             RadioService.eventHandler = radioEventHandler;
             Cancel.eventHandler = canselEventHandler;
             Approve.eventHandler = approveEventHandler;
+            this.dlogout = dlogout;
             this.dhide = dhide;
             this.denabled = denabled;
             this.dnotify = dnotify;
@@ -1224,37 +1267,46 @@ namespace WinAMBurner
         public async Task<ErrCode> approve(Data data, ActionJson action)
         {
             ErrCode errcode = ErrCode.ERROR;
-            if (((action.farm != null) || (action.service_provider != null)))
-            {
-                if ((data.am.Maxi + data.am.MaxiSet) < data.settings.max_am_pulses)
-                {
-                    bool answer = await dnotifyAnswer("Approve", string.Format("{0} current treatments available\n", data.am.Maxi / data.settings.number_of_pulses_per_treatment) +
-                                string.Format("{0} treatments will be added\n", data.am.MaxiSet / data.settings.number_of_pulses_per_treatment) +
-                                string.Format("AM - SN: {0}\n", data.am.SNum) +
-                                ((action.farm != null) ? string.Format("Farm: {0}\n", data.farms.Find(f => f.id == action.farm).Name.val) :
-                                ((action.service_provider != null) ? string.Format("Service Provider: {0}\n", data.services.Find(s => s.id == action.service_provider).Name.val) : string.Empty)) +
-                                "Do you want to proceed?", "Yes", "No");
-                    if (answer)
-                    {
-                        //if (progressBar != null)
-                        //    progressBar.IsVisible = true;
-                        //data.amData.serialPortProgressEvent += new EventHandler(progressBar_Callback);
-                        //if (progressBar != null)
-                        //    progressBar.Progress = 0;
 
-                        if ((errcode = await data.am.AMDataWrite()) == ErrCode.OK)
+            if (((action.farm != null) || (action.service_provider != null)) && (dlogout != null))
+            {
+                ContactJson contact = await data.web.entityGet<ContactJson>("api/p/contacts/current/");
+                if ((errcode = checkExpire(contact)) == ErrCode.OK)
+                {
+                    if ((data.am.Maxi + data.am.MaxiSet) < data.settings.max_am_pulses)
+                    {
+                        bool answer = await dnotifyAnswer("Approve", string.Format("{0} current treatments available\n", data.am.Maxi / data.settings.number_of_pulses_per_treatment) +
+                                    string.Format("{0} treatments will be added\n", data.am.MaxiSet / data.settings.number_of_pulses_per_treatment) +
+                                    string.Format("AM - SN: {0}\n", data.am.SNum) +
+                                    ((action.farm != null) ? string.Format("Farm: {0}\n", data.farms.Find(f => f.id == action.farm).Name.val) :
+                                    ((action.service_provider != null) ? string.Format("Service Provider: {0}\n", data.services.Find(s => s.id == action.service_provider).Name.val) : string.Empty)) +
+                                    "Do you want to proceed?", "Yes", "No");
+                        if (answer)
                         {
-                            if ((errcode = await data.am.AMDataRead()) == ErrCode.OK)
+                            //if (progressBar != null)
+                            //    progressBar.IsVisible = true;
+                            //data.amData.serialPortProgressEvent += new EventHandler(progressBar_Callback);
+                            //if (progressBar != null)
+                            //    progressBar.Progress = 0;
+
+                            if ((errcode = await data.am.AMDataWrite()) == ErrCode.OK)
                             {
-                                errcode =  ErrCode.OK;
+                                if ((errcode = await data.am.AMDataRead()) == ErrCode.OK)
+                                {
+                                    errcode = ErrCode.OK;
+                                }
+                                else
+                                    errcode = ErrCode.SERROR;
                             }
+                            else
+                                errcode = ErrCode.SERROR;
                         }
+                        else
+                            errcode = ErrCode.CANSEL;
                     }
                     else
-                        errcode = ErrCode.CANSEL;
+                        errcode = ErrCode.EMAX;
                 }
-                else
-                    errcode = ErrCode.EMAX;
             }
             else
                 errcode = ErrCode.EPARAM;

@@ -143,8 +143,8 @@ namespace WinAMBurner
             {
                 data.web = new Web();
                 data.am = new Am();
-                data.login = new Login(forgot_Click, buttonLogin_Click, hide, enabled, notify, draw, dshow: screenActionShow) { tablet = TabletNo };
-                data.password = new Password(buttonChangePassword_Click, hide, enabled, notify, draw);
+                data.login = new Login(forgot_Click, buttonLogin_Click, logout, hide, enabled, notify, draw, dshow: screenActionShow) { tablet = TabletNo };
+                data.password = new Password(buttonChangePassword_Click, logout, hide, enabled, notify, draw);
                 if (data.login != null)
                     data.login.ddraw(data.login);
                 //draw(data.login);
@@ -161,7 +161,7 @@ namespace WinAMBurner
             if (data.login != null)
                 //login.hide();
                 hide();
-            data.reset = new Reset(buttonResetPassword_Click, hide, enabled, notify, draw);
+            data.reset = new Reset(buttonResetPassword_Click, logout, hide, enabled, notify, draw);
             if (data.reset != null)
                 data.reset.ddraw(data.reset);
         }
@@ -170,7 +170,7 @@ namespace WinAMBurner
         {
             if ((data != null) && (data.reset != null))
             {
-                data.login = new Login(forgot_Click, buttonLogin_Click, hide, enabled, notify, draw, dshow: screenActionShow) { tablet = TabletNo };
+                data.login = new Login(forgot_Click, buttonLogin_Click, logout, hide, enabled, notify, draw, dshow: screenActionShow) { tablet = TabletNo };
                 await data.reset.send(data);
             }
             //if ((reset != null) && (web != null) && (login != null))
@@ -189,7 +189,7 @@ namespace WinAMBurner
             //}
         }
 
-        private void logout()
+        private void clear()
         {
             clearAM();
 
@@ -208,7 +208,7 @@ namespace WinAMBurner
             data.settings = null;
 
             //login = new Login(forgot_Click, buttonLogin_Click) { tablet = TabletNo };
-            data.login = new Login(forgot_Click, buttonLogin_Click, hide, enabled, notify, draw, dshow: screenActionShow) { tablet = TabletNo };
+            data.login = new Login(forgot_Click, buttonLogin_Click, logout, hide, enabled, notify, draw, dshow: screenActionShow) { tablet = TabletNo };
             data.user = null;
         }
 
@@ -367,6 +367,11 @@ namespace WinAMBurner
         private void buttonLogout_Click(object sender, EventArgs e)
         {
             logout();
+        }
+
+        private void logout()
+        {
+            clear();
             hide();
             //if (login != null)
             //    login.drawFields(this);
@@ -547,7 +552,7 @@ namespace WinAMBurner
             //    buttonTreatCansel_Click, buttonTreatApprove_Click);
             data.action = new Action(data.am, TabletNo, data.farms.ToArray(), data.services.ToArray(),
                 comboBoxPartNumber_SelectedIndexChanged, comboBoxFarm_SelectedIndexChanged, radioButton_CheckedChanged,
-                buttonTreatCansel_Click, buttonTreatApprove_Click, hide, enabled, notify, draw, dshow: screenActionShow, dnotifyAnswer: notify);
+                buttonTreatCansel_Click, buttonTreatApprove_Click, logout, hide, enabled, notify, draw, dshow: screenActionShow, dnotifyAnswer: notify);
             //if ((action != null) && (action.RadioFarm != null) && (action.Progress != null))
             if ((data != null) && (data.action != null) && (data.action.RadioFarm != null) && (data.action.Progress != null))
             {
@@ -927,7 +932,7 @@ namespace WinAMBurner
             if (data != null)
             {
                 data.farm = new Farm(false, comboBoxCountry_SelectedIndexChanged, buttonFarmCancel_Click, buttonFarmAddSubmit_Click,
-                    hide, enabled, notify, draw, dshow: screenFarmShow);
+                    logout, hide, enabled, notify, draw, dshow: screenFarmShow);
                 if (data.farm != null)
                     data.farm.ddraw(data.farm);
             }
@@ -942,7 +947,7 @@ namespace WinAMBurner
             if (data != null)
             {
                 data.service = new Service(false, comboBoxCountry_SelectedIndexChanged, buttonServiceCancel_Click, buttonServiceAddSubmit_Click,
-                hide, enabled, notify, draw, dshow: screenServiceShow);
+                logout, hide, enabled, notify, draw, dshow: screenServiceShow);
                 if (data.service != null)
                     data.service.ddraw(data.service);
             }
@@ -959,7 +964,7 @@ namespace WinAMBurner
                     //farm.initFields(true, comboBoxCountry_SelectedIndexChanged, buttonFarmCancel_Click, buttonFarmEditSubmit_Click);
                     //farm.drawFields(this);
                     data.farm.initFields(true, comboBoxCountry_SelectedIndexChanged, buttonFarmCancel_Click, buttonFarmEditSubmit_Click,
-                        hide, enabled, notify, draw, dshow: screenFarmShow);
+                        logout, hide, enabled, notify, draw, dshow: screenFarmShow);
                     data.farm.ddraw(data.farm);
                 }
             }
@@ -985,7 +990,7 @@ namespace WinAMBurner
                     //service.initFields(true, comboBoxCountry_SelectedIndexChanged, buttonServiceCancel_Click, buttonServiceEditSubmit_Click);
                     //service.drawFields(this);
                     data.service.initFields(true, comboBoxCountry_SelectedIndexChanged, buttonServiceCancel_Click, buttonServiceEditSubmit_Click,
-                        hide, enabled, notify, draw, dshow: screenServiceShow);
+                        logout, hide, enabled, notify, draw, dshow: screenServiceShow);
                     data.service.ddraw(data.service);
                 }
             }

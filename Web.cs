@@ -21,7 +21,8 @@ namespace WinAMBurner
         public async Task<JsonDocument> login<T>(T login, string entityUrl)
         {
             JsonDocument jsonDocument = null;
-            LoginResponseJson loginResponse = null;
+            //LoginResponseJson loginResponse = null;
+            LoginJson rlogin = null;
             try
             {
                 LogFile.logWrite("Request POST: " + URL + entityUrl + "\n" + login.ToString() + JsonSerializer.Serialize(login));
@@ -35,10 +36,10 @@ namespace WinAMBurner
                         jsonDocument = await JsonSerializer.DeserializeAsync<JsonDocument>(await response.Content.ReadAsStreamAsync());
                         if (jsonDocument != null)
                         {
-                            loginResponse = JsonSerializer.Deserialize<Login>(jsonDocument.RootElement.ToString());
-                            if (loginResponse != null)
+                            rlogin = JsonSerializer.Deserialize<Login>(jsonDocument.RootElement.ToString());
+                            if (rlogin != null)
                                 client.DefaultRequestHeaders.Authorization
-                                             = new AuthenticationHeaderValue("JWT", loginResponse.token);
+                                             = new AuthenticationHeaderValue("JWT", rlogin.token);
                         }
                     }
                 }
