@@ -222,9 +222,12 @@ namespace WinAMBurner
         {
             if ((data != null) && (data.login != null))
             {
-                //data.login.Email.control.Text = "yael@gmail.com";
-                //data.login.Password.control.Text = "yael1234";
-                //data.login.tablet = "PF1C9VKU";
+                data.login.Email.control.Text = "yael@gmail.com";
+                data.login.Password.control.Text = "yael1234";
+                data.login.tablet = "PF1C9VKU";
+                //data.login.Email.control.Text = "mikiy@armentavet.com";
+                //data.login.Password.control.Text = "miki1973";
+                //data.login.tablet = "VAKD9Z0199D2";
                 //        //login.email = "yaelv@armentavet.com";
                 //        //login.password = "Yyyaeeel123";
                 //        //login.tablet = "kjh1g234123";

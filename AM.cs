@@ -35,7 +35,7 @@ namespace WinAMBurner
 
         private const int RD_TIMEOUT = 1000;
         private const int WR_TIMEOUT = 1000;
-        private const int MAX_TIMEOUT = 3000;
+        private const int MAX_TIMEOUT = 6000;
         private const uint ERROR = 0xFFFFFFFF;
         private const int ID_LENGTH = 3;
 
@@ -135,12 +135,14 @@ namespace WinAMBurner
 
             string dataRdStr = await serialReadWrite(cmd);
             //write to log
-            LogFile.logWrite(cmd, dataRdStr);
+            //LogFile.logWrite(cmd, dataRdStr, false);
+            LogFile.logWrite(cmd.Aggregate("\r\n", (r, m) => r += m + "\r\n"));
 
             if (dataRdStr.Contains("Burn the cow, Armenta Ltd 2020 Version"))
             {
                 dataRdStr = await serialReadWrite(cmd);
-                LogFile.logWrite(cmd, dataRdStr);
+                //LogFile.logWrite(cmd, dataRdStr, false);
+                LogFile.logWrite(cmd.Aggregate("\r\n", (r, m) => r += m + "\r\n"));
             }
             //parse data
             errcode = amDataParseId(dataRdStr);
@@ -187,7 +189,9 @@ namespace WinAMBurner
 
             string dataRdStr = await serialReadWrite(cmd);
             //write to log
-            LogFile.logWrite(cmd, dataRdStr);
+            //LogFile.logWrite(cmd, dataRdStr);
+            LogFile.logWrite(cmd.Aggregate("\r\n", (r, m) => r += m + "\r\n"));
+            LogFile.logWrite(cmd.Aggregate("\r\n", (r, m) => r += m + "\r\n"), verbose: true);
             //parse data
             errcode = amDataParse(dataRdStr);
             try
@@ -254,7 +258,9 @@ namespace WinAMBurner
 
             string dataRdStr = await serialReadWrite(cmd);
             //write to log
-            LogFile.logWrite(cmd, dataRdStr);
+            //LogFile.logWrite(cmd, dataRdStr, false);
+            LogFile.logWrite(cmd.Aggregate("\r\n", (r, m) => r += m + "\r\n"));
+            LogFile.logWrite(cmd.Aggregate("\r\n", (r, m) => r += m + "\r\n"), verbose: true);
             try
             {
                 serialPort.Close();
@@ -281,6 +287,9 @@ namespace WinAMBurner
                 uint lfactor = ERROR;
                 //parse to lines
                 string[] dataRd = amDataParseStr(dataRdStr);
+                LogFile.logWrite(dataRd.Where(s => s.StartsWith("Verbose")).Aggregate("\r\n", (r, m) => r += m + "\r\n"), verbose: true);
+                LogFile.logWrite(dataRd.Where(s => !s.StartsWith("Verbose")).Aggregate("\r\n", (r, m) => r += m + "\r\n"));
+
                 if (dataRd != null)
                 {
                     //maxi

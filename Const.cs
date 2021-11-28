@@ -10,7 +10,7 @@ namespace WinAMBurner
 {
     static class Const
     {
-        public const string Version = "1.1";
+        public const string Version = "1.2";
 
         public static Dictionary<string, string> DCOUNTRY;
         //public static List<string> COUNTRY;
@@ -111,22 +111,36 @@ namespace WinAMBurner
     static class LogFile
     {
         private const string logFileName = "logFile.txt";
+        private const string logFileNameVerbose = "logFileVerbose.txt";
 
-        public static void logWrite(List<string> cmd, string dataRdStr)
+        //public static void logWrite(List<string> cmd, string dataRdStr, bool verbose)
+        //{
+        //    string file = logFileName;
+        //    if(verbose)
+        //        file = logFileNameVerbose;
+        //    File.AppendAllText(file, "------------------------------------");
+        //    File.AppendAllText(file, DateTime.Now.ToString() + "\n");
+        //    foreach (string cm in cmd)
+        //        File.AppendAllText(file, cm.ToString() + "\n");
+        //    File.AppendAllText(file, "------------------------------------");
+        //    File.AppendAllText(file, dataRdStr);
+        //}
+
+        public static void logWrite(string str, bool verbose = false)
         {
-            File.AppendAllText(logFileName, "------------------------------------");
-            File.AppendAllText(logFileName, DateTime.Now.ToString() + "\n");
-            foreach (string cm in cmd)
-                File.AppendAllText(logFileName, cm.ToString() + "\n");
-            File.AppendAllText(logFileName, "------------------------------------");
-            File.AppendAllText(logFileName, dataRdStr);
+            string file = logFileName;
+            if(verbose)
+                file = logFileNameVerbose;
+            File.AppendAllText(file, "------------------------------------");
+            File.AppendAllText(file, DateTime.Now.ToString() + "\n");
+            File.AppendAllText(file, str + "\n");
         }
 
-        public static void logWrite(string str)
-        {
-            File.AppendAllText(logFileName, "------------------------------------");
-            File.AppendAllText(logFileName, DateTime.Now.ToString() + "\n");
-            File.AppendAllText(logFileName, str + "\n");
-        }
+        //public static void logWrite(string str)
+        //{
+        //    File.AppendAllText(logFileName, "------------------------------------");
+        //    File.AppendAllText(logFileName, DateTime.Now.ToString() + "\n");
+        //    File.AppendAllText(logFileName, str + "\n");
+        //}
     }
 }
