@@ -1275,7 +1275,7 @@ namespace WinAMBurner
                 {
                     if ((data.am.Maxi + data.am.MaxiSet) < data.settings.max_am_pulses)
                     {
-                        bool answer = await dnotifyAnswer("Approve", string.Format("{0} current treatments available\n", data.am.Maxi / data.settings.number_of_pulses_per_treatment) +
+                        bool answer = await dnotifyAnswer("Approve", string.Format("{0} current treatments available\n", (data.am.Maxi - data.am.Factor) / data.settings.number_of_pulses_per_treatment) +
                                     string.Format("{0} treatments will be added\n", data.am.MaxiSet / data.settings.number_of_pulses_per_treatment) +
                                     string.Format("AM - SN: {0}\n", data.am.SNum) +
                                     ((action.farm != null) ? string.Format("Farm: {0}\n", data.farms.Find(f => f.id == action.farm).Name.val) :
@@ -1318,9 +1318,9 @@ namespace WinAMBurner
             ErrCode errcode = ErrCode.ERROR;
             if ((data != null) && (data.am != null) && (data.settings != null) && (dhide != null) && (dshow != null))
             {
-                await dnotify("Approve Success", string.Format("The original amount of treatments: {0}\n", data.am.MaxiPrev / data.settings.number_of_pulses_per_treatment) +
+                await dnotify("Approve Success", string.Format("The original amount of treatments: {0}\n", (data.am.MaxiPrev - data.am.Factor) / data.settings.number_of_pulses_per_treatment) +
                         string.Format("Added treatments: {0}\n", data.am.MaxiSet / data.settings.number_of_pulses_per_treatment) +
-                        string.Format("The treatments available on AM - SN {1}: {0}\n", data.am.Maxi / data.settings.number_of_pulses_per_treatment, data.am.SNum) +
+                        string.Format("The treatments available on AM - SN {1}: {0}\n", (data.am.Maxi - data.am.Factor) / data.settings.number_of_pulses_per_treatment, data.am.SNum) +
                         "please disconnect the AM", "OK");
                 //clearAM();
                 dhide();
@@ -1349,14 +1349,14 @@ namespace WinAMBurner
             {
                 data.am.Maxi -= data.am.MaxiSet;
                 data.am.MaxiSet = 0;
-                await dnotify("Approve Failed", string.Format("Approve failed, restoring AM to {0} treatments", data.am.Maxi / data.settings.number_of_pulses_per_treatment), "OK");
+                await dnotify("Approve Failed", string.Format("Approve failed, restoring AM to {0} treatments", (data.am.Maxi - data.am.Factor) / data.settings.number_of_pulses_per_treatment), "OK");
 
                 if (await data.am.AMDataWrite() == ErrCode.OK)
                 {
                     if (await data.am.AMDataRead() == ErrCode.OK)
-                        errors = new List<string>() { "Approve failed,", string.Format("AM sucsessfully restored to {0} treatments", data.am.Maxi / data.settings.number_of_pulses_per_treatment) };
+                        errors = new List<string>() { "Approve failed,", string.Format("AM sucsessfully restored to {0} treatments", (data.am.Maxi - data.am.Factor) / data.settings.number_of_pulses_per_treatment) };
                     else
-                        errors = new List<string>() { "Approve failed,", string.Format("Failed to restore to {0} treatments", data.am.Maxi / data.settings.number_of_pulses_per_treatment) };
+                        errors = new List<string>() { "Approve failed,", string.Format("Failed to restore to {0} treatments", (data.am.Maxi - data.am.Factor) / data.settings.number_of_pulses_per_treatment) };
                 }
                 else
                     errors = new List<string>() { "Approve failed,", "Faild to restore to original values" };

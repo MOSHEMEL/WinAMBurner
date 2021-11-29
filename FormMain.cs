@@ -536,7 +536,7 @@ namespace WinAMBurner
             new Field(ltype: typeof(PictureBox), lplacev: Place.One).draw(this, true);
             new Field(ltype: typeof(Label), ltext: "Welcome distributor", font: Field.DefaultFontLarge, lplacev: Place.Two).draw(this, true);
             new Field(ltype: typeof(Label), ltext: "AM identified with SN: " + data.am.SNum, lplacev: Place.Four).draw(this, true);
-            new Field(ltype: typeof(Label), ltext: "Current available treatments: " + data.am.Maxi / data.settings.number_of_pulses_per_treatment, lplacev: Place.Six).draw(this, true);
+            new Field(ltype: typeof(Label), ltext: "Current available treatments: " + (data.am.Maxi - data.am.Factor) / data.settings.number_of_pulses_per_treatment, lplacev: Place.Six).draw(this, true);
             new Field(ltype: typeof(Button), ltext: "Back", eventHandler: buttonInfoBack_Click, lplaceh: Place.Five, lplacev: Place.End).draw(this, true);
             new Field(ltype: typeof(Button), ltext: "Continue", eventHandler: buttonInfoContinue_Click, lplaceh: Place.Two, lplacev: Place.End).draw(this, true);
         }
