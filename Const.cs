@@ -110,8 +110,12 @@ namespace WinAMBurner
 
     static class LogFile
     {
-        private const string logFileName = "logFile.txt";
-        private const string logFileNameVerbose = "logFileVerbose.txt";
+        private static string date = new string (DateTime.Now.ToShortDateString().Select(c => { if ((c == '/') || (c == '\\')) c = '_'; return c; }).ToArray());
+        //private const string logFileName = "logFile.txt" + DateTime.Now;
+        private static string logFileName = "logFile_" + date + ".txt";
+        //private const string logFileNameVerbose = "logFileVerbose.txt";
+        //private static string logFileNameVerbose = "logFileVerbose_" + DateTime.Now.ToShortDateString().Replace('/', '_').Replace('\\', '_') + ".txt";
+        private static string logFileNameVerbose = "logFileVerbose_" + date + ".txt";
 
         //public static void logWrite(List<string> cmd, string dataRdStr, bool verbose)
         //{
