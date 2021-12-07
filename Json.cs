@@ -149,7 +149,7 @@ namespace WinAMBurner
 
     class Data
     {
-        public Am am = new Am();
+        public Am am;
         public Web web;
         public Login login;
         public UserJson user;
@@ -163,6 +163,31 @@ namespace WinAMBurner
         public TreatmentPackage treatmentPackage;
         public List<TreatmentPackage> treatmentPackages;
         public Action action;
+        public delegate void dProgress(bool reset);
+        public dProgress dprogress;
+
+        public Data(dProgress dprogress)
+        {
+            this.dprogress = dprogress;
+        }
+
+        public uint Current
+        {
+            get => calcCurrent(am.Current);
+        }
+
+        public uint CurrentPrev
+        {
+            get => calcCurrent(am.CurrentPrev);
+        }
+
+        private uint calcCurrent(uint amCurrent)
+        {
+            uint current = (uint)(amCurrent / settings.number_of_pulses_per_treatment + 
+                ((amCurrent % settings.number_of_pulses_per_treatment) > 
+                (settings.number_of_pulses_per_treatment * 0.8) ? 1 : 0));
+            return current;
+        }
     }
 
     class Gui: Expire
@@ -187,6 +212,7 @@ namespace WinAMBurner
         public delegate void dShow();
         public delegate void dHide();
         public delegate void dDraw<T>(T entity);
+
         public dLogout dlogout;
         public dShow dshow;
         public dHide dhide;
@@ -195,7 +221,7 @@ namespace WinAMBurner
         public dNotifyAnswer dnotifyAnswer;
         public Field Picture { get; set; }
         public Field Welcome { get; set; }
-
+        
         public Gui()
         {
         }
@@ -1275,7 +1301,7 @@ namespace WinAMBurner
                 {
                     if ((data.am.Maxi + data.am.MaxiSet) < data.settings.max_am_pulses)
                     {
-                        bool answer = await dnotifyAnswer("Approve", string.Format("{0} current treatments available\n", (data.am.Maxi - data.am.Factor) / data.settings.number_of_pulses_per_treatment) +
+                        bool answer = await dnotifyAnswer("Approve", string.Format("{0} current treatments available\n", data.Current) +
                                     string.Format("{0} treatments will be added\n", data.am.MaxiSet / data.settings.number_of_pulses_per_treatment) +
                                     string.Format("AM - SN: {0}\n", data.am.SNum) +
                                     ((action.farm != null) ? string.Format("Farm: {0}\n", data.farms.Find(f => f.id == action.farm).Name.val) :
@@ -1289,9 +1315,11 @@ namespace WinAMBurner
                             //if (progressBar != null)
                             //    progressBar.Progress = 0;
 
-                            if ((errcode = await data.am.AMDataWrite()) == ErrCode.OK)
+                            //if ((errcode = await data.am.AMDataWrite()) == ErrCode.OK)
+                            if ((errcode = await data.am.AMCmd(Cmd.WRITE)) == ErrCode.OK)
                             {
-                                if ((errcode = await data.am.AMDataRead()) == ErrCode.OK)
+                                //if ((errcode = await data.am.AMDataRead()) == ErrCode.OK)
+                                if ((errcode = await data.am.AMCmd(Cmd.READ)) == ErrCode.OK)
                                 {
                                     errcode = ErrCode.OK;
                                 }
@@ -1318,9 +1346,9 @@ namespace WinAMBurner
             ErrCode errcode = ErrCode.ERROR;
             if ((data != null) && (data.am != null) && (data.settings != null) && (dhide != null) && (dshow != null))
             {
-                await dnotify("Approve Success", string.Format("The original amount of treatments: {0}\n", (data.am.MaxiPrev - data.am.Factor) / data.settings.number_of_pulses_per_treatment) +
+                await dnotify("Approve Success", string.Format("The original amount of treatments: {0}\n", data.CurrentPrev) +
                         string.Format("Added treatments: {0}\n", data.am.MaxiSet / data.settings.number_of_pulses_per_treatment) +
-                        string.Format("The treatments available on AM - SN {1}: {0}\n", (data.am.Maxi - data.am.Factor) / data.settings.number_of_pulses_per_treatment, data.am.SNum) +
+                        string.Format("The treatments available on AM - SN {1}: {0}\n", data.Current, data.am.SNum) +
                         "please disconnect the AM", "OK");
                 //clearAM();
                 dhide();
@@ -1349,17 +1377,19 @@ namespace WinAMBurner
             {
                 data.am.Maxi -= data.am.MaxiSet;
                 data.am.MaxiSet = 0;
-                await dnotify("Approve Failed", string.Format("Approve failed, restoring AM to {0} treatments", (data.am.Maxi - data.am.Factor) / data.settings.number_of_pulses_per_treatment), "OK");
-
-                if (await data.am.AMDataWrite() == ErrCode.OK)
+                await dnotify("Approve Failed", string.Format("Approve failed, restoring AM to {0} treatments", data.Current), "OK");
+                data.dprogress(true);
+                //if (await data.am.AMDataWrite() == ErrCode.OK)
+                if (await data.am.AMCmd(Cmd.WRITE) == ErrCode.OK)
                 {
-                    if (await data.am.AMDataRead() == ErrCode.OK)
-                        errors = new List<string>() { "Approve failed,", string.Format("AM sucsessfully restored to {0} treatments", (data.am.Maxi - data.am.Factor) / data.settings.number_of_pulses_per_treatment) };
+                    //if (await data.am.AMDataRead() == ErrCode.OK)
+                    if (await data.am.AMCmd(Cmd.READ) == ErrCode.OK)
+                        errors = new List<string>() { "Restore sucsses", string.Format("AM sucsessfully restored to {0} treatments", data.Current) };
                     else
-                        errors = new List<string>() { "Approve failed,", string.Format("Failed to restore to {0} treatments", (data.am.Maxi - data.am.Factor) / data.settings.number_of_pulses_per_treatment) };
+                        errors = new List<string>() { "Restore failed", string.Format("Failed to restore to {0} treatments", data.Current) };
                 }
                 else
-                    errors = new List<string>() { "Approve failed,", "Faild to restore to original values" };
+                    errors = new List<string>() { "Restore failed", string.Format("Failed to restore to {0} treatments", data.Current) };
             }
             else if (errcode == ErrCode.CANSEL)
                 errors = null;

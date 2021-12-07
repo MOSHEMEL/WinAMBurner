@@ -42,7 +42,7 @@ namespace WinAMBurner
         //private Reset reset;
         private Field search;
 
-        private Data data = new Data();
+        private Data data;
 
         private string TabletNo
         {
@@ -139,10 +139,11 @@ namespace WinAMBurner
             //login = new Login(forgot_Click, buttonLogin_Click) { tablet = TabletNo };
             //if (login != null)
             //    login.drawFields(this);
+            data = new Data(progressBar_Callback);
             if (data != null)
             {
                 data.web = new Web();
-                data.am = new Am();
+                data.am = new Am(progressBar_Callback);
                 data.login = new Login(forgot_Click, buttonLogin_Click, logout, hide, enabled, notify, draw, dshow: screenActionShow) { tablet = TabletNo };
                 data.password = new Password(buttonChangePassword_Click, logout, hide, enabled, notify, draw);
                 if (data.login != null)
@@ -215,7 +216,7 @@ namespace WinAMBurner
         private void clearAM()
         {
             AMConnected = false;
-            data.am = new Am();
+            data.am = new Am(progressBar_Callback);
         }
 
         private async void buttonLogin_Click(object sender, EventArgs e)
@@ -474,20 +475,32 @@ namespace WinAMBurner
                 button1.Enabled = false;
                 //button2.Enabled = false;
                 progressBar1.Visible = true;
-                data.am.serialPortProgressEvent += progressBar_Callback;
+                //data.am.serialPortProgressEvent += progressBar_Callback;
                 progressBar1.Minimum = 0;
                 progressBar1.Value = progressBar1.Minimum;
-                progressBar1.Maximum = 20;
+                progressBar1.Maximum = 16;
 
                 ErrCode errcode = ErrCode.ERROR;
 
-                if ((errcode = await data.am.AMDataCheckConnect()) == ErrCode.OK)
-                    errcode = await data.am.AMDataRead();
+                if ((errcode = await data.am.AMCheckConnect()) == ErrCode.OK)
+                    //errcode = await data.am.AMDataRead();
+                    errcode = await data.am.AMCmd(Cmd.READ);
 
                 progressBar1.Value = progressBar1.Maximum;
-                
-                if (errcode == ErrCode.OK)
+
+                if (errcode == ErrCode.EEMPTY)
                 {
+                    if (await notify("AM content corrupted", "AM content corrupted, \ndo you want to restore AM \nto the last saved values?", "Yes", "No"))
+                    {
+                        progressBar1.Minimum = 0;
+                        progressBar1.Value = progressBar1.Minimum;
+                        progressBar1.Maximum = 16;
+                        errcode = await data.am.AMCmd(Cmd.RESTORE);
+                        progressBar1.Value = progressBar1.Maximum;
+                    }
+                }
+                if (errcode == ErrCode.OK)
+                { 
                     //if ok
                     AMConnected = true;
                     hide();
@@ -501,7 +514,7 @@ namespace WinAMBurner
 
                     //notify(new List<string>() { "AM not found make sure the AM is connected", "to the tablet by using a USB cable" },
                     //    NotifyButtons.OK, caption: "Am not connected");
-                    await notify("Am not connected", "AM not found make sure the AM is connected\nto the tablet by using a USB cable", "OK");
+                    await notify("AM not connected", "AM not found make sure the AM is connected\nto the tablet by using a USB cable", "OK");
                 }
                 label1.Visible = true;
                 button1.Enabled = true;
@@ -536,7 +549,7 @@ namespace WinAMBurner
             new Field(ltype: typeof(PictureBox), lplacev: Place.One).draw(this, true);
             new Field(ltype: typeof(Label), ltext: "Welcome distributor", font: Field.DefaultFontLarge, lplacev: Place.Two).draw(this, true);
             new Field(ltype: typeof(Label), ltext: "AM identified with SN: " + data.am.SNum, lplacev: Place.Four).draw(this, true);
-            new Field(ltype: typeof(Label), ltext: "Current available treatments: " + (data.am.Maxi - data.am.Factor) / data.settings.number_of_pulses_per_treatment, lplacev: Place.Six).draw(this, true);
+            new Field(ltype: typeof(Label), ltext: "Current available treatments: " + data.Current, lplacev: Place.Six).draw(this, true);
             new Field(ltype: typeof(Button), ltext: "Back", eventHandler: buttonInfoBack_Click, lplaceh: Place.Five, lplacev: Place.End).draw(this, true);
             new Field(ltype: typeof(Button), ltext: "Continue", eventHandler: buttonInfoContinue_Click, lplaceh: Place.Two, lplacev: Place.End).draw(this, true);
         }
@@ -689,7 +702,31 @@ namespace WinAMBurner
             }
         }
 
-        private void progressBar_Callback(object sender, EventArgs e)
+        //private void progressBar_Callback(object sender, EventArgs e)
+        //{
+        //    ProgressBar progressBar;
+        //    if ((data != null) && (data.action != null) && (data.action.Progress != null))
+        //        progressBar = data.action.Progress.lcontrol as ProgressBar;
+        //    else
+        //        progressBar = progressBar1;
+        //
+        //    if (progressBar != null)
+        //    {
+        //        SerialPortEventArgs args = e as SerialPortEventArgs;
+        //        if (args != null)
+        //        {
+        //            //if (args.progress == 0)
+        //            //    progressBar.Maximum = progressBar.Value + args.maximum * 2;
+        //
+        //            //if ((progressBar.Value + args.progress) <= progressBar.Maximum)
+        //            //    progressBar.Value += args.progress;
+        //            if ((progressBar.Value + 1) <= progressBar.Maximum)
+        //                progressBar.Value ++;
+        //        }
+        //    }
+        //}
+
+        private void progressBar_Callback(bool reset)
         {
             ProgressBar progressBar;
             if ((data != null) && (data.action != null) && (data.action.Progress != null))
@@ -699,15 +736,10 @@ namespace WinAMBurner
 
             if (progressBar != null)
             {
-                SerialPortEventArgs args = e as SerialPortEventArgs;
-                if (args != null)
-                {
-                    //if (args.progress == 0)
-                    //    progressBar.Maximum = progressBar.Value + args.maximum * 2;
-
-                    if ((progressBar.Value + args.progress) <= progressBar.Maximum)
-                        progressBar.Value += args.progress;
-                }
+                if (reset)
+                    progressBar.Value = progressBar.Minimum;
+                else if ((progressBar.Value + 1) <= progressBar.Maximum)
+                    progressBar.Value++;
             }
         }
 
@@ -740,10 +772,10 @@ namespace WinAMBurner
                 if (progressBar != null)
                 {
                     progressBar.Visible = true;
-                    data.am.serialPortProgressEvent += progressBar_Callback;
+                    //data.am.serialPortProgressEvent += progressBar_Callback;
                     progressBar.Minimum = 0;
                     progressBar.Value = progressBar.Minimum;
-                    progressBar.Maximum = 90;
+                    progressBar.Maximum = 73;
 
                     errcode = await data.action.send(data);
 

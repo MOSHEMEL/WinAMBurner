@@ -8,9 +8,32 @@ using System.Text.Json;
 
 namespace WinAMBurner
 {
+    enum ErrCode
+    {
+        OK = 0,
+        ERROR = -1,
+        EPARAM = -2,
+        EMAX = -3,
+        CANSEL = -4,
+        EMATCH = -5,
+        ELENGTH = -6,
+        SERROR = -7,
+        EPARSE = -8,
+        EXPIRE = -9,
+        EEMPTY = -10
+    }
+
+    enum Cmd
+    {
+        ID,
+        READ,
+        WRITE,
+        RESTORE
+    }
+
     static class Const
     {
-        public const string Version = "1.2";
+        public const string Version = "1.3";
 
         public static Dictionary<string, string> DCOUNTRY;
         //public static List<string> COUNTRY;
@@ -94,20 +117,6 @@ namespace WinAMBurner
         }
     }
 
-    enum ErrCode
-    {
-        OK = 0,
-        ERROR = -1,
-        EPARAM = -2,
-        EMAX = -3,
-        CANSEL = -4,
-        EMATCH = -5,
-        ELENGTH = -6,
-        SERROR = -7,
-        EPARSE = -8,
-        EXPIRE = -9
-    }
-
     static class LogFile
     {
         private static string date = new string (DateTime.Now.ToShortDateString().Select(c => { if ((c == '/') || (c == '\\')) c = '_'; return c; }).ToArray());
@@ -138,6 +147,15 @@ namespace WinAMBurner
             File.AppendAllText(file, "------------------------------------");
             File.AppendAllText(file, DateTime.Now.ToString() + "\n");
             File.AppendAllText(file, str + "\n");
+        }
+
+        public static void logWrite(List<string> lines)
+        {
+            if (lines != null)
+            {
+                LogFile.logWrite(lines.Where(s => !s.StartsWith("Verbose")).Aggregate("\r\n", (r, m) => r += m + "\r\n"));
+                LogFile.logWrite(lines.Where(s => s.StartsWith("Verbose")).Aggregate("\r\n", (r, m) => r += m + "\r\n"), verbose: true);
+            }
         }
 
         //public static void logWrite(string str)
