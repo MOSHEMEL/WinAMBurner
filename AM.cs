@@ -256,7 +256,7 @@ namespace WinAMBurner
                 cmd.Add("status1,3#");
                 //cmd.Add("testread,3#");
                 if (blockNum == "3")
-                    cmd.Add("rd,3,0x000" + blockNum + "FDE#");
+                    cmd.Add("rd,3,0x000" + blockNum + "F50#");
                 else
                     cmd.Add("find,3,1#");
                 cmd.Add("debug#");
@@ -348,12 +348,12 @@ namespace WinAMBurner
             //cmd.Add(string.Format("snum,3,{0}#", snum));
             //cmd.Add(string.Format("maxi,3,{0}#", maxi + maxiSet));
             //cmd.Add(string.Format("date,3,{0}#", (int)date));
-            //cmd.Add(string.Format("wrt,3,0x00FFFDE,00{0:x}#", factor));
+            //cmd.Add(string.Format("wrt,3,0x00FFF50,00{0:x}#", factor));
             cmd.Add(string.Format("wrt,3,0x00" + blockNum + "FF6,00{0:x}#", snum));
             cmd.Add(string.Format("wrt,3,0x00" + blockNum + "FEE,00{0:x}#", (int)date));
             //cmd.Add(string.Format("wrt,3,0x00" + blokNum + "FE6,00{0:x}#", maxi + maxiSet));
             cmd.Add(string.Format("wrt,3,0x00" + blockNum + "FE6,00{0:x}#", max));
-            cmd.Add(string.Format("wrt,3,0x00" + blockNum + "FDE,00{0:x}#", factor));
+            cmd.Add(string.Format("wrt,3,0x00" + blockNum + "F50,00{0:x}#", factor));
             //erase
             //cmd.Add("scan,3,0#");
             //cmd.Add("scan,3,0#");
@@ -605,7 +605,7 @@ namespace WinAMBurner
                     (dataLineParse(dataRd, "0x" + blokNum + "FF6", ref lsnum) == ErrCode.OK) &&
                     //factor
                     ((dataLineParse(dataRd, "pulses written", ref lfactor) == ErrCode.OK) || 
-                    (dataLineParse(dataRd, "0x" + blokNum + "FDE", ref lfactor) == ErrCode.OK)))
+                    (dataLineParse(dataRd, "0x" + blokNum + "F50", ref lfactor) == ErrCode.OK)))
                     errcode = ErrCode.OK;
             }
             return errcode;
