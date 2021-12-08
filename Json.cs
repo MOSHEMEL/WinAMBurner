@@ -49,7 +49,7 @@ namespace WinAMBurner
         public string phone { get; set; }
         public string name { get; set; }
         public string company_id { get; set; }
-        public string parent_distributor { get; set; }
+        public int parent_distributor { get; set; }
     }
 
     interface PasswordJson

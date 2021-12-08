@@ -223,6 +223,8 @@ namespace WinAMBurner
         {
             if ((data != null) && (data.login != null))
             {
+                // avner.hilu@outlook.com
+                // Plk90!@34
                 //data.login.Email.control.Text = "yael@gmail.com";
                 //data.login.Password.control.Text = "yael1234";
                 //data.login.tablet = "PF1C9VKU";

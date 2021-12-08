@@ -34,6 +34,7 @@ namespace WinAMBurner
                     if (response.StatusCode == System.Net.HttpStatusCode.OK)
                     {
                         jsonDocument = await JsonSerializer.DeserializeAsync<JsonDocument>(await response.Content.ReadAsStreamAsync());
+                        LogFile.logWrite(parseReply("Reply POST:\n", jsonDocument, response));
                         if (jsonDocument != null)
                         {
                             rlogin = JsonSerializer.Deserialize<Login>(jsonDocument.RootElement.ToString());
@@ -69,6 +70,7 @@ namespace WinAMBurner
                 if(streamTask != null)
                 {
                     jsonDocument = await JsonSerializer.DeserializeAsync<JsonDocument>(await streamTask);
+                    LogFile.logWrite(parseReply("Reply GET:\n", jsonDocument));
                     if (jsonDocument != null)
                         entity = JsonSerializer.Deserialize<T>(jsonDocument.RootElement.ToString());
                 }
