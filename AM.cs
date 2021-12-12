@@ -8,26 +8,6 @@ using System.IO.Ports;
 
 namespace WinAMBurner
 {
-    //enum ErrCode
-    //{
-    //    OK = 0,
-    //    ERROR = -1,
-    //    EPARAM = -2,
-    //    MAX = -3,
-    //    ERASE = -4
-    //}
-
-    //class SerialPortEventArgs : EventArgs
-    //{
-    //    public int maximum;
-    //    public int progress;
-    //    public SerialPortEventArgs(int maximum, int progress)
-    //    {
-    //        this.maximum = maximum;
-    //        this.progress = progress;
-    //    }
-    //}
-
     class Am
     {
         private SerialPort serialPort;
@@ -35,7 +15,7 @@ namespace WinAMBurner
 
         private const int RD_TIMEOUT = 1000;
         private const int WR_TIMEOUT = 1000;
-        private const int MAX_TIMEOUT = 6000;
+        private const int MAX_TIMEOUT = 3000;
         private const uint ERROR = 0xffffffff;
         private const int ID_LENGTH = 3;
         private const uint TOLERANCE = 10;
@@ -93,9 +73,9 @@ namespace WinAMBurner
             set => date = value.Subtract(epoch).TotalSeconds;
         }
 
-        //public event EventHandler serialPortProgressEvent;
-        public delegate void dProgress(bool reset);
+        public delegate void dProgress(Object progress, bool reset);
         public dProgress dprogress;
+        public Object progress;
 
         public Am(dProgress dprogress)
         {
@@ -118,7 +98,6 @@ namespace WinAMBurner
             foreach (string port in serialPorts)
             {
                 serialPort.PortName = port;
-                //errcode = await serialPortCheckConnect();
                 errcode = await AMCmd(Cmd.ID);
                 if (errcode == ErrCode.OK)
                 {
@@ -128,50 +107,6 @@ namespace WinAMBurner
             }
             return errcode;
         }
-
-        //private async Task<ErrCode> serialPortCheckConnect()
-        //{
-        //    ErrCode errcode = ErrCode.ERROR;
-        //    try
-        //    {
-        //        serialPort.Open();
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        LogFile.logWrite(e.ToString());
-        //        return errcode;
-        //    }
-        //    List<string> cmd = new List<string>();
-        //    cmd.Add("getid,3#");
-        //    //cmd.Add("debug#");
-        //
-        //    LogFile.logWrite(cmd);
-        //    string dataRdStr = await serialReadWrite(cmd);
-        //    //write to log
-        //    //LogFile.logWrite(cmd, dataRdStr, false);
-        //    LogFile.logWrite(dataSplit(dataRdStr));
-        //
-        //    if (dataRdStr.Contains("Burn the cow, Armenta Ltd 2020 Version"))
-        //    {
-        //        LogFile.logWrite(cmd);
-        //        dataRdStr = await serialReadWrite(cmd);
-        //        //LogFile.logWrite(cmd, dataRdStr, false);
-        //        LogFile.logWrite(dataSplit(dataRdStr));
-        //    }
-        //    //parse data
-        //    //errcode = dataParseId(dataRdStr);
-        //    errcode = dataParseBlock(dataRdStr, "ID");
-        //    try
-        //    {
-        //        serialPort.Close();
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        LogFile.logWrite(e.ToString());
-        //        return errcode;
-        //    }
-        //    return errcode;
-        //}
 
         public async Task<ErrCode> AMCmd(Cmd cmd)
         {
@@ -230,19 +165,23 @@ namespace WinAMBurner
             return errcode;
         }
 
-        private async Task<ErrCode> amReadBlock(string blockNum)
+        private async Task<ErrCode> amReadBlock(string blockNum)//2 4 11
         {
             ErrCode errcode = ErrCode.ERROR;
             List<string> cmd = new List<string>();
             if (blockNum == "ID")
             {
                 cmd.Add("getid,3#");
+                cmd.Add("NOP#");
+                cmd.Add("NOP#");
             }
             else if (blockNum == "1")
             {
                 cmd.Add("rd,3,0x0001008#");
                 cmd.Add("rd,3,0x0001004#");
                 cmd.Add("rd,3,0x0001000#");
+                cmd.Add("NOP#");
+                cmd.Add("NOP#");
             }
             else if ((blockNum == "3") || (blockNum == "FF"))
             {
@@ -254,97 +193,29 @@ namespace WinAMBurner
                 cmd.Add("Read MAX 3#");
                 cmd.Add("status2,3#");
                 cmd.Add("status1,3#");
-                //cmd.Add("testread,3#");
                 if (blockNum == "3")
                     cmd.Add("rd,3,0x000" + blockNum + "F50#");
                 else
                     cmd.Add("find,3,1#");
-                cmd.Add("debug#");
+                cmd.Add("NOP#");
+                cmd.Add("NOP#");
             }
             LogFile.logWrite(cmd);
 
             string dataRdStr = await serialReadWrite(cmd);
             //write to log
-            //LogFile.logWrite(cmd, dataRdStr);
             LogFile.logWrite(dataSplit(dataRdStr));
-            if (blockNum == "ID")
-            {
-                if (dataRdStr.Contains("Burn the cow, Armenta Ltd 2020 Version"))
-                {
-                    LogFile.logWrite(cmd);
-                    dataRdStr = await serialReadWrite(cmd);
-                    //LogFile.logWrite(cmd, dataRdStr, false);
-                    LogFile.logWrite(dataSplit(dataRdStr));
-                }
-                //uint[] lid = new uint[ID_LENGTH] { ERROR, ERROR, ERROR };
-                //errcode = dataLineParseCheck_id(dataRd, lid);
-                errcode = parseBlock(dataRdStr, blockNum);
-            }
-            else if (blockNum == "1")
-            {
-                //uint[] laptxId = new uint[ID_LENGTH] { ERROR, ERROR, ERROR };
-                //errcode = dataLineParseCheck_01(dataRd, laptxId);
-                errcode = parseBlock(dataRdStr, blockNum);
-            }
-            else if ((blockNum == "3") || (blockNum == "FF"))
-            {
-                //uint lmaxi = ERROR;
-                //uint ldate = ERROR;
-                //uint lsnum = ERROR;
-                //uint lfactor = ERROR;
-                //if(blockNum == "3")
-                //    errcode = dataLineParseCheck_03_FF(dataRd, blockNum, ref lmaxi, ref ldate, ref lsnum, ref lfactor);
-                //else
-                errcode = parseBlock(dataRdStr, blockNum);
-            }
+
+            errcode = parseBlock(dataRdStr, blockNum);
             return errcode;
         }
 
-        //public async Task<ErrCode> AMDataWrite()
-        //{
-        //    ErrCode errcode = ErrCode.ERROR;
-        //    //if ((snum == 0) || (maxiSet == 0))
-        //    if (snum == 0)
-        //    {
-        //        errcode = ErrCode.EPARAM;
-        //        return errcode;
-        //    }
-        //    try
-        //    {
-        //        serialPort.Open();
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        LogFile.logWrite(e.ToString());
-        //        return errcode;
-        //    }
-        //
-        //    if((errcode = await amDataWriteBlock("3", maxi)) == ErrCode.OK)
-        //        if ((errcode = await amDataWriteBlock("FF", maxi + maxiSet)) == ErrCode.OK)
-        //            errcode = ErrCode.OK;
-        //
-        //    try
-        //    {
-        //        serialPort.Close();
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        LogFile.logWrite(e.ToString());
-        //        return errcode;
-        //    }
-        //    errcode = ErrCode.OK;
-        //    return errcode;
-        //}
-
-        private async Task<ErrCode> amWriteBlock(string blockNum, uint max)
+        private async Task<ErrCode> amWriteBlock(string blockNum, uint max)//31
         {
             ErrCode errcode = ErrCode.ERROR;
             Date = DateTime.Now;
             List<string> cmd = new List<string>();
             cmd.Add("!!!WRITE COMPLETE!!!#");
-            //cmd.Add(string.Format("wrt,3,0x0001008,00{0:x}#", aptxId[2]));
-            //cmd.Add(string.Format("wrt,3,0x0001004,00{0:x}#", aptxId[1]));
-            //cmd.Add(string.Format("wrt,3,0x0001000,00{0:x}#", aptxId[0]));
             //cmd.Add(string.Format("snum,3,{0}#", snum));
             //cmd.Add(string.Format("maxi,3,{0}#", maxi + maxiSet));
             //cmd.Add(string.Format("date,3,{0}#", (int)date));
@@ -355,9 +226,9 @@ namespace WinAMBurner
             cmd.Add(string.Format("wrt,3,0x00" + blockNum + "FE6,00{0:x}#", max));
             cmd.Add(string.Format("wrt,3,0x00" + blockNum + "F50,00{0:x}#", factor));
             //erase
-            //cmd.Add("scan,3,0#");
-            //cmd.Add("scan,3,0#");
-            //cmd.Add("scan,3,0#");
+            cmd.Add("scan,3,0#");
+            cmd.Add("scan,3,0#");
+            cmd.Add("scan,3,0#");
             for (int i = 0; i < 10; i++)
                 cmd.Add("NOP#");
             //cmd.Add("nuke,3#");
@@ -373,13 +244,12 @@ namespace WinAMBurner
             cmd.Add("statusw,3,0000#");
             cmd.Add("status2,3#");
             cmd.Add("status1,3#");
-            cmd.Add("testread,3#");
-            cmd.Add("debug#");
+            cmd.Add("NOP#");
+            cmd.Add("NOP#");
             LogFile.logWrite(cmd);
 
             string dataRdStr = await serialReadWrite(cmd);
             //write to log
-            //LogFile.logWrite(cmd, dataRdStr, false);
             LogFile.logWrite(dataSplit(dataRdStr));
             uint lmaxi = ERROR;
             uint ldate = ERROR;
@@ -395,15 +265,12 @@ namespace WinAMBurner
             ErrCode errcode = ErrCode.ERROR;
             if (dataRdStr != null)
             {
-                //uint[] lid = new uint[3] { ERROR, ERROR, ERROR };
                 //parse to lines
                 List<string> dataRd = dataSplit(dataRdStr);
 
                 if (dataRd != null)
                 {
                     //maxi
-                    //if ((dataLineParse(dataRd, "0x1f-0x85-0x01", ref lid) >= 0) &&
-                    //if ((dataParseId(dataRdStr) == ErrCode.OK) &&
                     if (blokNum == "ID")
                     {
                         uint[] lid = new uint[ID_LENGTH] { ERROR, ERROR, ERROR };
@@ -437,7 +304,6 @@ namespace WinAMBurner
                         uint lsnum = ERROR;
                         uint lfactor = ERROR;
                         //maxi
-                        //(dataLineParse(dataRd, "0xFFFE6", ref lmaxi) == ErrCode.OK) &&
                         if (dataLineParseCheck_03_FF(dataRd, blokNum, ref lmaxi, ref ldate, ref lsnum, ref lfactor) == ErrCode.OK)
                         {
                             //maxiprev = maxi;
@@ -481,7 +347,6 @@ namespace WinAMBurner
                     else if (blokNum == "1")
                     {
                         uint[] laptxId = new uint[ID_LENGTH] { ERROR, ERROR, ERROR };
-                        //aptx_id[0]
                         if (dataLineParseCheck_01(dataRd, laptxId) == ErrCode.OK)
                         {
                             if (checkError(aptxId))
@@ -563,7 +428,6 @@ namespace WinAMBurner
             }
             else
             {
-                //if (lfactor != factor)
                 if (lfactor > (factor + TOLERANCE))
                 {
                     errcode = ErrCode.EPARSE;
@@ -582,9 +446,7 @@ namespace WinAMBurner
             if (dataRd != null)
             {
                 if ((dataLineParse(dataRd, "0x1000", ref laptxId[0]) == ErrCode.OK) &&
-                    //aptx_id[1]
                     (dataLineParse(dataRd, "0x1004", ref laptxId[1]) == ErrCode.OK) &&
-                    //aptx_id[2]
                     (dataLineParse(dataRd, "0x1008", ref laptxId[2]) == ErrCode.OK))
                     errcode = ErrCode.OK;
             }
@@ -598,10 +460,8 @@ namespace WinAMBurner
             {
                 if ((dataLineParse(dataRd, "0x" + blokNum + "FE6", ref lmaxi) == ErrCode.OK) &&
                     //date
-                    //(dataLineParse(dataRd, "0xFFFEE", ref ldate) == ErrCode.OK) &&
                     (dataLineParse(dataRd, "0x" + blokNum + "FEE", ref ldate) == ErrCode.OK) &&
                     //snum
-                    //(dataLineParse(dataRd, "0xFFFF6", ref lsnum) == ErrCode.OK) &&
                     (dataLineParse(dataRd, "0x" + blokNum + "FF6", ref lsnum) == ErrCode.OK) &&
                     //factor
                     ((dataLineParse(dataRd, "pulses written", ref lfactor) == ErrCode.OK) || 
@@ -610,18 +470,6 @@ namespace WinAMBurner
             }
             return errcode;
         }
-
-        //private ErrCode dataParse(string dataRdStr)
-        //{
-        //    ErrCode errcode = ErrCode.ERROR;
-        //    if ((dataParseId(dataRdStr) == ErrCode.OK) && 
-        //        (dataParseBlock(dataRdStr, "FF") == ErrCode.OK) &&
-        //        (dataParseBlock(dataRdStr, "1") == ErrCode.OK))
-        //    {
-        //        errcode = ErrCode.OK;
-        //    }
-        //    return errcode;
-        //}
 
         //private ErrCode dataParseId(string dataRdStr)
         //{
@@ -739,10 +587,6 @@ namespace WinAMBurner
                         LogFile.logWrite(string.Format("{0} pattern \"{1}\" snumber {2}", errcode, pattern, snumber));
                         return errcode;
                     }
-                    //string[] dataSplit = dataFind.Split(new char[] { ' ', ':', 'x' }, StringSplitOptions.RemoveEmptyEntries);
-                    //if (uint.TryParse(dataSplit[3], NumberStyles.HexNumber,
-                    //    CultureInfo.InvariantCulture, out number))
-                    //    errcode = ErrCode.OK;
                 }
                 else
                 {
@@ -762,7 +606,6 @@ namespace WinAMBurner
 
         private ErrCode dataLineParse(List<string> dataRd, string pattern, ref uint[] number)
         {
-            //ErrCode errcode = ErrCode.ERROR;
             ErrCode errcode = ErrCode.OK;
             if (dataRd != null)
             {
@@ -791,11 +634,6 @@ namespace WinAMBurner
                                 return errcode;
                             }
                         }
-                        //string[] dataSplit = dataFind.Split(new char[] { 'x', '-' }, StringSplitOptions.RemoveEmptyEntries);
-                        //if (uint.TryParse(dataSplit[1], NumberStyles.HexNumber, CultureInfo.InvariantCulture, out number[0]) &&
-                        //    uint.TryParse(dataSplit[3], NumberStyles.HexNumber, CultureInfo.InvariantCulture, out number[1]) &&
-                        //    uint.TryParse(dataSplit[5], NumberStyles.HexNumber, CultureInfo.InvariantCulture, out number[2]))
-                        //    errcode = ErrCode.OK;
                     }
                     else
                     {
@@ -824,16 +662,6 @@ namespace WinAMBurner
         {
             int time = 0;
             string dataRdStr = string.Empty;
-            string dataDump = string.Empty;
-            try
-            {
-                dataDump += serialPort.ReadExisting();
-            }
-            catch (Exception e)
-            {
-                LogFile.logWrite(e.ToString());
-                return dataDump;
-            }
             for (int i = cmd.Count - 1; i >= 0; i--)
             {
                 try
@@ -865,9 +693,7 @@ namespace WinAMBurner
                         break;
                 }
                 dataRdStr += dataExist;
-                //serialPortProgressEvent.Invoke(this, new SerialPortEventArgs(cmd.Count - 1, cmd.Count - 1 - i));
-                //, new AsyncCallback(delegate (IAsyncResult target) { return; }), new object());
-                dprogress(false);
+                dprogress(progress, false);
             }
             return dataRdStr;
         }

@@ -21,7 +21,6 @@ namespace WinAMBurner
         public async Task<JsonDocument> login<T>(T login, string entityUrl)
         {
             JsonDocument jsonDocument = null;
-            //LoginResponseJson loginResponse = null;
             LoginJson rlogin = null;
             try
             {
@@ -44,12 +43,7 @@ namespace WinAMBurner
                         }
                     }
                 }
-                //LogFile.logWrite("Reply POST:\n" + response.ReasonPhrase + "\n" + response.Content.ReadAsStringAsync().Result + "\n" +
-                //    loginResponse != null ? loginResponse.ToString() : string.Empty + loginResponse != null ? JsonSerializer.Serialize(loginResponse) : string.Empty);
                 LogFile.logWrite(parseReply("Reply POST:\n", jsonDocument, response));
-                //if (response != null)
-                //    if (response.StatusCode != System.Net.HttpStatusCode.OK)
-                //        loginResponse = null;
             }
             catch (Exception e)
             {
@@ -94,9 +88,6 @@ namespace WinAMBurner
                 if (response != null)
                     jsonDocument = await JsonSerializer.DeserializeAsync<JsonDocument>(await response.Content.ReadAsStreamAsync());
                 LogFile.logWrite(parseReply("Reply POST:\n", jsonDocument, response));
-                //if (response != null)
-                //    if (response.StatusCode != System.Net.HttpStatusCode.Created)
-                //        jsonDocument = null;
             }
             catch (Exception e)
             {
@@ -116,9 +107,6 @@ namespace WinAMBurner
                 if (response != null)
                     jsonDocument = await JsonSerializer.DeserializeAsync<JsonDocument>(await response.Content.ReadAsStreamAsync());
                 LogFile.logWrite(parseReply("Reply PATCH:\n", jsonDocument, response));
-                //if (response != null)
-                //    if (response.StatusCode != System.Net.HttpStatusCode.OK)
-                //        jsonDocument = null;
             }
             catch (Exception e)
             {
@@ -137,9 +125,6 @@ namespace WinAMBurner
                 if (response != null)
                     jsonDocument = await JsonSerializer.DeserializeAsync<JsonDocument>(await response.Content.ReadAsStreamAsync());
                 LogFile.logWrite(parseReply("Reply OPTIONS:\n", jsonDocument, response));
-                //if (response != null)
-                //    if (response.StatusCode != System.Net.HttpStatusCode.OK)
-                //        jsonDocument = null;
             }
             catch (Exception e)
             {

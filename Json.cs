@@ -163,7 +163,7 @@ namespace WinAMBurner
         public TreatmentPackage treatmentPackage;
         public List<TreatmentPackage> treatmentPackages;
         public Action action;
-        public delegate void dProgress(bool reset);
+        public delegate void dProgress(Object progress, bool reset);
         public dProgress dprogress;
 
         public Data(dProgress dprogress)
@@ -195,10 +195,6 @@ namespace WinAMBurner
         public string detail { get; set; }
 
         public delegate Task<JsonDocument> dWeb<TJson>(TJson jentity, string entityUrl);
-        //public delegate Task<ErrCode> dResponseOk<T>(T entity);
-        //public delegate ErrCode dCheck();
-        //public delegate Task<ErrCode> dApprove();
-        //public delegate Task<List<string>> dResponseErr(ErrCode errcode);
 
         public delegate Task<ErrCode> dResponseOk<T>(Data data, T entity);
         public delegate ErrCode dCheck(Data data);
@@ -234,58 +230,6 @@ namespace WinAMBurner
             this.dnotify = dnotify;
         }
         
-        //public void drawFields(Form thisForm)
-        //{
-        //    foreach (PropertyInfo prop in GetType().GetProperties())
-        //    {
-        //        //Console.WriteLine("{0} = {1}", prop.Name, prop.GetValue(user, null));
-        //        //PropertyInfo prop = props.ElementAt(controls.IndexOf(control));
-        //        Field field = prop.GetValue(this) as Field;
-        //        if (field != null)
-        //        {
-        //            if (field.view)
-        //            {
-        //                field.draw(thisForm, false);
-        //                field.draw(thisForm, true);
-        //            }
-        //        }
-        //    }
-        //}
-
-        //public void enableControls()
-        //{
-        //    foreach (PropertyInfo prop in GetType().GetProperties())
-        //    {
-        //        //Console.WriteLine("{0} = {1}", prop.Name, prop.GetValue(user, null));
-        //        //PropertyInfo prop = props.ElementAt(controls.IndexOf(control));
-        //        Field field = prop.GetValue(this) as Field;
-        //        if ((field != null) && field.enable)
-        //        {
-        //            if (field.control != null)
-        //                field.control.Enabled = true;
-        //            if (field.lcontrol != null)
-        //                field.lcontrol.Enabled = true;
-        //        }
-        //    }
-        //}
-        
-        //public void disableControls()
-        //{
-        //    foreach (PropertyInfo prop in GetType().GetProperties())
-        //    {
-        //        //Console.WriteLine("{0} = {1}", prop.Name, prop.GetValue(user, null));
-        //        //PropertyInfo prop = props.ElementAt(controls.IndexOf(control));
-        //        Field field = prop.GetValue(this) as Field;
-        //        if (field != null)
-        //        {
-        //            if (field.control != null)
-        //                field.control.Enabled = false;
-        //            if (field.lcontrol != null)
-        //                field.lcontrol.Enabled = false;
-        //        }
-        //    }
-        //}
-
         public ErrCode checkFields()
         {
             ErrCode errcode = ErrCode.OK;
@@ -323,40 +267,16 @@ namespace WinAMBurner
             }
 
             if ((messages.Count != 0) && (errors.Count == 0))
-            //if (errors.Count == 0)
                 errcode = ErrCode.OK;
-            //else
-            //    errcode = ErrCode.EPARAM;
 
             return errcode;
         }
 
-        //public void hide()
-        //{
-        //    foreach (PropertyInfo prop in GetType().GetProperties())
-        //    {
-        //        //Console.WriteLine("{0} = {1}", prop.Name, prop.GetValue(user, null));
-        //        Field field = prop.GetValue(this) as Field;
-        //        if (field != null)
-        //        {
-        //            if (field.control != null)
-        //                field.control.Dispose();
-        //            if (field.lcontrol != null)
-        //                field.lcontrol.Dispose();
-        //        }
-        //        //prop.SetValue(entity, control.Text);
-        //    }
-        //}
-
         public async Task<ErrCode> send<TJson, T>(TJson jentity, string url, dWeb<TJson> dweb, string captionOk, string captionErr,
-            //bool showMsgs, dResponseOk<T> dresponseOk, dCheck dcheck = null, dApprove dapprove = null, dResponseErr dresponseErr = null, List<string> messagesOk = null, List<string> messagesErr = null)
-            //bool showMsgs, dResponseOk<T> dresponseOk, dIsEnabled disEnabled, dNotify dnotify, dHide dhide, dCheck dcheck = null, dApprove dapprove = null, dResponseErr dresponseErr = null, List<string> messagesOk = null, List<string> messagesErr = null)
-            //bool showMsgs, dResponseOk<T> dresponseOk, dCheck dcheck = null, dApprove dapprove = null, dResponseErr dresponseErr = null, List<string> messagesOk = null, List<string> messagesErr = null)
             bool showMsgs, dResponseOk<T> dresponseOk, Data data, dCheck dcheck = null, dApprove<TJson> dapprove = null, dResponseErr dresponseErr = null, List<string> messagesOk = null, List<string> messagesErr = null)
         {
             ErrCode errcode = ErrCode.ERROR;
 
-            //if ((jentity != null) && (url != null) && (dweb != null) && (captionOk != null) && (captionErr != null) && (dresponseOk != null))
             if ((jentity != null) && (url != null) && (dweb != null) && (captionOk != null) && (captionErr != null) && (dresponseOk != null) && (data != null) && (denabled != null) && (dnotify != null) && (dhide != null) && (dlogout != null))
             {
                 JsonDocument jsonDocument = null;
@@ -364,12 +284,9 @@ namespace WinAMBurner
                 List<string> errors = new List<string>();
                 List<string> messages = new List<string>();
 
-                //disableControls();
                 denabled(false);
-                //updateParams();
 
                 if (dcheck != null)
-                    //errcode = dcheck();
                     errcode = dcheck(data);
                 else
                     errcode = ErrCode.OK;
@@ -379,7 +296,6 @@ namespace WinAMBurner
                     if ((errcode = checkFields()) == ErrCode.OK)
                     {
                         if (dapprove != null)
-                            //errcode = await dapprove();
                             errcode = await dapprove(data, jentity);
                         else
                             errcode = ErrCode.OK;
@@ -395,7 +311,6 @@ namespace WinAMBurner
                                     catch (Exception ex) { LogFile.logWrite(ex.ToString()); }
 
                                     if (rentity != null)
-                                    //errcode = ErrCode.OK;
                                         errcode = checkExpire(rentity);
                                     else
                                         errcode = ErrCode.SERROR;
@@ -404,26 +319,18 @@ namespace WinAMBurner
                             else
                                 errcode = ErrCode.SERROR;
                         }
-                        //else
-                        //    errcode = ErrCode.SERROR;
                     }
                 }
 
                 if (errcode == ErrCode.OK)
                 {
                     if (showMsgs && (messages.Count() > 0))
-                        //notify(messages, NotifyButtons.OK, captionOk);
                         await dnotify(captionOk, messages.Aggregate(string.Empty, (r, m) => r += "\n" + m), "Ok");
 
                     if (messagesOk != null)
-                        //notify(messagesOk, NotifyButtons.OK, captionOk);
                         await dnotify(captionOk, messagesOk.Aggregate(string.Empty, (r, m) => r += "\n" + m), "Ok");
 
-                    //if ((errcode = await dresponseOk(rentity)) == ErrCode.OK)
-                    //if ((errcode = await dresponseOk(data, rentity)) == ErrCode.OK)
                     await dresponseOk(data, rentity);
-                        //hide();
-                        //dhide();
                 }
 
                 if (errcode != ErrCode.OK)
@@ -436,22 +343,18 @@ namespace WinAMBurner
                     else
                     {
                         if (errors.Count() > 0)
-                            //notify(errors, NotifyButtons.OK, captionErr);
                             await dnotify(captionErr, errors.Aggregate(string.Empty, (r, m) => r += "\n" + m), "Ok");
 
                         if (messagesErr != null)
-                            //notify(messagesErr, NotifyButtons.OK, captionErr);
                             await dnotify(captionErr, messagesErr.Aggregate(string.Empty, (r, m) => r += "\n" + m), "Ok");
 
                         if (dresponseErr != null)
                         {
                             List<string> responseErr = await dresponseErr(data, errcode);
                             if (responseErr != null)
-                                //notify(await dresponseErr(errcode), NotifyButtons.OK, captionErr);
                                 await dnotify(captionErr, responseErr.Aggregate(string.Empty, (r, m) => r += "\n" + m), "Ok");
                         }
 
-                        //enableControls();
                         denabled(true);
                     }
                 }
@@ -475,18 +378,6 @@ namespace WinAMBurner
             return errcode;
         }
 
-        //public DialogResult notify(List<string> text, NotifyButtons notifyButtons, string caption)
-        //{
-        //    DialogResult dialogResult = default;
-        //    if ((text != null) && (text.Count > 0))
-        //    {
-        //        FormNotify formNotify = new FormNotify(text, notifyButtons, caption);
-        //        formNotify.ShowDialog();
-        //        dialogResult = formNotify.DialogResult;
-        //        formNotify.Dispose();
-        //    }
-        //    return dialogResult;
-        //}
     }
 
     class Login : Gui, LoginJson
@@ -513,12 +404,10 @@ namespace WinAMBurner
             initFields();
         }
 
-        //public Login(EventHandler forgotEventHandler, EventHandler buttonEventHandler)
         public Login(EventHandler forgotEventHandler, EventHandler buttonEventHandler,
             dLogout dlogout, dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Login> ddraw, dShow dshow = null)
         {
             initFields();
-            //initFields(forgotEventHandler, buttonEventHandler);
             initFields(forgotEventHandler, buttonEventHandler,
                 dlogout, dhide, denabled, dnotify, ddraw, dshow);
         }
@@ -532,7 +421,6 @@ namespace WinAMBurner
             Press = new Field(ltype: typeof(Button), ltext: "Login", lplacev: Place.End);
         }
 
-        //private void initFields(EventHandler forgotEventHandler, EventHandler buttonEventHandler)
         private void initFields(EventHandler forgotEventHandler, EventHandler buttonEventHandler,
             dLogout dlogout, dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Login> ddraw, dShow dshow = null)
         {
@@ -556,18 +444,11 @@ namespace WinAMBurner
             {
                 // if ok
                 data.user = rlogin.user;
-                //if (data.user != null)
-                //{
                 if (!data.user.is_password_changed)
                 {
-                    //data.passwordData = new Password(eventHandler);
-                    //if ((data.password != null) && (data.password.ddraw != null))
-                    //{
                     dhide();
                     data.password.ddraw(data.password);
                     errcode = ErrCode.OK;
-                    //}
-                    //return ErrCode.ERROR;
                 }
                 else
                 {
@@ -592,7 +473,6 @@ namespace WinAMBurner
                         dshow();
                         errcode = ErrCode.OK;
                     }
-                    //}
                 }
             }
             return errcode;
@@ -629,12 +509,10 @@ namespace WinAMBurner
             initFields();
         }
 
-        //public Password(EventHandler buttonEventHandler)
         public Password(EventHandler buttonEventHandler,
             dLogout dlogout, dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Password> ddraw, dShow dshow = null)
         {
             initFields();
-            //initFields(buttonEventHandler);
             initFields(buttonEventHandler,
                 dlogout, dhide, denabled, dnotify, ddraw, dshow);
         }
@@ -648,7 +526,6 @@ namespace WinAMBurner
             ChangePassword = new Field(ltype: typeof(Button), ltext: "Change Password", width: Field.DefaultWidthLarge, lplacev: Place.End);
         }
 
-        //private void initFields(EventHandler buttonEventHandler)
         private void initFields(EventHandler buttonEventHandler,
             dLogout dlogout, dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Password> ddraw, dShow dshow = null)
         {
@@ -733,12 +610,10 @@ namespace WinAMBurner
             initFields();
         }
 
-        //public Reset(EventHandler buttonEventHandler)
         public Reset(EventHandler buttonEventHandler,
             dLogout dlogout, dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Reset> ddraw, dShow dshow = null)
         {
             initFields();
-            //initFields(buttonEventHandler);
             initFields(buttonEventHandler,
                 dlogout, dhide, denabled, dnotify, ddraw, dshow);
         }
@@ -750,7 +625,6 @@ namespace WinAMBurner
             ResetPassword = new Field(ltype: typeof(Button), ltext: "Reset Password", width: Field.DefaultWidthLarge, lplacev: Place.End);
         }
 
-        //private void initFields(EventHandler buttonEventHandler)
         private void initFields(EventHandler buttonEventHandler,
             dLogout dlogout, dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Reset> ddraw, dShow dshow = null)
         {
@@ -767,7 +641,6 @@ namespace WinAMBurner
         public async Task<ErrCode> responseOk(Data data, Reset reset)
         {
             ErrCode errcode = ErrCode.ERROR;
-            //data.loginData = new Login(new Command(forgot_Click), buttonLogin_Click, screenActionShow, hide, enabled, notify, draw) { tablet = TabletNo };
             if ((data != null) && (data.login != null) && (dhide != null) && (data.login.ddraw != null))
             {
                 dhide();
@@ -813,26 +686,10 @@ namespace WinAMBurner
 
         public Field ContractType { get; set; }
 
-        //public object pName { get { return name; } set { name = value as string; } }
-        //public Field fName;
-        //public Field Name { get { return Field.getField(fName, pName); } set { pName = Field.setField(ref fName, value, pName); } }
         public Field Name { get; set; }
 
         public Field Address { get; set; }
 
-        //public object pCountry
-        //{
-        //    get
-        //    {
-        //        return Const.getFromDictionary(Const.DCOUNTRY, country);
-        //    }
-        //    set
-        //    {
-        //        country = Const.DCOUNTRY.FirstOrDefault(c => c.Value == (value as string)).Key;
-        //    }
-        //}
-        //public Field fCountry;
-        //public Field Country { get { return Field.getField(fCountry, pCountry); } set { pCountry = Field.setField(ref fCountry, value, pCountry) ; } }
         public Field Country { get; set; }
 
         public Field State { get; set; }
@@ -850,11 +707,6 @@ namespace WinAMBurner
 
         public Entity(dLogout dlogout, dHide dhide, dEnabled denabled, dNotify dnotify) : base(dlogout, dhide, denabled, dnotify)
         { }
-
-        //public object clone()
-        //{
-        //    return MemberwiseClone();
-        //}
 
         public override string ToString()
         {
@@ -878,39 +730,10 @@ namespace WinAMBurner
 
         public Field FarmType { get; set; }
 
-        //public object pBreedType { get { return breed_type; } set { breed_type = value as string; } }
-        //public Field fBreedType;
-        //public Field BreedType { get { return Field.getField(fBreedType, pBreedType); } set { pBreedType = Field.setField(ref fBreedType, value, pBreedType); } }
         public Field BreedType { get; set; }
 
-        //private object pNumberOfLactatingCows
-        //{
-        //    get
-        //    {
-        //        return Field.intToString(number_of_lactating_cows as int?);
-        //    }
-        //    set
-        //    {
-        //        number_of_lactating_cows = Field.stringToInt(value as string);
-        //    }
-        //}
-        //private Field fNumberOfLactatingCows;
-        //public Field NumberOfLactatingCows { get { return Field.getField(fNumberOfLactatingCows, pNumberOfLactatingCows); } set { pNumberOfLactatingCows = Field.setField(ref fNumberOfLactatingCows, value, pNumberOfLactatingCows); } }
         public Field NumberOfLactatingCows { get; set; }
 
-        //public object pDhiTest
-        //{
-        //    get
-        //    {
-        //        return Field.boolToString(dhi_test);
-        //    }
-        //    set
-        //    {
-        //        dhi_test = Field.stringToBool(value as string);
-        //    }
-        //}
-        //public Field fDhiTest;
-        //public Field DhiTest { get { return Field.getField(fDhiTest, pDhiTest); } set { pDhiTest = Field.setField(ref fDhiTest, value, pDhiTest); } }
         public Field DhiTest { get; set; }
 
         public Field MilkingSetupType { get; set; }
@@ -949,17 +772,14 @@ namespace WinAMBurner
             Submit = new Field(ltype: typeof(Button), ltext: "Submit", lplaceh: Place.Three, lplacev: Place.Eleven);
         }
 
-        //public Farm(bool edit, EventHandler countryHandler, EventHandler cancelHandler, EventHandler submitHandler)
         public Farm(bool edit, EventHandler countryHandler, EventHandler cancelHandler, EventHandler submitHandler,
             dLogout dlogout, dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Farm> ddraw, dShow dshow = null)
         {
             initFields();
-            //initFields(edit, countryHandler, cancelHandler, submitHandler);
             initFields(edit, countryHandler, cancelHandler, submitHandler,
                 dlogout, dhide, denabled, dnotify, ddraw, dshow);
         }
 
-        //public void initFields(bool edit, EventHandler countryHandler, EventHandler cancelHandler, EventHandler submitHandler)
         public void initFields(bool edit, EventHandler countryHandler, EventHandler cancelHandler, EventHandler submitHandler,
             dLogout dlogout, dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Farm> ddraw, dShow dshow = null)
         {
@@ -1075,17 +895,14 @@ namespace WinAMBurner
             Submit = new Field(ltype: typeof(Button), ltext: "Submit", lplaceh: Place.Three, lplacev: Place.Eleven);
         }
 
-        //public Service(bool edit, EventHandler countryHandler, EventHandler cancelHandler, EventHandler submitHandler)
         public Service(bool edit, EventHandler countryHandler, EventHandler cancelHandler, EventHandler submitHandler,
             dLogout dlogout, dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Service> ddraw, dShow dshow = null)
         {
             initFields();
-            //initFields(edit, countryHandler, cancelHandler, submitHandler);
             initFields(edit, countryHandler, cancelHandler, submitHandler,
                 dlogout, dhide, denabled, dnotify, ddraw, dshow);
         }
 
-        //public void initFields(bool edit, EventHandler countryHandler, EventHandler cancelHandler, EventHandler submitHandler)
         public void initFields(bool edit, EventHandler countryHandler, EventHandler cancelHandler, EventHandler submitHandler,
             dLogout dlogout, dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Service> ddraw, dShow dshow = null)
         {
@@ -1195,21 +1012,6 @@ namespace WinAMBurner
         public int? farm { get { return Field.stringToIntOrNull(Farm.getValue()); } set { Farm.setValue(Field.intToString(value)); } }
         public int? service_provider { get { return Field.stringToIntOrNull(Service.getValue()); } set { Service.setValue(Field.intToString(value)); } }
 
-        //private object ppFarm
-        //{
-        //    get
-        //    {
-        //        return Field.intToString(farm);
-        //    }
-        //    set
-        //    {
-        //        farm = Field.stringToIntOrNull(value as string);
-        //    }
-        //}
-        //private object ffFarm;
-        //private object pFarm { get { return Field.getObject(fFarm, ref ffFarm, ppFarm); } set { ppFarm = Field.setObject(fFarm, ref ffFarm, value, ppFarm); } }
-        //private Field fFarm;
-        //public Field Farm { get { return Field.getField(fFarm, pFarm); } set { pFarm = Field.setField(ref fFarm, value, pFarm); } }
         public Field Farm { get; set; }
 
         public Field Service { get; set; }
@@ -1217,11 +1019,6 @@ namespace WinAMBurner
         public Field RadioFarm { get; set; }
         public Field RadioService { get; set; }
 
-        //public object ppPartNumber { get { return part_number; } set { part_number = value as string; } }
-        //private object ffPartNumber;
-        //private object pPartNumber { get { return Field.getObject(fPartNumber, ref ffPartNumber, ppPartNumber); } set { ppPartNumber = Field.setObject(fPartNumber, ref ffPartNumber, value, ppPartNumber); } }
-        //public Field fPartNumber;
-        //public Field PartNumber { get { return Field.getField(fPartNumber, pPartNumber); } set { pPartNumber = Field.setField(ref fPartNumber, value, pPartNumber); } }
         public Field PartNumber { get; set; }
 
         public Field Progress { get; set; }
@@ -1235,12 +1032,10 @@ namespace WinAMBurner
             initFields();
         }
 
-        //public Action(Am am, string tablet, object[] farms, object[] services, EventHandler partNumberEventHandler, EventHandler farmEventHandler, EventHandler radioEventHandler, EventHandler canselEventHandler, EventHandler approveEventHandler)
         public Action(Am am, string tablet, object[] farms, object[] services, EventHandler partNumberEventHandler, EventHandler farmEventHandler, EventHandler radioEventHandler, EventHandler canselEventHandler, EventHandler approveEventHandler,
             dLogout dlogout, dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Action> ddraw, dShow dshow = null, dNotifyAnswer dnotifyAnswer = null)
         {
             initFields();
-            //initFields(am, tablet, farms, services, partNumberEventHandler, farmEventHandler, radioEventHandler, canselEventHandler, approveEventHandler);
             initFields(am, tablet, farms, services, partNumberEventHandler, farmEventHandler, radioEventHandler, canselEventHandler, approveEventHandler,
                 dlogout, dhide, denabled, dnotify, ddraw, dshow, dnotifyAnswer);
         }
@@ -1260,7 +1055,6 @@ namespace WinAMBurner
             Approve = new Field(ltype: typeof(Button), ltext: "Approve", lplaceh: Place.Two, lplacev: Place.End);
         }
 
-        //private void initFields(Am am, string tablet, object[] farms, object[] services, EventHandler partNumberEventHandler, EventHandler farmEventHandler, EventHandler radioEventHandler, EventHandler canselEventHandler, EventHandler approveEventHandler)
         private void initFields(Am am, string tablet, object[] farms, object[] services, EventHandler partNumberEventHandler, EventHandler farmEventHandler, EventHandler radioEventHandler, EventHandler canselEventHandler, EventHandler approveEventHandler,
             dLogout dlogout, dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Action> ddraw, dShow dshow = null, dNotifyAnswer dnotifyAnswer = null)
         {
@@ -1309,25 +1103,17 @@ namespace WinAMBurner
                                     "Do you want to proceed?", "Yes", "No");
                         if (answer)
                         {
-                            //if (progressBar != null)
-                            //    progressBar.IsVisible = true;
-                            //data.amData.serialPortProgressEvent += new EventHandler(progressBar_Callback);
-                            //if (progressBar != null)
-                            //    progressBar.Progress = 0;
-
-                            //if ((errcode = await data.am.AMDataWrite()) == ErrCode.OK)
                             if ((errcode = await data.am.AMCmd(Cmd.WRITE)) == ErrCode.OK)
                             {
-                                //if ((errcode = await data.am.AMDataRead()) == ErrCode.OK)
                                 if ((errcode = await data.am.AMCmd(Cmd.READ)) == ErrCode.OK)
                                 {
                                     errcode = ErrCode.OK;
                                 }
                                 else
-                                    errcode = ErrCode.SERROR;
+                                    errcode = ErrCode.EPARSE;
                             }
                             else
-                                errcode = ErrCode.SERROR;
+                                errcode = ErrCode.EPARSE;
                         }
                         else
                             errcode = ErrCode.CANSEL;
@@ -1350,7 +1136,6 @@ namespace WinAMBurner
                         string.Format("Added treatments: {0}\n", data.am.MaxiSet / data.settings.number_of_pulses_per_treatment) +
                         string.Format("The treatments available on AM - SN {1}: {0}\n", data.Current, data.am.SNum) +
                         "please disconnect the AM", "OK");
-                //clearAM();
                 dhide();
                 dshow();
                 errcode = ErrCode.OK;
@@ -1360,12 +1145,6 @@ namespace WinAMBurner
 
         public async Task<List<string>> responseErr(Data data, ErrCode errcode)
         {
-            //if (progressBar != null)
-            //    progressBar.IsVisible = false;
-            //action.notify(new List<string>() { "Approve failed, restoring AM" }, NotifyButtons.OK, "Approve Failed");
-            //if (progressBar != null)
-            //    progressBar.Progress = 0;
-
             List<string> errors;
             if (errcode == ErrCode.EPARAM)
                 errors = new List<string>() { "Wrong parameters,", "please choose the Farm / Service provider",
@@ -1375,14 +1154,13 @@ namespace WinAMBurner
                                 "please choose a smaller number of treatments" };
             else if (errcode == ErrCode.SERROR)
             {
-                data.am.Maxi -= data.am.MaxiSet;
+                data.am.Maxi = data.am.MaxiPrev;
+                uint maxiset = data.am.MaxiSet;
                 data.am.MaxiSet = 0;
                 await dnotify("Approve Failed", string.Format("Approve failed, restoring AM to {0} treatments", data.Current), "OK");
-                data.dprogress(true);
-                //if (await data.am.AMDataWrite() == ErrCode.OK)
+                data.dprogress(data.am.progress, true);
                 if (await data.am.AMCmd(Cmd.WRITE) == ErrCode.OK)
                 {
-                    //if (await data.am.AMDataRead() == ErrCode.OK)
                     if (await data.am.AMCmd(Cmd.READ) == ErrCode.OK)
                         errors = new List<string>() { "Restore sucsses", string.Format("AM sucsessfully restored to {0} treatments", data.Current) };
                     else
@@ -1390,6 +1168,7 @@ namespace WinAMBurner
                 }
                 else
                     errors = new List<string>() { "Restore failed", string.Format("Failed to restore to {0} treatments", data.Current) };
+                data.am.MaxiSet = maxiset;
             }
             else if (errcode == ErrCode.CANSEL)
                 errors = null;

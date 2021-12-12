@@ -445,9 +445,6 @@ namespace WinAMBurner
             {
                 comboBox.Items.AddRange(items);
                 comboBox.Text = string.Empty;
-                //comboBox.ForeColor = Color.Silver;
-                //text = dflt;
-                //val = dflt;
             }
         }
 
@@ -459,9 +456,6 @@ namespace WinAMBurner
                 while (comboBox.Items.Count > 0)
                     comboBox.Items.RemoveAt(0);
                 comboBox.Text = string.Empty;
-                //comboBox.ForeColor = Color.Silver;
-                //text = dflt;
-                //val = dflt;
             }
         }
 

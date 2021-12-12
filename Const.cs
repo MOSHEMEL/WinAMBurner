@@ -36,14 +36,10 @@ namespace WinAMBurner
         public const string Version = "1.3";
 
         public static Dictionary<string, string> DCOUNTRY;
-        //public static List<string> COUNTRY;
         public static string[] COUNTRY;
         public static Dictionary<string, string> DSTATE;
-        //public static List<string> STATE;
         public static string[] STATE;
-        //public static List<string> FARM_TYPE;
         public static string[] FARM_TYPE;
-        //public static List<string> BREED_TYPE;
         public static string[] BREED_TYPE;
         public static string[] MILKING_SETUP_TYPE;
         public static string[] LOCATION_OF_TREATMENT_TYPE;
@@ -83,7 +79,6 @@ namespace WinAMBurner
 
         private static Dictionary<string, string> convertToDic(JsonElement jsonElement, string key)
         {
-            //return jsonElement.GetProperty(key).GetProperty("choices").EnumerateArray().ToDictionary(c => c.GetProperty("value").ToString(), c => c.GetProperty("display_name").ToString());
             if (convertToArray(ref jsonElement, key))
                 return jsonElement.EnumerateArray().ToDictionary(
                     c => c.TryGetProperty("value", out c) ? c.ToString() : string.Empty, 
@@ -93,7 +88,6 @@ namespace WinAMBurner
 
         private static string[] convertTolist(JsonElement jsonElement, string key)
         {
-            //return jsonElement.GetProperty(key).GetProperty("choices").EnumerateArray().Select(c => c.GetProperty("value").ToString()).ToArray();
             if (convertToArray(ref jsonElement, key))
                 return jsonElement.EnumerateArray().Select(c => c.TryGetProperty("value", out c) ? c.ToString() : string.Empty).ToArray();
             return null;
@@ -120,24 +114,8 @@ namespace WinAMBurner
     static class LogFile
     {
         private static string date = new string (DateTime.Now.ToShortDateString().Select(c => { if ((c == '/') || (c == '\\')) c = '_'; return c; }).ToArray());
-        //private const string logFileName = "logFile.txt" + DateTime.Now;
         private static string logFileName = "logFile_" + date + ".txt";
-        //private const string logFileNameVerbose = "logFileVerbose.txt";
-        //private static string logFileNameVerbose = "logFileVerbose_" + DateTime.Now.ToShortDateString().Replace('/', '_').Replace('\\', '_') + ".txt";
         private static string logFileNameVerbose = "logFileVerbose_" + date + ".txt";
-
-        //public static void logWrite(List<string> cmd, string dataRdStr, bool verbose)
-        //{
-        //    string file = logFileName;
-        //    if(verbose)
-        //        file = logFileNameVerbose;
-        //    File.AppendAllText(file, "------------------------------------");
-        //    File.AppendAllText(file, DateTime.Now.ToString() + "\n");
-        //    foreach (string cm in cmd)
-        //        File.AppendAllText(file, cm.ToString() + "\n");
-        //    File.AppendAllText(file, "------------------------------------");
-        //    File.AppendAllText(file, dataRdStr);
-        //}
 
         public static void logWrite(string str, bool verbose = false)
         {
@@ -157,12 +135,5 @@ namespace WinAMBurner
                 LogFile.logWrite(lines.Where(s => s.StartsWith("Verbose")).Aggregate("\r\n", (r, m) => r += m + "\r\n"), verbose: true);
             }
         }
-
-        //public static void logWrite(string str)
-        //{
-        //    File.AppendAllText(logFileName, "------------------------------------");
-        //    File.AppendAllText(logFileName, DateTime.Now.ToString() + "\n");
-        //    File.AppendAllText(logFileName, str + "\n");
-        //}
     }
 }
