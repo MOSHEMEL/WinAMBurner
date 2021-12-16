@@ -112,7 +112,7 @@ namespace WinAMBurner
             {
                 data.web = new Web();
                 data.am = new Am(progressBar_Callback);
-                data.login = new Login(forgot_Click, buttonLogin_Click, logout, hide, enabled, notify, draw, dshow: screenActionShow) { tablet = TabletNo };
+                data.login = new Login(forgot_Click, buttonLogin_Click, checkBox_CheckedChanged, logout, hide, enabled, notify, draw, dshow: screenActionShow) { tablet = TabletNo };
                 data.password = new Password(buttonChangePassword_Click, logout, hide, enabled, notify, draw);
                 if (data.login != null)
                     data.login.ddraw(data.login);
@@ -132,7 +132,7 @@ namespace WinAMBurner
         {
             if ((data != null) && (data.reset != null))
             {
-                data.login = new Login(forgot_Click, buttonLogin_Click, logout, hide, enabled, notify, draw, dshow: screenActionShow) { tablet = TabletNo };
+                data.login = new Login(forgot_Click, buttonLogin_Click, checkBox_CheckedChanged, logout, hide, enabled, notify, draw, dshow: screenActionShow) { tablet = TabletNo };
                 await data.reset.send(data);
             }
         }
@@ -155,7 +155,7 @@ namespace WinAMBurner
 
             data.settings = null;
 
-            data.login = new Login(forgot_Click, buttonLogin_Click, logout, hide, enabled, notify, draw, dshow: screenActionShow) { tablet = TabletNo };
+            data.login = new Login(forgot_Click, buttonLogin_Click, checkBox_CheckedChanged, logout, hide, enabled, notify, draw, dshow: screenActionShow) { tablet = TabletNo };
             data.user = null;
         }
 
@@ -297,7 +297,7 @@ namespace WinAMBurner
                 progressBar1.Visible = true;
                 progressBar1.Minimum = 0;
                 progressBar1.Value = progressBar1.Minimum;
-                progressBar1.Maximum = 22;
+                progressBar1.Maximum = 27;
                 data.am.progress = progressBar1;
 
                 ErrCode errcode = ErrCode.ERROR;
@@ -803,6 +803,27 @@ namespace WinAMBurner
                 psi.UseShellExecute = true;
                 psi.FileName = uri;
                 System.Diagnostics.Process.Start(psi);
+            }
+        }
+
+        private void checkBox_CheckedChanged(object sender, EventArgs e)
+        {
+            CheckBox checkBox = sender as CheckBox;
+            if (checkBox != null)
+            {
+                if ((data != null) && (data.login != null) && (data.login.Password != null) && (data.login.Password.control != null))
+                {
+                    TextBox textBox = data.login.Password.control as TextBox;
+                    if (textBox != null)
+                    {
+                        if (checkBox.Checked)
+                            data.login.Password.pswdchar = '\0';
+                        else
+                            data.login.Password.pswdchar = '*';
+                        if (textBox.Text != data.login.Password.dflt)
+                            textBox.PasswordChar = data.login.Password.pswdchar;
+                    }
+                }
             }
         }
     }

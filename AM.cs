@@ -19,6 +19,7 @@ namespace WinAMBurner
         private const uint ERROR = 0xffffffff;
         private const int ID_LENGTH = 3;
         private const uint TOLERANCE = 10;
+        private const uint MAGIC_NUM = 0x444f4e45;
 
         private readonly DateTime epoch = new DateTime(1970, 1, 1, 2, 0, 0, DateTimeKind.Utc);
 
@@ -26,51 +27,75 @@ namespace WinAMBurner
         private uint maxi = ERROR;
         private uint maxiprev = ERROR;
         private uint maxiSet = ERROR;
-        private double date = 0;
+        private double date = ERROR;
         private uint factor = ERROR;
+        private uint remaining = ERROR;
         private uint bckup_snum = ERROR;
         private uint bckup_maxi = ERROR;
         private uint bckup_maxiprev = ERROR;
-        private double bckup_date = 0;
+        private double bckup_date = ERROR;
         private uint bckup_factor = ERROR;
+        private uint backup_remaining = ERROR;
         private uint[] id = new uint[ID_LENGTH] { ERROR, ERROR, ERROR };
         private uint[] aptxId = new uint[ID_LENGTH] { ERROR, ERROR, ERROR };
 
-        public uint SNum { get => snum; set => snum = value; }
-        public uint Maxi { get => maxi; set => maxi = value; }
-        public uint MaxiPrev { get => maxiprev; set => maxiprev = value; }
-        public uint MaxiSet { get => maxiSet; set => maxiSet = value; }
-        public uint Factor { get => factor; set => factor = value; }
-        public uint Current { get => maxi - factor; }
-        public uint CurrentPrev { get => maxiprev - factor; }
-        public uint[] AptxId
+        double get(double param)
         {
-            get
-            {
-                uint[] value = new uint[ID_LENGTH];
-                for (int i = 0; i < aptxId.Length; i++)
-                {
-                    byte[] bytes = BitConverter.GetBytes(aptxId[i]);
-                    Array.Reverse(bytes, 0, bytes.Length);
-                    value[i] = BitConverter.ToUInt32(bytes, 0);
-                }
-                return value;
-            }
-            set
-            {
-                for (int i = 0; i < aptxId.Length; i++)
-                {
-                    byte[] bytes = BitConverter.GetBytes(value[i]);
-                    Array.Reverse(bytes, 0, bytes.Length);
-                    aptxId[i] = BitConverter.ToUInt32(bytes, 0);
-                }
-            }
+            return param == ERROR ? 0 : param;
         }
+
+        double set(double param)
+        {
+            return param == 0 ? ERROR : param;
+        }
+
+        uint get(uint param)
+        {
+            return (uint)get((double)param);
+        }
+
+        uint set(uint param)
+        {
+            return (uint)set((double)param);
+        }
+
+        public uint SNum { get => get(snum); set => snum = set(value); }
+        public uint Maxi { get => get(maxi); set => maxi = set(value); }
+        public uint MaxiPrev { get => get(maxiprev); set => maxiprev = set(value); }
+        public uint MaxiSet { get => get(maxiSet); set => maxiSet = set(value); }
+        public uint Factor { get => get(factor); set => factor = set(value); }
+        public uint Current { get => get(maxi - factor); }
+        public uint CurrentPrev { get => get(maxiprev - factor); }
+        public uint[] AptxId { get => aptxId.Reverse().Select(a => { return get(a); }).ToArray(); set => value.Reverse().Select(a => { return set(a); }); }
+        //{
+        //    get
+        //    {
+        //        uint[] value = new uint[ID_LENGTH];
+        //        for (int i = 0; i < aptxId.Length; i++)
+        //        {
+        //            byte[] bytes = BitConverter.GetBytes(get(aptxId[i]));
+        //            Array.Reverse(bytes, 0, bytes.Length);
+        //            value[i] = BitConverter.ToUInt32(bytes, 0);
+        //        }
+        //        return value;
+        //        
+        //    }
+        //    set
+        //    {
+        //        for (int i = 0; i < aptxId.Length; i++)
+        //        {
+        //            byte[] bytes = BitConverter.GetBytes(set(value[i]));
+        //            Array.Reverse(bytes, 0, bytes.Length);
+        //            aptxId[i] = BitConverter.ToUInt32(bytes, 0);
+        //        }
+        //        
+        //    }
+        //}
 
         public DateTime Date
         {
-            get => epoch.AddSeconds(date);
-            set => date = value.Subtract(epoch).TotalSeconds;
+            get => epoch.AddSeconds(get(date));
+            set => date = set(value.Subtract(epoch).TotalSeconds);
         }
 
         public delegate void dProgress(Object progress, bool reset);
@@ -133,6 +158,10 @@ namespace WinAMBurner
                                 errcode = ErrCode.OK;
                     break;
                 case Cmd.WRITE:
+                    if (maxi == ERROR)
+                        maxi = 0;
+                    if (maxiprev == ERROR)
+                        maxiprev = 0;
                     if ((errcode = await amReadBlock("ID")) == ErrCode.OK)
                         if ((errcode = await amWriteBlock("3", maxi + maxiSet)) == ErrCode.OK)
                             if ((errcode = await amWriteBlock("FF", maxi + maxiSet)) == ErrCode.OK)
@@ -185,6 +214,8 @@ namespace WinAMBurner
             }
             else if ((blockNum == "3") || (blockNum == "FF"))
             {
+                cmd.Add("rd,3,0x000" + blockNum + "F40#");
+                cmd.Add("Read REMAINING 3#");
                 cmd.Add("rd,3,0x000" + blockNum + "FF6#");
                 cmd.Add("Read SNUM 3#");
                 cmd.Add("rd,3,0x000" + blockNum + "FEE#");
@@ -255,7 +286,8 @@ namespace WinAMBurner
             uint ldate = ERROR;
             uint lsnum = ERROR;
             uint lfactor = ERROR;
-            errcode = dataLineParseCheck_03_FF(dataSplit(dataRdStr), blockNum, ref lmaxi, ref ldate, ref lsnum, ref lfactor);
+            uint lremaining = ERROR;
+            errcode = dataLineParseCheck_03_FF(dataSplit(dataRdStr), blockNum, ref lmaxi, ref ldate, ref lsnum, ref lfactor, ref lremaining, false);
 
             return errcode;
         }
@@ -303,8 +335,9 @@ namespace WinAMBurner
                         uint ldate = ERROR;
                         uint lsnum = ERROR;
                         uint lfactor = ERROR;
+                        uint lremaining = ERROR;
                         //maxi
-                        if (dataLineParseCheck_03_FF(dataRd, blokNum, ref lmaxi, ref ldate, ref lsnum, ref lfactor) == ErrCode.OK)
+                        if (dataLineParseCheck_03_FF(dataRd, blokNum, ref lmaxi, ref ldate, ref lsnum, ref lfactor, ref lremaining, true) == ErrCode.OK)
                         {
                             //maxiprev = maxi;
                             //maxi = lmaxi;
@@ -334,9 +367,9 @@ namespace WinAMBurner
                             //}
                             //errcode = ErrCode.OK;
                             if (blokNum == "3")
-                                errcode = dataSet(ref bckup_maxiprev, ref bckup_maxi, ref bckup_date, ref bckup_snum, ref bckup_factor, ref lmaxi, ref ldate, ref lsnum, ref lfactor);
+                                errcode = dataSet(ref bckup_maxiprev, ref bckup_maxi, ref bckup_date, ref bckup_snum, ref bckup_factor, ref backup_remaining, ref lmaxi, ref ldate, ref lsnum, ref lfactor, ref lremaining);
                             else
-                                errcode = dataSet(ref maxiprev, ref maxi, ref date, ref snum, ref factor, ref lmaxi, ref ldate, ref lsnum, ref lfactor);
+                                errcode = dataSet(ref maxiprev, ref maxi, ref date, ref snum, ref factor, ref remaining, ref lmaxi, ref ldate, ref lsnum, ref lfactor, ref lremaining);
                         }
                         else
                         {
@@ -352,7 +385,10 @@ namespace WinAMBurner
                             if (checkError(aptxId))
                             {
                                 for (int i = 0; i < laptxId.Length; i++)
+                                {
+                                 if(laptxId[i] == ERROR)
                                     aptxId[i] = laptxId[i];
+                                }
                             }
                             else
                             {
@@ -392,51 +428,57 @@ namespace WinAMBurner
             return errcode;
         }
 
-        private ErrCode dataSet(ref uint maxiprev, ref uint maxi, ref double date, ref uint snum, ref uint factor, ref uint lmaxi, ref uint ldate, ref uint lsnum, ref uint lfactor)
+        private ErrCode dataSet(ref uint maxiprev, ref uint maxi, ref double date, ref uint snum, ref uint factor, ref uint remaining, ref uint lmaxi, ref uint ldate, ref uint lsnum, ref uint lfactor, ref uint lremaining)
         {
             ErrCode errcode = ErrCode.ERROR;
-            if ((lsnum == 0) || (lsnum == ERROR) || (lmaxi == ERROR) || (lfactor == ERROR))
+            if ((lsnum != 0) && (lsnum != ERROR))
+            {
+                if (snum == ERROR)
+                {
+                    snum = lsnum;
+                }
+                else
+                {
+                    if (lsnum != snum)
+                    {
+                        errcode = ErrCode.EPARSE;
+                        LogFile.logWrite(string.Format("{0} lsnum {1} snum {2}", errcode, lsnum, snum));
+                        return errcode;
+                    }
+                }
+                LogFile.logWrite(string.Format("set snum: {0}", snum));
+                if (factor == ERROR)
+                {
+                    factor = lfactor;
+                    if (lremaining == MAGIC_NUM)
+                        factor = lmaxi;
+                }
+                else
+                {
+                    if (lfactor > (factor + TOLERANCE))
+                    {
+                        errcode = ErrCode.EPARSE;
+                        LogFile.logWrite(string.Format("{0} lfactor {1} factor {2}", errcode, lfactor, factor));
+                        return errcode;
+                    }
+                }
+                LogFile.logWrite(string.Format("set factor: {0}", factor));
+                maxiprev = maxi;
+                LogFile.logWrite(string.Format("set maxiprev: {0}", maxiprev));
+                maxi = lmaxi;
+                LogFile.logWrite(string.Format("set maxi: {0}", maxi));
+                date = ldate;
+                LogFile.logWrite(string.Format("set date: {0}", date));
+                remaining = lremaining;
+                LogFile.logWrite(string.Format("set remaining: {0}", remaining));
+                errcode = ErrCode.OK;
+            }
+            else
             {
                 errcode = ErrCode.EEMPTY;
                 LogFile.logWrite(string.Format("{0} lsnum {1} lmaxi {2} lfactor {3}", errcode, lsnum, lmaxi, lfactor));
                 return errcode;
             }
-            maxiprev = maxi;
-            LogFile.logWrite(string.Format("set maxiprev: {0}", maxiprev));
-            maxi = lmaxi;
-            LogFile.logWrite(string.Format("set maxi: {0}", maxi));
-            date = ldate;
-            LogFile.logWrite(string.Format("set date: {0}", date));
-            if (snum == ERROR)
-            {
-                snum = lsnum;
-            }
-            else
-            {
-                if (lsnum != snum)
-                {
-                    errcode = ErrCode.EPARSE;
-                    LogFile.logWrite(string.Format("{0} lsnum {1} snum {2}", errcode, lsnum, snum));
-                    return errcode;
-                }
-            }
-            LogFile.logWrite(string.Format("set snum: {0}", snum));
-
-            if (factor == ERROR)
-            {
-                factor = lfactor;
-            }
-            else
-            {
-                if (lfactor > (factor + TOLERANCE))
-                {
-                    errcode = ErrCode.EPARSE;
-                    LogFile.logWrite(string.Format("{0} lfactor {1} factor {2}", errcode, lfactor, factor));
-                    return errcode;
-                }
-            }
-            LogFile.logWrite(string.Format("set factor: {0}", factor));
-            errcode = ErrCode.OK;
             return errcode;
         }
 
@@ -453,20 +495,24 @@ namespace WinAMBurner
             return errcode;
         }
 
-        private ErrCode dataLineParseCheck_03_FF(List<string> dataRd, string blokNum, ref uint lmaxi, ref uint ldate, ref uint lsnum, ref uint lfactor)
+        private ErrCode dataLineParseCheck_03_FF(List<string> dataRd, string blokNum, ref uint lmaxi, ref uint ldate, ref uint lsnum, ref uint lfactor, ref uint lremaining, bool read)
         {
             ErrCode errcode = ErrCode.ERROR;
             if (dataRd != null)
             {
-                if ((dataLineParse(dataRd, "0x" + blokNum + "FE6", ref lmaxi) == ErrCode.OK) &&
+                //maxi
+                if (dataLineParse(dataRd, "0x" + blokNum + "FE6", ref lmaxi) == ErrCode.OK)
                     //date
-                    (dataLineParse(dataRd, "0x" + blokNum + "FEE", ref ldate) == ErrCode.OK) &&
-                    //snum
-                    (dataLineParse(dataRd, "0x" + blokNum + "FF6", ref lsnum) == ErrCode.OK) &&
-                    //factor
-                    ((dataLineParse(dataRd, "pulses written", ref lfactor) == ErrCode.OK) || 
-                    (dataLineParse(dataRd, "0x" + blokNum + "F50", ref lfactor) == ErrCode.OK)))
-                    errcode = ErrCode.OK;
+                    if (dataLineParse(dataRd, "0x" + blokNum + "FEE", ref ldate) == ErrCode.OK)
+                        //snum
+                        if (dataLineParse(dataRd, "0x" + blokNum + "FF6", ref lsnum) == ErrCode.OK)
+                            //factor
+                            if (((read) && (dataLineParse(dataRd, "pulses written", ref lfactor) == ErrCode.OK)) ||
+                                ((!read) && (dataLineParse(dataRd, "0x" + blokNum + "F50", ref lfactor) == ErrCode.OK)))
+                                //remaining
+                                if (((read) && (dataLineParse(dataRd, "0x" + blokNum + "F40", ref lremaining) == ErrCode.OK)) ||
+                                    (!read))
+                                    errcode = ErrCode.OK;
             }
             return errcode;
         }

@@ -30,6 +30,7 @@ namespace WinAMBurner
         public string val;
         public string ltext;
         public string dflt;
+        public char pswdchar;
         public object[] items;
         public Control control;
         public Control lcontrol;
@@ -65,6 +66,7 @@ namespace WinAMBurner
             this.dflt = dflt;
             this.val = this.dflt;
             this.ltext = ltext;
+            this.pswdchar = '*';
             this.items = items;
             this.type = type;
             this.ltype = ltype;
@@ -296,6 +298,13 @@ namespace WinAMBurner
                         if (eventHandler != null)
                             radioButton.CheckedChanged += eventHandler;
                 }
+                if (type == typeof(CheckBox))
+                {
+                    CheckBox checkBox = control as CheckBox;
+                    if (checkBox != null)
+                        if (eventHandler != null)
+                            checkBox.CheckedChanged += eventHandler;
+                }
 
                 control.Location = placeCalc(thisForm, control, placeh: placeh, placev: placev);
                 control.Enabled = enable;
@@ -396,7 +405,8 @@ namespace WinAMBurner
                     control.Text = string.Empty;
                     control.ForeColor = Color.Black;
                     if (textBox != null)
-                        textBox.PasswordChar = '*';
+                        //textBox.PasswordChar = '*';
+                        textBox.PasswordChar = pswdchar;
                 }
             }
         }

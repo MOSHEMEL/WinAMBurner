@@ -392,6 +392,8 @@ namespace WinAMBurner
         public Field Email { get; set; }
 
         public Field Password { get; set; }
+        
+        public Field ShowPassword { get; set; }
 
         public Field Forgot { get; set; }
 
@@ -404,11 +406,11 @@ namespace WinAMBurner
             initFields();
         }
 
-        public Login(EventHandler forgotEventHandler, EventHandler buttonEventHandler,
+        public Login(EventHandler forgotEventHandler, EventHandler buttonEventHandler, EventHandler checkBoxEventHandler,
             dLogout dlogout, dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Login> ddraw, dShow dshow = null)
         {
             initFields();
-            initFields(forgotEventHandler, buttonEventHandler,
+            initFields(forgotEventHandler, buttonEventHandler, checkBoxEventHandler,
                 dlogout, dhide, denabled, dnotify, ddraw, dshow);
         }
 
@@ -416,16 +418,18 @@ namespace WinAMBurner
         {
             Email = new Field(type: typeof(RichTextBox), dflt: "Username", width: Field.DefaultWidthLarge, placev: Place.Three);
             Password = new Field(type: typeof(TextBox), dflt: "Password", width: Field.DefaultWidthLarge, placev: Place.Five);
+            ShowPassword = new Field(type: typeof(CheckBox), dflt: "Show password", width: Field.DefaultWidthLarge, placeh: Place.Two, placev: Place.Five);
             Picture = new Field(ltype: typeof(PictureBox), lplacev: Place.One);
             Forgot = new Field(ltype: typeof(LinkLabel), ltext: "Forgot password", lplacev: Place.Seven);
             Press = new Field(ltype: typeof(Button), ltext: "Login", lplacev: Place.End);
         }
 
-        private void initFields(EventHandler forgotEventHandler, EventHandler buttonEventHandler,
+        private void initFields(EventHandler forgotEventHandler, EventHandler buttonEventHandler, EventHandler checkBoxEventHandler,
             dLogout dlogout, dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Login> ddraw, dShow dshow = null)
         {
             Forgot.eventHandler = forgotEventHandler;
             Press.eventHandler = buttonEventHandler;
+            ShowPassword.eventHandler = checkBoxEventHandler;
 
             this.dlogout = dlogout;
             this.dhide = dhide;
@@ -1110,10 +1114,10 @@ namespace WinAMBurner
                                     errcode = ErrCode.OK;
                                 }
                                 else
-                                    errcode = ErrCode.EPARSE;
+                                    errcode = ErrCode.SERROR;
                             }
                             else
-                                errcode = ErrCode.EPARSE;
+                                errcode = ErrCode.SERROR;
                         }
                         else
                             errcode = ErrCode.CANSEL;
