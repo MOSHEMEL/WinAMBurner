@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
@@ -83,7 +84,26 @@ namespace WinAMBurner
 
         private void draw<T>(T entity)
         {
-            foreach (PropertyInfo prop in entity.GetType().GetProperties())
+            //foreach (PropertyInfo prop in entity.GetType().GetProperties())
+            //{
+            //    //Console.WriteLine("{0} = {1}", prop.Name, prop.GetValue(user, null));
+            //    //PropertyInfo prop = props.ElementAt(controls.IndexOf(control));
+            //    Field field = prop.GetValue(entity) as Field;
+            //    if (field != null)
+            //    {
+            //        if (field.view)
+            //        {
+            //            field.draw(this, false);
+            //            field.draw(this, true);
+            //        }
+            //    }
+            //}
+            draw<T>(entity, typeof(T));
+        }
+
+        private void draw<T>(T entity, Type type)
+        {
+            foreach (PropertyInfo prop in type.GetProperties())
             {
                 //Console.WriteLine("{0} = {1}", prop.Name, prop.GetValue(user, null));
                 //PropertyInfo prop = props.ElementAt(controls.IndexOf(control));
@@ -169,8 +189,8 @@ namespace WinAMBurner
         {
             if ((data != null) && (data.login != null))
             {
-                //data.login.Email.control.Text = "avner.hilu@outlook.com";
-                //data.login.Password.control.Text = "Plk90!@34";
+                data.login.Email.control.Text = "avner.hilu@outlook.com";
+                data.login.Password.control.Text = "Plk90!@34";
                 //data.login.Email.control.Text = "yael@gmail.com";
                 //data.login.Password.control.Text = "yael1234";
                 //data.login.tablet = "PF1C9VKU";
@@ -196,15 +216,15 @@ namespace WinAMBurner
         {
             clearAM();
             
-            new Field(ltype: typeof(PictureBox), lplacev: Place.One).draw(this, true);
-            new Field(ltype: typeof(Label), ltext: "Welcome distributor", font: Field.DefaultFontLarge, lplacev: Place.Two).draw(this, true);
-            new Field(ltype: typeof(Label), ltext: "Choose Action: ", lplacev: Place.Four).draw(this, true);
-            new Field(ltype: typeof(Button), ltext: "Update AM", eventHandler: buttonUpdateAM_Click, width: Field.DefaultWidthMedium, lplacev: Place.Five).draw(this, true);
-            new Field(ltype: typeof(Button), ltext: "Manage Farms", eventHandler: buttonFarm_Click, width: Field.DefaultWidthMedium, lplacev: Place.Six).draw(this, true);
-            new Field(ltype: typeof(Button), ltext: "Manage Service provider", eventHandler: buttonService_Click, width: Field.DefaultWidthMedium, lplacev: Place.Seven).draw(this, true);
+            new Field(ltype: typeof(PictureBox), lplaceh: Place.Twoh, lplacev: Place.One).draw(this, true);
+            new Field(ltype: typeof(Label), ltext: "Welcome distributor", font: Field.DefaultFontLarge, lplacev: Place.One).draw(this, true);
+            new Field(ltype: typeof(Label), ltext: "Choose Action: ", lplacev: Place.Two).draw(this, true);
+            new Field(ltype: typeof(Button), ltext: "Update AM", eventHandler: buttonUpdateAM_Click, width: Field.DefaultWidthMedium, lplacev: Place.Three).draw(this, true);
+            new Field(ltype: typeof(Button), ltext: "Manage Farms", eventHandler: buttonFarm_Click, width: Field.DefaultWidthMedium, lplacev: Place.Four).draw(this, true);
+            new Field(ltype: typeof(Button), ltext: "Manage Service provider", eventHandler: buttonService_Click, width: Field.DefaultWidthMedium, lplacev: Place.Five).draw(this, true);
             new Field(ltype: typeof(LinkLabel), ltext: "Calculate your farm’s profits with APT",
-                linkEventHandler: linkLabel2_LinkClicked, lplacev: Place.Nine).draw(this, true);
-            new Field(ltype: typeof(Button), ltext: "Logout", eventHandler: buttonLogout_Click, lplacev: Place.End).draw(this, true);
+                linkEventHandler: linkLabel2_LinkClicked, lplacev: Place.Six).draw(this, true);
+            new Field(ltype: typeof(Button), ltext: "Logout", eventHandler: buttonLogout_Click, lplacev: Place.Seven).draw(this, true);
         }
 
         private void buttonLogout_Click(object sender, EventArgs e)
@@ -270,12 +290,12 @@ namespace WinAMBurner
 
         private void screenConnectShow()
         {
-            new Field(ltype: typeof(PictureBox), lplacev: Place.One).draw(this, true);
-            new Field(ltype: typeof(Label), ltext: "Welcome distributor", font: Field.DefaultFontLarge, lplacev: Place.Two).draw(this, true);
-            new Field(ltype: typeof(Label), ltext: "Please make sure the AM is connected to your tablet before continue", lplacev: Place.Four).draw(this, true);
-            label1 = new Field(ltype: typeof(Label), lplacev: Place.Six).draw(this, true) as Label;
-            progressBar1 = new Field(ltype: typeof(ProgressBar), width: Field.DefaultWidthLarge, height: Field.DefaultHeightSmall, lplacev: Place.Ten).draw(this, true) as ProgressBar;
-            button1 = new Field(ltype: typeof(Button), ltext: "Check AM present", eventHandler: buttonCheckAM_Click, lplacev: Place.End).draw(this, true) as Button;
+            new Field(ltype: typeof(PictureBox), lplaceh: Place.Twoh, lplacev: Place.One).draw(this, true);
+            new Field(ltype: typeof(Label), ltext: "Welcome distributor", font: Field.DefaultFontLarge, lplacev: Place.One).draw(this, true);
+            new Field(ltype: typeof(Label), ltext: "Please make sure the AM is connected to your tablet before continue", lplacev: Place.Two).draw(this, true);
+            label1 = new Field(ltype: typeof(Label), lplacev: Place.Three).draw(this, true) as Label;
+            progressBar1 = new Field(ltype: typeof(ProgressBar), width: Field.DefaultWidthLarge, height: Field.DefaultHeightSmall, lplacev: Place.Three).draw(this, true) as ProgressBar;
+            button1 = new Field(ltype: typeof(Button), ltext: "Check AM present", eventHandler: buttonCheckAM_Click, lplacev: Place.Five).draw(this, true) as Button;
             if (AMConnected)
                 AMConnectedShow();
             else
@@ -343,14 +363,14 @@ namespace WinAMBurner
         {
             if (label1 != null)
                 label1 = new Field(ltype: typeof(Label), ltext: "AM not found – make sure AM is connected using USB cable", color: Color.Red,
-                    lplaceh: Place.Center, lplacev: Place.Six).draw(this, true) as Label;
+                    lplaceh: Place.Center, lplacev: Place.Four).draw(this, true) as Label;
         }
 
         private void AMConnectedShow()
         {
             if (label1 != null)
                 label1 = new Field(ltype: typeof(Label), dflt: "AM found – connected to AM", color: Color.Green,
-                    placeh: Place.Center, placev: Place.Six).draw(this, true) as Label;
+                    placeh: Place.Center, placev: Place.Five).draw(this, true) as Label;
         }
 
         private void buttonConnectForward_Click(object sender, EventArgs e)
@@ -361,12 +381,12 @@ namespace WinAMBurner
 
         private void screenInfoShow()
         {
-            new Field(ltype: typeof(PictureBox), lplacev: Place.One).draw(this, true);
-            new Field(ltype: typeof(Label), ltext: "Welcome distributor", font: Field.DefaultFontLarge, lplacev: Place.Two).draw(this, true);
-            new Field(ltype: typeof(Label), ltext: "AM identified with SN: " + data.am.SNum, lplacev: Place.Four).draw(this, true);
-            new Field(ltype: typeof(Label), ltext: "Current available treatments: " + data.Current, lplacev: Place.Six).draw(this, true);
-            new Field(ltype: typeof(Button), ltext: "Back", eventHandler: buttonInfoBack_Click, lplaceh: Place.Five, lplacev: Place.End).draw(this, true);
-            new Field(ltype: typeof(Button), ltext: "Continue", eventHandler: buttonInfoContinue_Click, lplaceh: Place.Two, lplacev: Place.End).draw(this, true);
+            new Field(ltype: typeof(PictureBox), lplaceh: Place.Twoh, lplacev: Place.One).draw(this, true);
+            new Field(ltype: typeof(Label), ltext: "Welcome distributor", font: Field.DefaultFontLarge, lplacev: Place.One).draw(this, true);
+            new Field(ltype: typeof(Label), ltext: "AM identified with SN: " + data.am.SNum, lplacev: Place.Two).draw(this, true);
+            new Field(ltype: typeof(Label), ltext: "Current available treatments: " + data.Current, lplacev: Place.Three).draw(this, true);
+            new Field(ltype: typeof(Button), ltext: "Back", eventHandler: buttonInfoBack_Click, lplaceh: Place.Twoh, lplacev: Place.Seven).draw(this, true);
+            new Field(ltype: typeof(Button), ltext: "Continue", eventHandler: buttonInfoContinue_Click, lplaceh: Place.Fiveh, lplacev: Place.Seven).draw(this, true);
         }
 
         private void buttonInfoBack_Click(object sender, EventArgs e)
@@ -622,14 +642,14 @@ namespace WinAMBurner
 
         private void screenDataGridShow(string dataName, EventHandler eventHandlerButton1, EventHandler eventHandlerButton2, EventHandler eventHandlerButton3, EventHandler eventHandlerButton4)
         {
-            new Field(ltype: typeof(PictureBox), lplacev: Place.One).draw(this, true);
-            new Field(ltype: typeof(Label), ltext: dataName, lplacev: Place.Two).draw(this, true);
-            new Field(ltype: typeof(Button), ltext: "Back", eventHandler: eventHandlerButton4, lplaceh: Place.Four, lplacev: Place.Three).draw(this, true);
-            search = new Field(type: typeof(RichTextBox), dflt: "Search", eventHandler: eventHandlerButton3, placeh: Place.Six, placev: Place.Three);
+            new Field(ltype: typeof(PictureBox), lplaceh: Place.Twoh, lplacev: Place.One).draw(this, true);
+            new Field(ltype: typeof(Label), ltext: dataName, lplacev: Place.One).draw(this, true);
+            new Field(ltype: typeof(Button), ltext: "Back", eventHandler: eventHandlerButton4, lplaceh: Place.Twoh, lplacev: Place.Two).draw(this, true);
+            search = new Field(type: typeof(RichTextBox), dflt: "Search", eventHandler: eventHandlerButton3, placeh: Place.Threeh, placev: Place.Two);
             search.draw(this, false);
-            new Field(ltype: typeof(Button), ltext: "Edit", eventHandler: eventHandlerButton1, lplaceh: Place.One, lplacev: Place.Three).draw(this, true);
-            new Field(ltype: typeof(Button), ltext: "Add New", eventHandler: eventHandlerButton2, lplaceh: Place.Three, lplacev: Place.Three).draw(this, true);
-            Field.dataGridDraw(this, ref dataGridView1, placev: Place.Four);
+            new Field(ltype: typeof(Button), ltext: "Edit", eventHandler: eventHandlerButton1, lplaceh: Place.Fourh, lplacev: Place.Two).draw(this, true);
+            new Field(ltype: typeof(Button), ltext: "Add New", eventHandler: eventHandlerButton2, lplaceh: Place.Fiveh, lplacev: Place.Two).draw(this, true);
+            Field.dataGridDraw(this, ref dataGridView1, placev: Place.Three);
         }
 
         private void buttonBackToAction_Click(object sender, EventArgs e)
@@ -646,8 +666,57 @@ namespace WinAMBurner
                 data.farm = new Farm(false, comboBoxCountry_SelectedIndexChanged, buttonFarmCancel_Click, buttonFarmAddSubmit_Click,
                     logout, hide, enabled, notify, draw, dshow: screenFarmShow);
                 if (data.farm != null)
-                    data.farm.ddraw(data.farm);
+                    //data.farm.ddraw(data.farm );
+                    toPage<Farm, IPage1>(eToPagen: buttonFarmToPage2_Click);
             }
+        }
+
+        private void buttonFarmToPage2_Click(object sender, EventArgs e)
+        {
+            toPage<Farm, IFarmPage2>(buttonFarmToPage1_Click, buttonFarmToPage3_Click);
+        }
+
+        private void buttonServiceToPage2_Click(object sender, EventArgs e)
+        {
+            toPage<Service, IServicePage2>(buttonServiceToPage1_Click, buttonServiceToPage3_Click);
+        }
+
+        private void toPage<T, I>(EventHandler eToPageb = null, EventHandler eToPagen = null)
+        {
+            Entity entity = null;
+            if (typeof(T) == typeof(Farm))
+                entity = data.farm;
+            if (typeof(T) == typeof(Service))
+                entity = data.service;
+            if (entity != null)
+            {
+                hide();
+                if (eToPageb != null)
+                    entity.Back.eventHandler = eToPageb;
+                if (eToPagen != null)
+                    entity.Next.eventHandler = eToPagen;
+                draw(entity, typeof(I));
+            }
+        }
+
+        private void buttonServiceToPage1_Click(object sender, EventArgs e)
+        {
+            toPage<Service, IPage1>(eToPagen: buttonServiceToPage2_Click);
+        }
+
+        private void buttonFarmToPage1_Click(object sender, EventArgs e)
+        {
+            toPage<Farm, IPage1>(eToPagen: buttonFarmToPage2_Click);
+        }
+
+        private void buttonServiceToPage3_Click(object sender, EventArgs e)
+        {
+            toPage<Service, IServicePage3>(eToPageb: buttonServiceToPage2_Click);
+        }
+
+        private void buttonFarmToPage3_Click(object sender, EventArgs e)
+        {
+            toPage<Farm, IFarmPage3>(eToPageb: buttonFarmToPage2_Click);
         }
 
         private void buttonServiceAdd_Click(object sender, EventArgs e)
@@ -658,7 +727,8 @@ namespace WinAMBurner
                 data.service = new Service(false, comboBoxCountry_SelectedIndexChanged, buttonServiceCancel_Click, buttonServiceAddSubmit_Click,
                 logout, hide, enabled, notify, draw, dshow: screenServiceShow);
                 if (data.service != null)
-                    data.service.ddraw(data.service);
+                    //data.service.ddraw(data.service);
+                    toPage<Service, IPage1>(eToPagen: buttonServiceToPage2_Click);
             }
         }
 
@@ -672,7 +742,8 @@ namespace WinAMBurner
                     hide();
                     data.farm.initFields(true, comboBoxCountry_SelectedIndexChanged, buttonFarmCancel_Click, buttonFarmEditSubmit_Click,
                         logout, hide, enabled, notify, draw, dshow: screenFarmShow);
-                    data.farm.ddraw(data.farm);
+                    //data.farm.ddraw(data.farm);
+                    toPage<Farm, IPage1>(eToPagen: buttonFarmToPage2_Click);
                 }
             }
         }
@@ -696,7 +767,8 @@ namespace WinAMBurner
                     hide();
                     data.service.initFields(true, comboBoxCountry_SelectedIndexChanged, buttonServiceCancel_Click, buttonServiceEditSubmit_Click,
                         logout, hide, enabled, notify, draw, dshow: screenServiceShow);
-                    data.service.ddraw(data.service);
+                    //data.service.ddraw(data.service);
+                    toPage<Service, IPage1>(eToPagen: buttonServiceToPage2_Click);
                 }
             }
         }

@@ -9,19 +9,20 @@ namespace WinAMBurner
     {
         None,
         Center, Start, End,
-        One, Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Eleven
+        One, Two, Three, Four, Five, Six, Seven, Eight, Nine,
+        Oneh, Twoh, Threeh, Fourh, Fiveh, Sixh
     }
 
     class Field
     {
-        public const int DefaultWidth = 460;//390;
-        public const int DefaultWidthLarge = 1200;
-        public const int DefaultWidthMedium = 900;
+        public const int DefaultWidth = 240;//460;//390;
+        public const int DefaultWidthLarge = 900;//1200;
+        public const int DefaultWidthMedium = 600;//900;
         public const int DefaultHeight = 60;
         public const int DefaultHeightSmall = 12;
-        public const int DefaultHeightLarge = 90;
-        public const float ScaleFactor = 0.5F;
-        public const float PlaceOne = 200 * ScaleFactor;
+        public const int DefaultHeightLarge = 200;
+        public const float ScaleFactor = 1F;
+        public const float PlaceOne = 130 * ScaleFactor;
         public const float DeltaV = 100 * ScaleFactor;
         public const float DefaultFont = 24F * ScaleFactor;
         public const float DefaultFontLarge = 30F * ScaleFactor;
@@ -250,6 +251,7 @@ namespace WinAMBurner
                     {
                         richTextBox.Multiline = false;
                         richTextBox.TextChanged += textBox_TextChanged;
+                        richTextBox.DoubleClick += textBox_DoubleClick;
                         defaultText(control);
                     }
                 }
@@ -288,6 +290,7 @@ namespace WinAMBurner
                             comboBox.Items.AddRange(items);
                         comboBox.SelectedIndexChanged += comboBox_SelectedIndexChanged;
                         comboBox.TextUpdate += comboBox_TextUpdate;
+                        comboBox.Click += comboBox_Click;
                         defaultText(control);
                     }
                 }
@@ -310,6 +313,21 @@ namespace WinAMBurner
                 control.Enabled = enable;
             }
             return control;
+        }
+
+        private void textBox_DoubleClick(object sender, EventArgs e)
+        {
+            if (sender is RichTextBox)
+                (sender as RichTextBox).SelectAll();
+        }
+
+        private void comboBox_Click(object sender, EventArgs e)
+        {
+            if(sender is ComboBox)
+            {
+                ComboBox comboBox = sender as ComboBox;
+                comboBox.DroppedDown = true;
+            }
         }
 
         private void textBox_TextChanged(object sender, EventArgs e)
@@ -350,21 +368,34 @@ namespace WinAMBurner
             if (placeh == Place.Center)
                 location.X = thisForm.Width / 2 - control.Width / 2;
             else if (placeh == Place.Start)
-                location.X = thisForm.Width / 2 - control.Width / 2 - control.Width * 2 - control.Width * 2 / 4;
+                location.X = thisForm.Width / 2 - control.Width * 2 - control.Width * 3/ 32;
             else if (placeh == Place.End)
-                location.X = thisForm.Width / 2 + control.Width / 2 + control.Width + control.Width * 2 / 4;
-            else if (placeh == Place.One)
-                location.X = thisForm.Width / 2 + control.Width / 4 / 2;
-            else if (placeh == Place.Two)
-                location.X = thisForm.Width / 2 + control.Width / 2 + control.Width / 4;
-            else if (placeh == Place.Three)
-                location.X = thisForm.Width / 2 + control.Width + control.Width / 4 / 2 + control.Width / 4;
-            else if (placeh == Place.Four)
-                location.X = thisForm.Width / 2 - control.Width * 2 - control.Width / 4 / 2 - control.Width / 4;
-            else if (placeh == Place.Five)
-                location.X = thisForm.Width / 2 - control.Width / 2 - control.Width - control.Width / 4;
-            else if (placeh == Place.Six)
-                location.X = thisForm.Width / 2 - control.Width - control.Width / 4 / 2;
+                location.X = thisForm.Width / 2 + control.Width * 2;
+            //else if (placeh == Place.One)
+            //    location.X = thisForm.Width / 2 + control.Width / 8;
+            else if (placeh == Place.Oneh)
+                //location.X = thisForm.Width / 2 - control.Width * 2 - control.Width * 3 / 8;
+                location.X = thisForm.Width / 2 - control.Width * 3 - control.Width * 5/ 32;
+            //else if (placeh == Place.Two)
+            //    location.X = thisForm.Width / 2 + control.Width * 3 / 4;
+            else if (placeh == Place.Twoh)
+            location.X = thisForm.Width / 2 - control.Width * 2 - control.Width * 3/ 32;
+            //else if (placeh == Place.Three)
+            //    location.X = thisForm.Width / 2 + control.Width + control.Width * 3 / 8;
+            else if (placeh == Place.Threeh)
+                location.X = thisForm.Width / 2 - control.Width - control.Width * 1/ 32;
+            //else if (placeh == Place.Four)
+            //    location.X = thisForm.Width / 2 - control.Width * 2 - control.Width * 3 / 8;
+            else if (placeh == Place.Fourh)
+                location.X = thisForm.Width / 2 + control.Width * 1/ 32;
+            //else if (placeh == Place.Five)
+            //    location.X = thisForm.Width / 2 - control.Width - control.Width * 3 / 4;
+            else if (placeh == Place.Fiveh)
+                location.X = thisForm.Width / 2 + control.Width + control.Width * 3/ 32;
+            //else if (placeh == Place.Six)
+            //    location.X = thisForm.Width / 2 - control.Width - control.Width / 8;
+            else if (placeh == Place.Sixh)
+                location.X = thisForm.Width / 2 + control.Width * 2 + control.Width * 5/ 32;
 
             if (placev == Place.One)
                 location.Y = 30;
@@ -384,10 +415,6 @@ namespace WinAMBurner
                 location.Y = (int)(PlaceOne + 6 * DeltaV);//800;
             else if (placev == Place.Nine)
                 location.Y = (int)(PlaceOne + 7 * DeltaV);//900;
-            else if (placev == Place.Ten)
-                location.Y = (int)(PlaceOne + 8 * DeltaV);//1000;
-            else if (placev == Place.Eleven)
-                location.Y = (int)(PlaceOne + 9 * DeltaV);//1100;
             else if (placev == Place.End)
                 location.Y = (int)(PlaceOne + 10 * DeltaV);//1200;
 
@@ -480,7 +507,7 @@ namespace WinAMBurner
             dataGridView.RowTemplate.Height = 33;
             dataGridView.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
             dataGridView.ReadOnly = true;
-            dataGridView.Size = new Size(2200, 800); //1853, 800);
+            dataGridView.Size = new Size(1050, 800); //1853, 800);
             dataGridView.Scale(new SizeF(ScaleFactor, ScaleFactor));
             dataGridView.Font = new Font("Segoe UI", DefaultFont, FontStyle.Regular, GraphicsUnit.Point);
             dataGridView.Location = placeCalc(thisForm, dataGridView, placeh: placeh, placev: placev);
