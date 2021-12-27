@@ -207,7 +207,9 @@ namespace WinAMBurner
         public delegate void dEnabled(bool enabled);
         public delegate void dShow();
         public delegate void dHide();
-        public delegate void dDraw<T>(T entity);
+        //public delegate void dDraw<T>(T entity);
+        public delegate ErrCode dDraw(object entity, Type type = null);
+        public delegate ErrCode dDrawPage(Type T, Type I);
 
         public dLogout dlogout;
         public dShow dshow;
@@ -215,6 +217,9 @@ namespace WinAMBurner
         public dEnabled denabled;
         public dNotify dnotify;
         public dNotifyAnswer dnotifyAnswer;
+        public dDraw ddraw;
+        public dDrawPage ddrawPage;
+
         public Field Picture { get; set; }
         public Field Welcome { get; set; }
         
@@ -222,14 +227,41 @@ namespace WinAMBurner
         {
         }
 
-        public Gui(dLogout dlogout, dHide dhide, dEnabled denabled, dNotify dnotify)
+        public Gui(dLogout dlogout, dHide dhide, dEnabled denabled, dNotify dnotify, dDraw ddraw, dDrawPage ddrawPage)
         {
             this.dlogout = dlogout;
             this.dhide = dhide;
             this.denabled = denabled;
             this.dnotify = dnotify;
+            this.ddraw = ddraw;
+            this.ddrawPage = ddrawPage;
         }
-        
+
+        //public ErrCode drawPage<T>(T entity, Type type)
+        //{
+        //    ErrCode errcode = ErrCode.ERROR;
+        //    foreach (PropertyInfo prop in type.GetProperties())
+        //    {
+        //        //Console.WriteLine("{0} = {1}", prop.Name, prop.GetValue(user, null));
+        //        //PropertyInfo prop = props.ElementAt(controls.IndexOf(control));
+        //        Field field = prop.GetValue(entity) as Field;
+        //        if (field != null)
+        //        {
+        //            if (field.view)
+        //            {
+        //                if (field.error == ErrCode.EPARAM)
+        //                {
+        //                    dhide();
+        //                    ddraw(entity, type: type);
+        //                    checkFields();
+        //                    return ErrCode.EPARAM;
+        //                }
+        //            }
+        //        }
+        //    }
+        //    return ErrCode.OK;
+        //}
+
         public ErrCode checkFields()
         {
             ErrCode errcode = ErrCode.OK;
@@ -399,7 +431,7 @@ namespace WinAMBurner
 
         public Field Press { get; set; }
 
-        public dDraw<Login> ddraw;
+        //public dDraw<Login> ddraw;
 
         public Login()
         {
@@ -407,7 +439,8 @@ namespace WinAMBurner
         }
 
         public Login(EventHandler forgotEventHandler, EventHandler buttonEventHandler, EventHandler checkBoxEventHandler,
-            dLogout dlogout, dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Login> ddraw, dShow dshow = null)
+            //dLogout dlogout, dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Login> ddraw, dShow dshow = null)
+            dLogout dlogout, dHide dhide, dEnabled denabled, dNotify dnotify, dDraw ddraw, dShow dshow = null)
         {
             initFields();
             initFields(forgotEventHandler, buttonEventHandler, checkBoxEventHandler,
@@ -425,7 +458,8 @@ namespace WinAMBurner
         }
 
         private void initFields(EventHandler forgotEventHandler, EventHandler buttonEventHandler, EventHandler checkBoxEventHandler,
-            dLogout dlogout, dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Login> ddraw, dShow dshow = null)
+            //dLogout dlogout, dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Login> ddraw, dShow dshow = null)
+            dLogout dlogout, dHide dhide, dEnabled denabled, dNotify dnotify, dDraw ddraw, dShow dshow = null)
         {
             Forgot.eventHandler = forgotEventHandler;
             Press.eventHandler = buttonEventHandler;
@@ -506,7 +540,7 @@ namespace WinAMBurner
 
         public Field ChangePassword { get; set; }
 
-        public dDraw<Password> ddraw;
+        //public dDraw<Password> ddraw;
 
         public Password()
         {
@@ -514,7 +548,7 @@ namespace WinAMBurner
         }
 
         public Password(EventHandler buttonEventHandler,
-            dLogout dlogout, dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Password> ddraw, dShow dshow = null)
+            dLogout dlogout, dHide dhide, dEnabled denabled, dNotify dnotify, dDraw ddraw, dShow dshow = null)
         {
             initFields();
             initFields(buttonEventHandler,
@@ -531,7 +565,7 @@ namespace WinAMBurner
         }
 
         private void initFields(EventHandler buttonEventHandler,
-            dLogout dlogout, dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Password> ddraw, dShow dshow = null)
+            dLogout dlogout, dHide dhide, dEnabled denabled, dNotify dnotify, dDraw ddraw, dShow dshow = null)
         {
             ChangePassword.eventHandler = buttonEventHandler;
             this.dlogout = dlogout;
@@ -607,7 +641,7 @@ namespace WinAMBurner
 
         public Field ResetPassword { get; set; }
 
-        public dDraw<Reset> ddraw;
+        //public dDraw<Reset> ddraw;
 
         public Reset()
         {
@@ -615,7 +649,7 @@ namespace WinAMBurner
         }
 
         public Reset(EventHandler buttonEventHandler,
-            dLogout dlogout, dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Reset> ddraw, dShow dshow = null)
+            dLogout dlogout, dHide dhide, dEnabled denabled, dNotify dnotify, dDraw ddraw, dShow dshow = null)
         {
             initFields();
             initFields(buttonEventHandler,
@@ -630,7 +664,7 @@ namespace WinAMBurner
         }
 
         private void initFields(EventHandler buttonEventHandler,
-            dLogout dlogout, dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Reset> ddraw, dShow dshow = null)
+            dLogout dlogout, dHide dhide, dEnabled denabled, dNotify dnotify, dDraw ddraw, dShow dshow = null)
         {
             ResetPassword.eventHandler = buttonEventHandler;
             this.dlogout = dlogout;
@@ -681,6 +715,7 @@ namespace WinAMBurner
         public Field Caption { get; set; }
         public Field Cancel { get; set; }
         public Field Next { get; set; }
+        public Field Submit { get; set; }
     }
 
     class Entity : Gui, IPage1
@@ -728,8 +763,105 @@ namespace WinAMBurner
         public Entity()
         { }
 
-        public Entity(dLogout dlogout, dHide dhide, dEnabled denabled, dNotify dnotify) : base(dlogout, dhide, denabled, dnotify)
+        public Entity(dLogout dlogout, dHide dhide, dEnabled denabled, dNotify dnotify, dDraw ddraw, dDrawPage ddrawPage) : base(dlogout, dhide, denabled, dnotify, ddraw, ddrawPage)
         { }
+
+        public void initFields(
+            bool edit, EventHandler countryHandler, EventHandler cancelHandler, EventHandler submitHandler,
+            EventHandler toPage1Handler, EventHandler toPage2Handler, EventHandler toPage3Handler, EventHandler toPage4Handler,
+            dLogout dlogout, dHide dhide, dEnabled denabled, dNotify dnotify, dDraw ddraw, dDrawPage ddrawPage, dShow dshow)
+        {
+            if (edit)
+            {
+                Caption.ltext = "Edit";
+                ContractType.view = false;
+            }
+            else
+            {
+                Caption.ltext = "Add";
+                ContractType.view = true;
+            }
+            if (Country.val == "United States of America")
+                State.enable = true;
+            else
+                State.enable = false;
+            Cancel.eventHandler = cancelHandler;
+            Submit.eventHandler = submitHandler;
+            Country.eventHandler = countryHandler;
+            Back.toPage1Handler = toPage1Handler;
+            Back.toPage2Handler = toPage2Handler;
+            Back.toPage3Handler = toPage3Handler;
+            Back.toPage4Handler = toPage4Handler;
+            Next.toPage1Handler = toPage1Handler;
+            Next.toPage2Handler = toPage2Handler;
+            Next.toPage3Handler = toPage3Handler;
+            Next.toPage4Handler = toPage4Handler;
+
+            this.dlogout = dlogout;
+            this.dhide = dhide;
+            this.denabled = denabled;
+            this.dnotify = dnotify;
+            this.ddraw = ddraw;
+            this.ddrawPage = ddrawPage;
+            this.dshow = dshow;
+        }
+
+        public async Task<ErrCode> responseAddOk<T>(Data data, T rentity)
+        {
+            ErrCode errcode = ErrCode.ERROR;
+            if ((data != null) && (data.farms != null) && (data.farm != null) && (data.services != null) && (data.service != null) && (rentity != null) && (dhide != null) && (dshow != null))
+            {
+                List<T> entities = default(List<T>);
+                T entity = default(T);
+                if (typeof(T) == typeof(Farm))
+                {
+                    entities = data.farms as List<T>;
+                    entity = (T)(data.farm as object);
+                }
+                else if (typeof(T) == typeof(Service))
+                {
+                    entities = data.services as List<T>;
+                    entity = (T)(data.service as object);
+                }
+                if ((entities != null) && (entity != null))
+                {
+                    entities.Add(rentity);
+                    dhide();
+                    dshow();
+                    errcode = ErrCode.OK;
+                }
+            }
+            return errcode;
+        }
+
+        public async Task<ErrCode> responseEditOk<T>(Data data, T rentity)
+        {
+            ErrCode errcode = ErrCode.ERROR;
+            if ((data != null) && (data.farms != null) && (data.farm != null) && (data.services != null) && (data.service != null) && (rentity != null) && (dhide != null) && (dshow != null))
+            {
+                List<T> entities = default(List<T>);
+                T entity = default(T);
+                if (typeof(T) == typeof(Farm))
+                {
+                    entities = data.farms as List<T>;
+                    entity = (T)(data.farm as object);
+                }
+                else if (typeof(T) == typeof(Service))
+                {
+                    entities = data.services as List<T>;
+                    entity = (T)(data.service as object);
+                }
+                if ((entities != null) && (entity != null))
+                {
+                    entities.Insert(entities.IndexOf(entity), rentity);
+                    entities.Remove(entity);
+                    dhide();
+                    dshow();
+                    errcode = ErrCode.OK;
+                }
+            }
+            return errcode;
+        }
 
         public override string ToString()
         {
@@ -745,19 +877,30 @@ namespace WinAMBurner
 
         public Field Email { get; set; }
 
-        public Field ContractType { get; set; }
-
-        public Field NumberOfLactatingCows { get; set; }
-
         public Field Caption { get; set; }
+        public Field Cancel { get; set; }
         public Field Back { get; set; }
         public Field Next { get; set; }
+        public Field Submit { get; set; }
     }
 
     interface IFarmPage3
     {
+        public Field ContractType { get; set; }
+
+        public Field NumberOfLactatingCows { get; set; }
+
         public Field FarmType { get; set; }
 
+        public Field Caption { get; set; }
+        public Field Cancel { get; set; }
+        public Field Back { get; set; }
+        public Field Next { get; set; }
+        public Field Submit { get; set; }
+    }
+
+    interface IFarmPage4
+    {
         public Field BreedType { get; set; }
 
         public Field DhiTest { get; set; }
@@ -767,11 +910,12 @@ namespace WinAMBurner
         public Field LocationOfTreatmentType { get; set; }
 
         public Field Caption { get; set; }
+        public Field Cancel { get; set; }
         public Field Back { get; set; }
         public Field Submit { get; set; }
     }
 
-    class Farm : Entity, FarmJson, IFarmPage2, IFarmPage3
+    class Farm : Entity, FarmJson, IFarmPage2, IFarmPage3, IFarmPage4
     {
         public static string[] DHI_TEST = new string[] { "No", "Yes" };
 
@@ -797,7 +941,7 @@ namespace WinAMBurner
 
         public Field LocationOfTreatmentType { get; set; }
 
-        public dDraw<Farm> ddraw;
+        //public dDraw<Farm> ddraw;
 
         public Farm()
         {
@@ -815,85 +959,107 @@ namespace WinAMBurner
             ContactName = new Field(type: typeof(RichTextBox), ltype: typeof(Label), dflt: "Contact Name", ltext: "Contact Name:", width: Field.DefaultWidthMedium, autosize: false, placeh: Place.Fourh, lplaceh: Place.Threeh, placev: Place.Two);
             Mobile = new Field(type: typeof(RichTextBox), ltype: typeof(Label), dflt: "Mobile", ltext: "Mobile:", width: Field.DefaultWidthMedium, autosize: false, placeh: Place.Fourh, lplaceh: Place.Threeh, placev: Place.Three);
             Email = new Field(type: typeof(RichTextBox), ltype: typeof(Label), dflt: "Email Address", ltext: "Email Address:", width: Field.DefaultWidthMedium, autosize: false, placeh: Place.Fourh, lplaceh: Place.Threeh, placev: Place.Four);
-            ContractType = new Field(type: typeof(ComboBox), ltype: typeof(Label), dflt: "Contract Type", ltext: "Contract Type:", width: Field.DefaultWidthMedium, autosize: false, items: Const.CONTRACT_TYPE, placeh: Place.Fourh, lplaceh: Place.Threeh, placev: Place.Five);
-            NumberOfLactatingCows = new Field(type: typeof(RichTextBox), ltype: typeof(Label), dflt: "# of Lactating Cows", ltext: "# of Lactating Cows:", width: Field.DefaultWidthMedium, autosize: false, placeh: Place.Fourh, lplaceh: Place.Threeh, placev: Place.Six);
             FarmType = new Field(type: typeof(ComboBox), ltype: typeof(Label), dflt: "Farm Type", ltext: "Farm Type:", width: Field.DefaultWidthMedium, autosize: false, items: Const.FARM_TYPE, placeh: Place.Fourh, lplaceh: Place.Threeh, placev: Place.Two);
-            BreedType = new Field(type: typeof(ComboBox), ltype: typeof(Label), dflt: "Breed Type", ltext: "Breed Type:", width: Field.DefaultWidthMedium, autosize: false, items: Const.BREED_TYPE, placeh: Place.Fourh, lplaceh: Place.Threeh, placev: Place.Three);
-            DhiTest = new Field(type: typeof(ComboBox), ltype: typeof(Label), dflt: "Milk Recording", ltext: "Milk Recording:", width: Field.DefaultWidthMedium, autosize: false, items: DHI_TEST, placeh: Place.Fourh, lplaceh: Place.Threeh, placev: Place.Four);
-            MilkingSetupType = new Field(type: typeof(ComboBox), ltype: typeof(Label), dflt: "Milking Setup", ltext: "Milking Setup:", width: Field.DefaultWidthMedium, autosize: false, items: Const.MILKING_SETUP_TYPE, placeh: Place.Fourh, lplaceh: Place.Threeh, placev: Place.Five);
-            LocationOfTreatmentType = new Field(type: typeof(ComboBox), ltype: typeof(Label), dflt: "Treatment Location", ltext: "Treatment Location:", width: Field.DefaultWidthMedium, autosize: false, items: Const.LOCATION_OF_TREATMENT_TYPE, placeh: Place.Fourh, lplaceh: Place.Threeh, placev: Place.Six);
+            NumberOfLactatingCows = new Field(type: typeof(RichTextBox), ltype: typeof(Label), dflt: "# of Lactating Cows", ltext: "# of Lactating Cows:", width: Field.DefaultWidthMedium, autosize: false, placeh: Place.Fourh, lplaceh: Place.Threeh, placev: Place.Three);
+            ContractType = new Field(type: typeof(ComboBox), ltype: typeof(Label), dflt: "Contract Type", ltext: "Contract Type:", width: Field.DefaultWidthMedium, autosize: false, items: Const.CONTRACT_TYPE, placeh: Place.Fourh, lplaceh: Place.Threeh, placev: Place.Four);
+            BreedType = new Field(type: typeof(ComboBox), ltype: typeof(Label), dflt: "Breed Type", ltext: "Breed Type:", width: Field.DefaultWidthMedium, autosize: false, items: Const.BREED_TYPE, placeh: Place.Fourh, lplaceh: Place.Threeh, placev: Place.Two);
+            DhiTest = new Field(type: typeof(ComboBox), ltype: typeof(Label), dflt: "Milk Recording", ltext: "Milk Recording:", width: Field.DefaultWidthMedium, autosize: false, items: DHI_TEST, placeh: Place.Fourh, lplaceh: Place.Threeh, placev: Place.Three);
+            MilkingSetupType = new Field(type: typeof(ComboBox), ltype: typeof(Label), dflt: "Milking Setup", ltext: "Milking Setup:", width: Field.DefaultWidthMedium, autosize: false, items: Const.MILKING_SETUP_TYPE, placeh: Place.Fourh, lplaceh: Place.Threeh, placev: Place.Four);
+            LocationOfTreatmentType = new Field(type: typeof(ComboBox), ltype: typeof(Label), dflt: "Treatment Location", ltext: "Treatment Location:", width: Field.DefaultWidthMedium, autosize: false, items: Const.LOCATION_OF_TREATMENT_TYPE, placeh: Place.Fourh, lplaceh: Place.Threeh, placev: Place.Five);
 
             Picture = new Field(ltype: typeof(PictureBox), lplaceh: Place.Twoh, lplacev: Place.One);
             Caption = new Field(ltype: typeof(Label), ltext: "Add Farm", font: Field.DefaultFontLarge, lplacev: Place.One);
             Cancel = new Field(ltype: typeof(Button), ltext: "Cancel", lplaceh: Place.Twoh, lplacev: Place.Seven);
             Submit = new Field(ltype: typeof(Button), ltext: "Submit", lplaceh: Place.Fiveh, lplacev: Place.Seven);
-            Back = new Field(ltype: typeof(Button), ltext: "Back", lplaceh: Place.Twoh, lplacev: Place.Seven);
-            Next = new Field(ltype: typeof(Button), ltext: "Next", lplaceh: Place.Fiveh, lplacev: Place.Seven);
+            Back = new Field(ltype: typeof(Button), ltext: "Back", lplaceh: Place.Threeh, lplacev: Place.Seven);
+            Next = new Field(ltype: typeof(Button), ltext: "Next", lplaceh: Place.Fourh, lplacev: Place.Seven);
     }
 
     public Farm(bool edit, EventHandler countryHandler, EventHandler cancelHandler, EventHandler submitHandler,
-            dLogout dlogout, dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Farm> ddraw, dShow dshow = null)
+            EventHandler toPage1Handler, EventHandler toPage2Handler, EventHandler toPage3Handler, EventHandler toPage4Handler,
+            dLogout dlogout, dHide dhide, dEnabled denabled, dNotify dnotify, dDraw ddraw, dDrawPage ddrawPage, dShow dshow)
         {
             initFields();
             initFields(edit, countryHandler, cancelHandler, submitHandler,
-                dlogout, dhide, denabled, dnotify, ddraw, dshow);
+                toPage1Handler, toPage2Handler, toPage3Handler, toPage4Handler,
+                dlogout, dhide, denabled, dnotify, ddraw, ddrawPage, dshow);
         }
 
-        public void initFields(bool edit, EventHandler countryHandler, EventHandler cancelHandler, EventHandler submitHandler,
-            dLogout dlogout, dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Farm> ddraw, dShow dshow = null)
-        {
-            if (edit)
-            {
-                Caption.ltext = "Edit Farm";
-                ContractType.view = false;
-            }
-            else
-            {
-                Caption.ltext = "Add Farm";
-                ContractType.view = true;
-            }
-            if (Country.val == "United States of America")
-                State.enable = true;
-            else
-                State.enable = false;
-            Cancel.eventHandler = cancelHandler;
-            Submit.eventHandler = submitHandler;
-            Country.eventHandler = countryHandler;
+        //public void initFields(bool edit, EventHandler countryHandler, EventHandler cancelHandler, EventHandler submitHandler,
+        //    EventHandler toPage1Handler, EventHandler toPage2Handler, EventHandler toPage3Handler,
+        //    dLogout dlogout, dHide dhide, dEnabled denabled, dNotify dnotify, dDraw ddraw, dShow dshow = null)
+        //{
+        //    if (edit)
+        //    {
+        //        Caption.ltext = "Edit Farm";
+        //        ContractType.view = false;
+        //    }
+        //    else
+        //    {
+        //        Caption.ltext = "Add Farm";
+        //        ContractType.view = true;
+        //    }
+        //    if (Country.val == "United States of America")
+        //        State.enable = true;
+        //    else
+        //        State.enable = false;
+        //    Cancel.eventHandler = cancelHandler;
+        //    Submit.eventHandler = submitHandler;
+        //    Country.eventHandler = countryHandler;
+        //    Back.toPage1Handler = toPage1Handler;
+        //    Back.toPage2Handler = toPage2Handler;
+        //    Back.toPage3Handler = toPage3Handler;
+        //    Next.toPage1Handler = toPage1Handler;
+        //    Next.toPage2Handler = toPage2Handler;
+        //    Next.toPage3Handler = toPage3Handler;
+        //
+        //    this.dlogout = dlogout;
+        //    this.dhide = dhide;
+        //    this.denabled = denabled;
+        //    this.dnotify = dnotify;
+        //    this.ddraw = ddraw;
+        //    if (dshow != null)
+        //        this.dshow = dshow;
+        //}
 
-            this.dlogout = dlogout;
-            this.dhide = dhide;
-            this.denabled = denabled;
-            this.dnotify = dnotify;
-            this.ddraw = ddraw;
-            if (dshow != null)
-                this.dshow = dshow;
-        }
+        //public async Task<ErrCode> responseAddOk(Data data, Farm rfarm)
+        //{
+        //    ErrCode errcode = ErrCode.ERROR;
+        //    if ((data != null) && (data.farms != null) && (rfarm != null) && (dhide != null) && (dshow != null))
+        //    {
+        //        data.farms.Add(rfarm);
+        //        dhide();
+        //        dshow();
+        //        errcode = ErrCode.OK;
+        //    }
+        //    return errcode;
+        //}
 
-        public async Task<ErrCode> responseAddOk(Data data, Farm rfarm)
-        {
-            ErrCode errcode = ErrCode.ERROR;
-            if ((data != null) && (data.farms != null) && (rfarm != null) && (dhide != null) && (dshow != null))
-            {
-                data.farms.Add(rfarm);
-                dhide();
-                dshow();
-                errcode = ErrCode.OK;
-            }
-            return errcode;
-        }
+        //public async Task<ErrCode> responseEditOk(Data data, Farm rfarm)
+        //{
+        //    ErrCode errcode = ErrCode.ERROR;
+        //    if ((data != null) && (data.farms != null) && (data.farm != null) && (rfarm != null) && (dhide != null) && (dshow != null))
+        //    {
+        //        data.farms.Insert(data.farms.IndexOf(data.farm), rfarm);
+        //        data.farms.Remove(data.farm);
+        //        dhide();
+        //        dshow();
+        //        errcode = ErrCode.OK;
+        //    }
+        //    return errcode;
+        //}
 
-        public async Task<ErrCode> responseEditOk(Data data, Farm rfarm)
+        public async Task<List<string>> responseErr(Data data, ErrCode errcode)
         {
-            ErrCode errcode = ErrCode.ERROR;
-            if ((data != null) && (data.farms != null) && (data.farm != null) && (rfarm != null) && (dhide != null) && (dshow != null))
+            if (errcode == ErrCode.EPARAM)
             {
-                data.farms.Insert(data.farms.IndexOf(data.farm), rfarm);
-                data.farms.Remove(data.farm);
-                dhide();
-                dshow();
-                errcode = ErrCode.OK;
+                if (ddrawPage(typeof(Farm), typeof(IPage1)) == ErrCode.OK)
+                    if (ddrawPage(typeof(Farm), typeof(IFarmPage2)) == ErrCode.OK)
+                        if (ddrawPage(typeof(Farm), typeof(IFarmPage3)) == ErrCode.OK)
+                            if (ddrawPage(typeof(Farm), typeof(IFarmPage4)) == ErrCode.OK)
+                                return null;
             }
-            return errcode;
+            return null;
         }
 
         public async Task send(Data data, bool edit)
@@ -905,14 +1071,14 @@ namespace WinAMBurner
                     await send<FarmJson, Farm>(data.farm, "api/p/farms/" + data.farm.Id + "/", data.web.entityEdit,
                         "Submit Success", "Submit Failed", false, responseEditOk, data,
                         messagesErr: new List<string>() { "Submit failed, can't add empty or negative fields,",
-                        "make sure all the fields are filled with valid values" });
+                        "make sure all the fields are filled with valid values" }, dresponseErr: responseErr);
                 }
                 else
                 { 
                     await send<FarmJson, Farm>(data.farm, "api/p/farms/", data.web.entityAdd,
                         "Submit Success", "Submit Failed", false, responseAddOk, data,
                         messagesErr: new List<string>() { "Submit failed, can't add empty or negative fields,",
-                        "make sure all the fields are filled with valid values" });
+                        "make sure all the fields are filled with valid values" }, dresponseErr: responseErr);
                 }
             }
         }
@@ -926,11 +1092,11 @@ namespace WinAMBurner
 
         public Field Email { get; set; }
 
-        public Field ContractType { get; set; }
-
         public Field Caption { get; set; }
+        public Field Cancel { get; set; }
         public Field Back { get; set; }
         public Field Next { get; set; }
+        public Field Submit { get; set; }
     }
 
     interface IServicePage3
@@ -939,9 +1105,16 @@ namespace WinAMBurner
 
         public Field NumberOfDairyCows { get; set; }
 
+        public Field ContractType { get; set; }
+
         public Field Caption { get; set; }
+        public Field Cancel { get; set; }
         public Field Back { get; set; }
         public Field Submit { get; set; }
+    }
+
+    interface IServicePage4
+    {
     }
 
     class Service : Entity, ServiceJson, IServicePage2, IServicePage3
@@ -953,7 +1126,7 @@ namespace WinAMBurner
 
         public Field NumberOfDairyCows { get; set; }
 
-        public dDraw<Service> ddraw;
+        //public dDraw<Service> ddraw;
 
         public Service()
         {
@@ -970,82 +1143,91 @@ namespace WinAMBurner
             ContactName = new Field(type: typeof(RichTextBox), ltype: typeof(Label), dflt: "Contact Name", ltext: "Contact Name:", width: Field.DefaultWidthMedium, autosize: false, placeh: Place.Fourh, lplaceh: Place.Threeh, placev: Place.Two);
             Mobile = new Field(type: typeof(RichTextBox), ltype: typeof(Label), dflt: "Mobile", ltext: "Mobile:", width: Field.DefaultWidthMedium, autosize: false, placeh: Place.Fourh, lplaceh: Place.Threeh, placev: Place.Three);
             Email = new Field(type: typeof(RichTextBox), ltype: typeof(Label), dflt: "Email Address", ltext: "Email Address:", width: Field.DefaultWidthMedium, autosize: false, placeh: Place.Fourh, lplaceh: Place.Threeh, placev: Place.Four);
-            ContractType = new Field(type: typeof(ComboBox), ltype: typeof(Label), dflt: "Contract Type", ltext: "Contract Type:", width: Field.DefaultWidthMedium, autosize: false, items: Const.CONTRACT_TYPE, placeh: Place.Fourh, lplaceh: Place.Threeh, placev: Place.Six);
             NumberOfDairyFarms = new Field(type: typeof(RichTextBox), ltype: typeof(Label), dflt: "# of dairy farms", ltext: "# of dairy farms:", width: Field.DefaultWidthMedium, autosize: false, placeh: Place.Fourh, lplaceh: Place.Threeh, placev: Place.Two);
             NumberOfDairyCows = new Field(type: typeof(RichTextBox), ltype: typeof(Label), dflt: "# of dairy cows", ltext: "# of dairy cows:", width: Field.DefaultWidthMedium, autosize: false, placeh: Place.Fourh, lplaceh: Place.Threeh, placev: Place.Three);
+            ContractType = new Field(type: typeof(ComboBox), ltype: typeof(Label), dflt: "Contract Type", ltext: "Contract Type:", width: Field.DefaultWidthMedium, autosize: false, items: Const.CONTRACT_TYPE, placeh: Place.Fourh, lplaceh: Place.Threeh, placev: Place.Four);
 
             Picture = new Field(ltype: typeof(PictureBox), lplaceh: Place.Twoh, lplacev: Place.One);
             Caption = new Field(ltype: typeof(Label), ltext: "Add Service", font: Field.DefaultFontLarge, lplacev: Place.One);
             Cancel = new Field(ltype: typeof(Button), ltext: "Cancel", lplaceh: Place.Twoh, lplacev: Place.Seven);
             Submit = new Field(ltype: typeof(Button), ltext: "Submit", lplaceh: Place.Fiveh, lplacev: Place.Seven);
-            Back = new Field(ltype: typeof(Button), ltext: "Back", lplaceh: Place.Twoh, lplacev: Place.Seven);
-            Next = new Field(ltype: typeof(Button), ltext: "Next", lplaceh: Place.Fiveh, lplacev: Place.Seven);
+            Back = new Field(ltype: typeof(Button), ltext: "Back", lplaceh: Place.Threeh, lplacev: Place.Seven);
+            Next = new Field(ltype: typeof(Button), ltext: "Next", lplaceh: Place.Fourh, lplacev: Place.Seven);
         }
 
         public Service(bool edit, EventHandler countryHandler, EventHandler cancelHandler, EventHandler submitHandler,
-            dLogout dlogout, dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Service> ddraw, dShow dshow = null)
+            EventHandler toPage1Handler, EventHandler toPage2Handler, EventHandler toPage3Handler, EventHandler toPage4Handler,
+            dLogout dlogout, dHide dhide, dEnabled denabled, dNotify dnotify, dDraw ddraw, dDrawPage ddrawPage, dShow dshow)
         {
             initFields();
             initFields(edit, countryHandler, cancelHandler, submitHandler,
-                dlogout, dhide, denabled, dnotify, ddraw, dshow);
+                toPage1Handler, toPage2Handler, toPage3Handler, toPage4Handler,
+                dlogout, dhide, denabled, dnotify, ddraw, ddrawPage, dshow);
         }
 
-        public void initFields(bool edit, EventHandler countryHandler, EventHandler cancelHandler, EventHandler submitHandler,
-            dLogout dlogout, dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Service> ddraw, dShow dshow = null)
-        {
-            if (edit)
-            {
-                Caption.ltext = "Edit Service";
-                ContractType.view = false;
-            }
-            else
-            {
-                Caption.ltext = "Add Service";
-                ContractType.view = true;
-            }
-            if (Country.val == "United States of America")
-                State.enable = true;
-            else
-                State.enable = false;
-            Cancel.eventHandler = cancelHandler;
-            Submit.eventHandler = submitHandler;
-            Country.eventHandler = countryHandler;
+        //public void initFields(bool edit, EventHandler countryHandler, EventHandler cancelHandler, EventHandler submitHandler,
+        //    EventHandler toPage1Handler, EventHandler toPage2Handler, EventHandler toPage3Handler,
+        //    dLogout dlogout, dHide dhide, dEnabled denabled, dNotify dnotify, dDraw ddraw, dShow dshow = null)
+        //{
+        //    if (edit)
+        //    {
+        //        Caption.ltext = "Edit Service";
+        //        ContractType.view = false;
+        //    }
+        //    else
+        //    {
+        //        Caption.ltext = "Add Service";
+        //        ContractType.view = true;
+        //    }
+        //    if (Country.val == "United States of America")
+        //        State.enable = true;
+        //    else
+        //        State.enable = false;
+        //    Cancel.eventHandler = cancelHandler;
+        //    Submit.eventHandler = submitHandler;
+        //    Country.eventHandler = countryHandler;
+        //    Back.toPage1Handler = toPage1Handler;
+        //    Back.toPage2Handler = toPage2Handler;
+        //    Back.toPage3Handler = toPage3Handler;
+        //    Next.toPage1Handler = toPage1Handler;
+        //    Next.toPage2Handler = toPage2Handler;
+        //    Next.toPage3Handler = toPage3Handler;
+        //
+        //    this.dlogout = dlogout;
+        //    this.dhide = dhide;
+        //    this.denabled = denabled;
+        //    this.dnotify = dnotify;
+        //    this.ddraw = ddraw;
+        //    if (dshow != null)
+        //        this.dshow = dshow;
+        //}
 
-            this.dlogout = dlogout;
-            this.dhide = dhide;
-            this.denabled = denabled;
-            this.dnotify = dnotify;
-            this.ddraw = ddraw;
-            if (dshow != null)
-                this.dshow = dshow;
-        }
+        //public async Task<ErrCode> responseAddOk(Data data, Service rservice)
+        //{
+        //    ErrCode errcode = ErrCode.ERROR;
+        //    if ((data != null) && (data.services != null) && (rservice != null) && (dhide != null) && (dshow != null))
+        //    {
+        //        data.services.Add(rservice);
+        //        dhide();
+        //        dshow();
+        //        errcode = ErrCode.OK;
+        //    }
+        //    return errcode;
+        //}
 
-        public async Task<ErrCode> responseAddOk(Data data, Service rservice)
-        {
-            ErrCode errcode = ErrCode.ERROR;
-            if ((data != null) && (data.services != null) && (rservice != null) && (dhide != null) && (dshow != null))
-            {
-                data.services.Add(rservice);
-                dhide();
-                dshow();
-                errcode = ErrCode.OK;
-            }
-            return errcode;
-        }
-
-        public async Task<ErrCode> responseEditOk(Data data, Service rservice)
-        {
-            ErrCode errcode = ErrCode.ERROR;
-            if ((data != null) && (data.services != null) && (data.service != null) && (rservice != null) && (dhide != null) && (dshow != null))
-            {
-                data.services.Insert(data.services.IndexOf(data.service), rservice);
-                data.services.Remove(data.service);
-                dhide();
-                dshow();
-                errcode = ErrCode.OK;
-            }
-            return errcode;
-        }
+        //public async Task<ErrCode> responseEditOk(Data data, Service rservice)
+        //{
+        //    ErrCode errcode = ErrCode.ERROR;
+        //    if ((data != null) && (data.services != null) && (data.service != null) && (rservice != null) && (dhide != null) && (dshow != null))
+        //    {
+        //        data.services.Insert(data.services.IndexOf(data.service), rservice);
+        //        data.services.Remove(data.service);
+        //        dhide();
+        //        dshow();
+        //        errcode = ErrCode.OK;
+        //    }
+        //    return errcode;
+        //}
 
         public async Task send(Data data, bool edit)
         {
@@ -1112,7 +1294,7 @@ namespace WinAMBurner
         public Field Cancel { get; set; }
         public Field Approve { get; set; }
 
-        public dDraw<Action> ddraw;
+        //public dDraw<Action> ddraw;
 
         public Action()
         {
@@ -1120,7 +1302,7 @@ namespace WinAMBurner
         }
 
         public Action(Am am, string tablet, object[] farms, object[] services, EventHandler partNumberEventHandler, EventHandler farmEventHandler, EventHandler radioEventHandler, EventHandler canselEventHandler, EventHandler approveEventHandler,
-            dLogout dlogout, dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Action> ddraw, dShow dshow = null, dNotifyAnswer dnotifyAnswer = null)
+            dLogout dlogout, dHide dhide, dEnabled denabled, dNotify dnotify, dDraw ddraw, dShow dshow = null, dNotifyAnswer dnotifyAnswer = null)
         {
             initFields();
             initFields(am, tablet, farms, services, partNumberEventHandler, farmEventHandler, radioEventHandler, canselEventHandler, approveEventHandler,
@@ -1143,7 +1325,7 @@ namespace WinAMBurner
         }
 
         private void initFields(Am am, string tablet, object[] farms, object[] services, EventHandler partNumberEventHandler, EventHandler farmEventHandler, EventHandler radioEventHandler, EventHandler canselEventHandler, EventHandler approveEventHandler,
-            dLogout dlogout, dHide dhide, dEnabled denabled, dNotify dnotify, dDraw<Action> ddraw, dShow dshow = null, dNotifyAnswer dnotifyAnswer = null)
+            dLogout dlogout, dHide dhide, dEnabled denabled, dNotify dnotify, dDraw ddraw, dShow dshow = null, dNotifyAnswer dnotifyAnswer = null)
         {
             PartNumber.ltext += am.SNum.ToString();
             PartNumber.eventHandler = partNumberEventHandler;

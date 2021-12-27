@@ -47,6 +47,10 @@ namespace WinAMBurner
         private Place placev;
         private Place lplacev;
         public EventHandler eventHandler;
+        public EventHandler toPage1Handler;
+        public EventHandler toPage2Handler;
+        public EventHandler toPage3Handler;
+        public EventHandler toPage4Handler;
         public LinkLabelLinkClickedEventHandler linkEventHandler;
         public bool view;
         public bool enable;
