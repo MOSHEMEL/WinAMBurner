@@ -699,15 +699,9 @@ namespace WinAMBurner
                         buttonToPage_Click<T, IPage1>, buttonToPage_Click<T, IPage2>, buttonToPage_Click<T, IPage3>, buttonToPage_Click<T, IPage4>,
                         logout, hide, enabled, notify, draw, drawPage, screenEntityShow<T, IPage2, IPage3, IPage4>);
                 if (typeof(T) == typeof(Farm))
-                {
-                    if (data.farm != null)
-                        data.farm = entity as Farm;
-                }
+                    data.farm = entity as Farm;
                 else if (typeof(T) == typeof(Service))
-                {
-                    if (data.service != null)
-                        data.service = entity as Service;
-                }
+                    data.service = entity as Service;
                 else
                     return;
                 hide();
