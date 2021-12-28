@@ -17,6 +17,7 @@ namespace WinAMBurner
     {
         public const int DefaultWidth = 240;//460;//390;
         public const int DefaultWidthLarge = 900;//1200;
+        public const int DefaultWidthM = 330;
         public const int DefaultWidthMedium = 600;//900;
         public const int DefaultHeight = 60;
         public const int DefaultHeightSmall = 12;
@@ -369,37 +370,38 @@ namespace WinAMBurner
         public static Point placeCalc(Form thisForm,
                 Control control, Point location = new System.Drawing.Point(), Place placeh = Place.Center, Place placev = Place.Center)
         {
+            int blank = 10;
             if (placeh == Place.Center)
                 location.X = thisForm.Width / 2 - control.Width / 2;
             else if (placeh == Place.Start)
-                location.X = thisForm.Width / 2 - control.Width * 2 - control.Width * 3/ 32;
+                location.X = thisForm.Width / 2 - control.Width * 2 - 3 * blank;
             else if (placeh == Place.End)
                 location.X = thisForm.Width / 2 + control.Width * 2;
             //else if (placeh == Place.One)
             //    location.X = thisForm.Width / 2 + control.Width / 8;
             else if (placeh == Place.Oneh)
                 //location.X = thisForm.Width / 2 - control.Width * 2 - control.Width * 3 / 8;
-                location.X = thisForm.Width / 2 - control.Width * 3 - control.Width * 5/ 32;
+                location.X = thisForm.Width / 2 - control.Width * 3 - 5 * blank;
             //else if (placeh == Place.Two)
             //    location.X = thisForm.Width / 2 + control.Width * 3 / 4;
             else if (placeh == Place.Twoh)
-            location.X = thisForm.Width / 2 - control.Width * 2 - control.Width * 3/ 32;
+            location.X = thisForm.Width / 2 - control.Width * 2 - 3 * blank;
             //else if (placeh == Place.Three)
             //    location.X = thisForm.Width / 2 + control.Width + control.Width * 3 / 8;
             else if (placeh == Place.Threeh)
-                location.X = thisForm.Width / 2 - control.Width - control.Width * 1/ 32;
+                location.X = thisForm.Width / 2 - control.Width - blank;
             //else if (placeh == Place.Four)
             //    location.X = thisForm.Width / 2 - control.Width * 2 - control.Width * 3 / 8;
             else if (placeh == Place.Fourh)
-                location.X = thisForm.Width / 2 + control.Width * 1/ 32;
+                location.X = thisForm.Width / 2 + blank;
             //else if (placeh == Place.Five)
             //    location.X = thisForm.Width / 2 - control.Width - control.Width * 3 / 4;
             else if (placeh == Place.Fiveh)
-                location.X = thisForm.Width / 2 + control.Width + control.Width * 3/ 32;
+                location.X = thisForm.Width / 2 + control.Width + 3 * blank;
             //else if (placeh == Place.Six)
             //    location.X = thisForm.Width / 2 - control.Width - control.Width / 8;
             else if (placeh == Place.Sixh)
-                location.X = thisForm.Width / 2 + control.Width * 2 + control.Width * 5/ 32;
+                location.X = thisForm.Width / 2 + control.Width * 2 + 5 * blank;
 
             if (placev == Place.One)
                 location.Y = 30;

@@ -1,12 +1,10 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Management;
 using System.Reflection;
-using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -102,7 +100,7 @@ namespace WinAMBurner
 
         private ErrCode draw(object entity, Type type = null)
         {
-            ErrCode errcode = ErrCode.ERROR;
+            ErrCode errcode = ErrCode.OK;
             if (type == null)
                 type = entity.GetType();
             foreach (PropertyInfo prop in type.GetProperties())
@@ -127,7 +125,7 @@ namespace WinAMBurner
         //private void drawPage<T, I>()
         private ErrCode drawPage(Type T, Type I)
         {
-            ErrCode errcode = ErrCode.ERROR;
+            ErrCode errcode = ErrCode.OK;
             object entity = default(object);
             if (T == typeof(Farm))
                 entity = data.farm;
@@ -236,17 +234,17 @@ namespace WinAMBurner
         {
             if ((data != null) && (data.login != null))
             {
-                data.login.Email.control.Text = "avner.hilu@outlook.com";
-                data.login.Password.control.Text = "Plk90!@34";
+                //data.login.Email.control.Text = "avner.hilu@outlook.com";
+                //data.login.Password.control.Text = "Plk90!@34";
                 //data.login.Email.control.Text = "yael@gmail.com";
                 //data.login.Password.control.Text = "yael1234";
                 //data.login.tablet = "PF1C9VKU";
                 //data.login.Email.control.Text = "mikiy@armentavet.com";
                 //data.login.Password.control.Text = "miki1973";
                 //data.login.tablet = "VAKD9Z0199D2";
-                //        //login.email = "yaelv@armentavet.com";
-                //        //login.password = "Yyyaeeel123";
-                //        //login.tablet = "kjh1g234123";
+                //login.email = "yaelv@armentavet.com";
+                //login.password = "Yyyaeeel123";
+                //login.tablet = "kjh1g234123";
                 await data.login.send(data);
             }
         }
@@ -265,7 +263,7 @@ namespace WinAMBurner
 
             new Field(ltype: typeof(PictureBox), lplaceh: Place.Twoh, lplacev: Place.One).draw(this, true);
             new Field(ltype: typeof(Label), ltext: "Welcome distributor", font: Field.DefaultFontLarge, lplacev: Place.One).draw(this, true);
-            new Field(ltype: typeof(Label), ltext: "Choose Action: ", lplacev: Place.Two).draw(this, true);
+            //new Field(ltype: typeof(Label), ltext: "Choose Action: ", lplacev: Place.Two).draw(this, true);
             new Field(ltype: typeof(Button), ltext: "Update AM", eventHandler: buttonUpdateAM_Click, width: Field.DefaultWidthMedium, lplacev: Place.Three).draw(this, true);
             new Field(ltype: typeof(Button), ltext: "Manage Farms", eventHandler: buttonEntity_Click<Farm, IFarmPage2, IFarmPage3, IFarmPage4>, width: Field.DefaultWidthMedium, lplacev: Place.Four).draw(this, true);
             new Field(ltype: typeof(Button), ltext: "Manage Service provider", eventHandler: buttonEntity_Click<Service, IServicePage2, IServicePage3, IServicePage4>, width: Field.DefaultWidthMedium, lplacev: Place.Five).draw(this, true);
@@ -293,20 +291,6 @@ namespace WinAMBurner
             hide();
             screenConnectShow();
         }
-
-        //private async void buttonFarm_Click(object sender, EventArgs e)
-        //{
-        //    enabled(false);
-        //    hide();
-        //    screenFarmShow();
-        //}
-
-        //private async void buttonService_Click(object sender, EventArgs e)
-        //{
-        //    enabled(false);
-        //    hide();
-        //    screenServiceShow();
-        //}
 
         private DataTable entityTableGet(List<Entity> entities)
         {
@@ -339,10 +323,10 @@ namespace WinAMBurner
         {
             new Field(ltype: typeof(PictureBox), lplaceh: Place.Twoh, lplacev: Place.One).draw(this, true);
             new Field(ltype: typeof(Label), ltext: "Welcome distributor", font: Field.DefaultFontLarge, lplacev: Place.One).draw(this, true);
-            new Field(ltype: typeof(Label), ltext: "Please make sure the AM is connected to your tablet before continue", lplacev: Place.Two).draw(this, true);
+            new Field(ltype: typeof(Label), ltext: "Please make sure the AM is connected to your tablet before continue", lplacev: Place.Three).draw(this, true);
             label1 = new Field(ltype: typeof(Label), lplacev: Place.Three).draw(this, true) as Label;
-            progressBar1 = new Field(ltype: typeof(ProgressBar), width: Field.DefaultWidthLarge, height: Field.DefaultHeightSmall, lplacev: Place.Three).draw(this, true) as ProgressBar;
-            button1 = new Field(ltype: typeof(Button), ltext: "Check AM present", eventHandler: buttonCheckAM_Click, lplacev: Place.Five).draw(this, true) as Button;
+            progressBar1 = new Field(ltype: typeof(ProgressBar), width: Field.DefaultWidthLarge, height: Field.DefaultHeightSmall, lplacev: Place.Five).draw(this, true) as ProgressBar;
+            button1 = new Field(ltype: typeof(Button), ltext: "Check AM present", eventHandler: buttonCheckAM_Click, lplacev: Place.Seven).draw(this, true) as Button;
             if (AMConnected)
                 AMConnectedShow();
             else
@@ -430,8 +414,8 @@ namespace WinAMBurner
         {
             new Field(ltype: typeof(PictureBox), lplaceh: Place.Twoh, lplacev: Place.One).draw(this, true);
             new Field(ltype: typeof(Label), ltext: "Welcome distributor", font: Field.DefaultFontLarge, lplacev: Place.One).draw(this, true);
-            new Field(ltype: typeof(Label), ltext: "AM identified with SN: " + data.am.SNum, lplacev: Place.Two).draw(this, true);
-            new Field(ltype: typeof(Label), ltext: "Current available treatments: " + data.Current, lplacev: Place.Three).draw(this, true);
+            new Field(ltype: typeof(Label), ltext: "AM identified with SN: " + data.am.SNum, lplacev: Place.Three).draw(this, true);
+            new Field(ltype: typeof(Label), ltext: "Current available treatments: " + data.Current, lplacev: Place.Four).draw(this, true);
             new Field(ltype: typeof(Button), ltext: "Back", eventHandler: buttonInfoBack_Click, lplaceh: Place.Twoh, lplacev: Place.Seven).draw(this, true);
             new Field(ltype: typeof(Button), ltext: "Continue", eventHandler: buttonInfoContinue_Click, lplaceh: Place.Fiveh, lplacev: Place.Seven).draw(this, true);
         }
@@ -574,10 +558,6 @@ namespace WinAMBurner
         private void progressBar_Callback(Object progress, bool reset)
         {
             ProgressBar progressBar = progress as ProgressBar;
-            //if ((data != null) && (data.action != null) && (data.action.Progress != null))
-            //    progressBar = data.action.Progress.lcontrol as ProgressBar;
-            //else
-            //    progressBar = progressBar1;
 
             if (progressBar != null)
             {
@@ -634,9 +614,9 @@ namespace WinAMBurner
         {
             string caption = null;
             if (typeof(T) == typeof(Farm))
-                caption = "Manage farms";
+                caption = "Manage Farms";
             else if (typeof(T) == typeof(Service))
-                caption = "Manage service providers";
+                caption = "Manage Service Providers";
             screenDataGridShow(caption,
             new EventHandler(this.buttonEntityEdit_Click<T, IPage2, IPage3, IPage4>),
             new EventHandler(this.buttonEntityAdd_Click<T, IPage2, IPage3, IPage4>),
@@ -656,13 +636,19 @@ namespace WinAMBurner
 
         private void richTextBoxEntitySearch_TextChanged<T>(object sender, EventArgs e)
         {
-            if ((dataGridView1 != null) && (data != null) && (data.farms != null) && (data.services != null) && (sender != null))
+            if ((dataGridView1 != null) && (data != null) && (sender != null))
             {
                 List<T> entities = default(List<T>);
                 if (typeof(List<T>) == typeof(List<Farm>))
-                    entities = data.farms as List<T>;
+                {
+                    if (data.farms != null)
+                        entities = data.farms as List<T>;
+                }
                 else if (typeof(List<T>) == typeof(List<Service>))
-                    entities = data.services as List<T>;
+                {
+                    if (data.services != null)
+                        entities = data.services as List<T>;
+                }
                 if ((entities != null) && (entities.Count() > 0) && (entities.First() is Entity))
                 {
                     DataTable table = null;
@@ -681,13 +667,19 @@ namespace WinAMBurner
 
         private void buttonEntityEdit_Click<T, IPage2, IPage3, IPage4>(object sender, EventArgs e)
         {
-            if ((data != null) && (data.farms != null) && (data.services != null))
+            if ((data != null))
             {
                 List<T> entities = default(List<T>);
                 if (typeof(T) == typeof(Farm))
-                    entities = data.farms as List<T>;
+                {
+                    if (data.farms != null)
+                        entities = data.farms as List<T>;
+                }
                 else if (typeof(T) == typeof(Service))
-                    entities = data.services as List<T>;
+                {
+                    if (data.services != null)
+                        entities = data.services as List<T>;
+                }
                 if ((entities != null) && (entities.Count() > 0) && (entities.First() is Entity))
                 {
                     T entity = default(T);
@@ -699,7 +691,7 @@ namespace WinAMBurner
 
         private void addEdit<T, IPage2, IPage3, IPage4>(T entity, bool edit, EventHandler esubmit)
         {
-            if ((entity != null) && (data != null) && (data.farms != null) && (data.services != null))
+            if ((entity != null) && (data != null))
             {
                 if (entity is Entity)
                     (entity as Entity).initFields(edit, comboBoxCountry_SelectedIndexChanged,
@@ -707,9 +699,15 @@ namespace WinAMBurner
                         buttonToPage_Click<T, IPage1>, buttonToPage_Click<T, IPage2>, buttonToPage_Click<T, IPage3>, buttonToPage_Click<T, IPage4>,
                         logout, hide, enabled, notify, draw, drawPage, screenEntityShow<T, IPage2, IPage3, IPage4>);
                 if (typeof(T) == typeof(Farm))
-                    data.farm = entity as Farm;
+                {
+                    if (data.farm != null)
+                        data.farm = entity as Farm;
+                }
                 else if (typeof(T) == typeof(Service))
-                    data.service = entity as Service;
+                {
+                    if (data.service != null)
+                        data.service = entity as Service;
+                }
                 else
                     return;
                 hide();
@@ -735,14 +733,20 @@ namespace WinAMBurner
 
         private async void submit<T>(bool edit)
         {
-            if ((data != null) && (data.farm != null) && (data.farm != null) && (data.web != null))
+            if ((data != null) && (data.web != null))
             {
                 T entity = default(T);
 
                 if (typeof(T) == typeof(Farm))
-                    entity = (T)(data.farm as object);
+                {
+                    if (data.farm != null)
+                        entity = (T)(data.farm as object);
+                }
                 else if (typeof(T) == typeof(Service))
-                    entity = (T)(data.service as object);
+                {
+                    if (data.service != null)
+                        entity = (T)(data.service as object);
+                }
                 if (entity != null)
                 {
                     typeof(T).GetMethod("send", new Type[] { typeof(Data), typeof(bool) }).Invoke(entity, new object[] { data, edit });
@@ -757,48 +761,6 @@ namespace WinAMBurner
             hide();
             screenEntityShow<T, IPage2, IPage3, IPage4>();
         }
-
-        //private void screenFarmShow()
-        //{
-        //    screenDataGridShow("Manage Farms",
-        //        new EventHandler(this.buttonFarmEdit_Click),
-        //        new EventHandler(this.buttonFarmAdd_Click),
-        //        new EventHandler(richTextBoxFarmSearch_TextChanged),
-        //        new EventHandler(this.buttonBackToAction_Click));
-        //    if ((dataGridView1 != null) && (data != null) && (data.farms != null))
-        //        dataGridView1.DataSource = entityTableGet(data.farms.Cast<Entity>().ToList());
-        //}
-
-        //private void screenServiceShow()
-        //{
-        //    screenDataGridShow("Manage Service providers",
-        //        new EventHandler(buttonServiceEdit_Click),
-        //        new EventHandler(buttonServiceAdd_Click),
-        //        new EventHandler(richTextBoxServiceSearch_TextChanged),
-        //        new EventHandler(buttonBackToAction_Click));
-        //    if ((dataGridView1 != null) && (data != null) && (data.services != null))
-        //        dataGridView1.DataSource = entityTableGet(data.services.Cast<Entity>().ToList());
-        //}
-
-        //private void richTextBoxFarmSearch_TextChanged(object sender, EventArgs e)
-        //{
-        //    if ((dataGridView1 != null) && (data != null) && (data.farms != null) && (sender != null))
-        //    {
-        //        DataTable table = null;
-        //        if ((table = richTextBoxSearch(sender, data.farms.Cast<Entity>())) != null)
-        //            dataGridView1.DataSource = table;
-        //    }
-        //}
-
-        //private void richTextBoxServiceSearch_TextChanged(object sender, EventArgs e)
-        //{
-        //    if ((dataGridView1 != null) && (data != null) && (data.services != null) && (sender != null))
-        //    {
-        //        DataTable table = null;
-        //        if ((table = richTextBoxSearch(sender, data.services.Cast<Entity>())) != null)
-        //            dataGridView1.DataSource = table;
-        //    }
-        //}
 
         private DataTable richTextBoxSearch(object sender, IEnumerable<Entity> entities)
         {
@@ -833,57 +795,10 @@ namespace WinAMBurner
             screenActionShow();
         }
 
-        //private void buttonFarmAdd_Click(object sender, EventArgs e)
-        //{
-        //    hide();
-        //    if (data != null)
-        //    {
-        //        data.farm = new Farm(false, comboBoxCountry_SelectedIndexChanged,
-        //            buttonFarmCancel_Click, buttonFarmAddSubmit_Click,
-        //            //buttonFarmToPage1_Click, buttonFarmToPage2_Click, buttonFarmToPage3_Click,
-        //            buttonToPage_Click<Farm, IPage1>, buttonToPage_Click<Farm, IFarmPage2>, buttonToPage_Click<Farm, IFarmPage3>,
-        //            logout, hide, enabled, notify, draw, dshow: screenFarmShow);
-        //        if (data.farm != null)
-        //            //data.farm.ddraw(data.farm );
-        //            toPage<Farm, IPage1>();
-        //    }
-        //}
-
         private void buttonToPage_Click<T, I>(object sender, EventArgs e)
         {
             drawPage(typeof(T), typeof(I));
         }
-
-        //private void buttonServiceAdd_Click(object sender, EventArgs e)
-        //{
-        //    hide();
-        //    if (data != null)
-        //    {
-        //        data.service = new Service(false, comboBoxCountry_SelectedIndexChanged, buttonServiceCancel_Click, buttonServiceAddSubmit_Click,
-        //            buttonToPage_Click<Service, IPage1>, buttonToPage_Click<Service, IServicePage2>, buttonToPage_Click<Service, IServicePage3>,
-        //            logout, hide, enabled, notify, draw, dshow: screenServiceShow);
-        //        if (data.service != null)
-        //            //data.service.ddraw(data.service);
-        //            toPage<Service, IPage1>();
-        //    }
-        //}
-
-        //private void buttonFarmEdit_Click(object sender, EventArgs e)
-        //{
-        //    if ((data != null) && (data.farms != null))
-        //    {
-        //        data.farm = getCurrentEntity(data.farms.Cast<Entity>()) as Farm;
-        //        if (data.farm != null)
-        //        {
-        //            hide();
-        //            data.farm.initFields(true, comboBoxCountry_SelectedIndexChanged, buttonFarmCancel_Click, buttonFarmEditSubmit_Click,
-        //                buttonToPage_Click<Farm, IPage1>, buttonToPage_Click<Farm, IFarmPage2>, buttonToPage_Click<Farm, IFarmPage3>,
-        //                logout, hide, enabled, notify, draw, dshow: screenFarmShow);
-        //            //data.farm.ddraw(data.farm);
-        //            toPage<Farm, IPage1>();
-        //        }
-        //    }
-        //}
 
         private Entity getCurrentEntity(IEnumerable<Entity> entities)
         {
@@ -894,35 +809,18 @@ namespace WinAMBurner
             return null;
         }
 
-        //private void buttonServiceEdit_Click(object sender, EventArgs e)
-        //{
-        //    if ((data != null) && (data.services != null))
-        //    {
-        //        data.service = getCurrentEntity(data.services.Cast<Entity>()) as Service;
-        //        if (data.service != null)
-        //        {
-        //            hide();
-        //            data.service.initFields(true, comboBoxCountry_SelectedIndexChanged, buttonServiceCancel_Click, buttonServiceEditSubmit_Click,
-        //                buttonToPage_Click<Service, IPage1>, buttonToPage_Click<Service, IServicePage2>, buttonToPage_Click<Service, IServicePage3>,
-        //                logout, hide, enabled, notify, draw, dshow: screenServiceShow);
-        //            //data.service.ddraw(data.service);
-        //            toPage<Service, IPage1>();
-        //        }
-        //    }
-        //}
-
         private void comboBoxCountry_SelectedIndexChanged(object sender, EventArgs e)
         {
             ComboBox comboBox = sender as ComboBox;
-            if (comboBox != null)
-            {
+            if ((comboBox != null) && (data != null))
+            { 
                 Entity entity = null;
-                if ((data != null) && (data.farm != null) && (data.farm.Country != null))
+                if ((data.farm != null) && (data.farm.Country != null))
                 {
                     if (comboBox == data.farm.Country.control)
                         entity = data.farm;
                 }
-                if ((data.service != null) && (data.service.Country != null))
+                else if ((data.service != null) && (data.service.Country != null))
                 {
                     if (comboBox == data.service.Country.control)
                         entity = data.service;
@@ -943,50 +841,6 @@ namespace WinAMBurner
                 }
             }
         }
-
-        //private void buttonFarmCancel_Click(object sender, EventArgs e)
-        //{
-        //    hide();
-        //    screenFarmShow();
-        //}
-
-        //private void buttonServiceCancel_Click(object sender, EventArgs e)
-        //{
-        //    hide();
-        //    screenServiceShow();
-        //}
-
-        //private async void buttonFarmAddSubmit_Click(object sender, EventArgs e)
-        //{
-        //    if ((data != null) && (data.farm != null) && (data.web != null))
-        //    {
-        //        await data.farm.send(data, false);
-        //    }
-        //}
-
-        //private async void buttonServiceAddSubmit_Click(object sender, EventArgs e)
-        //{
-        //    if ((data != null) && (data.service != null) && (data.web != null))
-        //    {
-        //        await data.service.send(data, false);
-        //    }
-        //}
-
-        //private async void buttonFarmEditSubmit_Click(object sender, EventArgs e)
-        //{
-        //    if ((data != null) && (data.farm != null) && (data.web != null))
-        //    {
-        //        await data.farm.send(data, true);
-        //    }
-        //}
-        
-        //private async void buttonServiceEditSubmit_Click(object sender, EventArgs e)
-        //{
-        //    if ((data != null) && (data.service != null) && (data.web != null))
-        //    {
-        //        await data.service.send(data, true);
-        //    }
-        //}
 
         private void linkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {

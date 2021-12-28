@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -199,7 +197,7 @@ namespace WinAMBurner
         public delegate Task<ErrCode> dResponseOk<T>(Data data, T entity);
         public delegate ErrCode dCheck(Data data);
         public delegate Task<ErrCode> dApprove<T>(Data data, T entity);
-        public delegate Task<List<string>> dResponseErr(Data data, ErrCode errcode);
+        public delegate Task<List<string>> dResponseErr<T>(Data data, ErrCode errcode);
 
         public delegate void dLogout();
         public delegate Task dNotify(string title, string messages, string cancel);
@@ -279,6 +277,24 @@ namespace WinAMBurner
             return errcode;
         }
 
+        public void checkField(string jname)
+        {
+            //PropertyInfo [] props = typeof(T).GetProperties();
+            foreach (PropertyInfo prop in GetType().GetProperties())
+            {
+                //Console.WriteLine("{0} = {1}", prop.Name, prop.GetValue(user, null));
+                Field field = prop.GetValue(this) as Field;
+                if ((field != null) && field.view)
+                {
+                    if (prop.Name.ToLower() == jname.Replace('_', '\0'))
+                    {
+                        field.val = field.dflt;
+                        field.error = ErrCode.EPARAM;
+                    }
+                }
+            }
+        }
+
         public ErrCode responseParse(JsonDocument jsonDocument, List<string> errors, List<string> messages)
         {
             ErrCode errcode = ErrCode.SERROR;
@@ -290,11 +306,15 @@ namespace WinAMBurner
                     //Console.WriteLine("{0} = {1}", prop.Name, prop.GetValue(user, null));
                     JsonElement jsonElement;
                     if (jsonDocument.RootElement.TryGetProperty(prop.Name, out jsonElement))
+                    {
                         if (jsonElement.ValueKind == JsonValueKind.Array)
-                            errors.AddRange(jsonElement.EnumerateArray().Select(e => e.ToString()));
+                        {
+                            checkField(prop.Name);
+                            errors.AddRange(jsonElement.EnumerateArray().Select(e => prop.Name + ": " + e.ToString()));
+                        }
                         else if (jsonElement.ValueKind == JsonValueKind.String)
                             messages.Add(jsonElement.GetString());
-
+                    }
                 }
             }
 
@@ -305,7 +325,7 @@ namespace WinAMBurner
         }
 
         public async Task<ErrCode> send<TJson, T>(TJson jentity, string url, dWeb<TJson> dweb, string captionOk, string captionErr,
-            bool showMsgs, dResponseOk<T> dresponseOk, Data data, dCheck dcheck = null, dApprove<TJson> dapprove = null, dResponseErr dresponseErr = null, List<string> messagesOk = null, List<string> messagesErr = null)
+            bool showMsgs, dResponseOk<T> dresponseOk, Data data, dCheck dcheck = null, dApprove<TJson> dapprove = null, dResponseErr<T> dresponseErr = null, List<string> messagesOk = null, List<string> messagesErr = null)
         {
             ErrCode errcode = ErrCode.ERROR;
 
@@ -362,7 +382,7 @@ namespace WinAMBurner
                     if (messagesOk != null)
                         await dnotify(captionOk, messagesOk.Aggregate(string.Empty, (r, m) => r += "\n" + m), "Ok");
 
-                    await dresponseOk(data, rentity);
+                    errcode = await dresponseOk(data, rentity);
                 }
 
                 if (errcode != ErrCode.OK)
@@ -374,17 +394,26 @@ namespace WinAMBurner
                     }
                     else
                     {
+                        List<string> notifys = new List<string>();
+
                         if (errors.Count() > 0)
-                            await dnotify(captionErr, errors.Aggregate(string.Empty, (r, m) => r += "\n" + m), "Ok");
+                            //await dnotify(captionErr, errors.Aggregate(string.Empty, (r, m) => r += "\n" + m), "Ok");
+                            notifys.AddRange(errors);
 
                         if (messagesErr != null)
-                            await dnotify(captionErr, messagesErr.Aggregate(string.Empty, (r, m) => r += "\n" + m), "Ok");
+                            //await dnotify(captionErr, messagesErr.Aggregate(string.Empty, (r, m) => r += "\n" + m), "Ok");
+                            notifys.AddRange(messagesErr);
+
+                        if (notifys.Count() > 0)
+                            await dnotify(captionErr, notifys.Aggregate(string.Empty, (r, m) => r += "\n" + m), "Ok");
 
                         if (dresponseErr != null)
                         {
+
                             List<string> responseErr = await dresponseErr(data, errcode);
                             if (responseErr != null)
-                                await dnotify(captionErr, responseErr.Aggregate(string.Empty, (r, m) => r += "\n" + m), "Ok");
+                                dnotify(captionErr, responseErr.Aggregate(string.Empty, (r, m) => r += "\n" + m), "Ok");
+                                //notifys.AddRange(responseErr);
                         }
 
                         denabled(true);
@@ -773,12 +802,12 @@ namespace WinAMBurner
         {
             if (edit)
             {
-                Caption.ltext = "Edit";
+                Caption.ltext = "Edit " + Caption.ltext;
                 ContractType.view = false;
             }
             else
             {
-                Caption.ltext = "Add";
+                Caption.ltext = "Add " + Caption.ltext;
                 ContractType.view = true;
             }
             if (Country.val == "United States of America")
@@ -809,19 +838,25 @@ namespace WinAMBurner
         public async Task<ErrCode> responseAddOk<T>(Data data, T rentity)
         {
             ErrCode errcode = ErrCode.ERROR;
-            if ((data != null) && (data.farms != null) && (data.farm != null) && (data.services != null) && (data.service != null) && (rentity != null) && (dhide != null) && (dshow != null))
+            if ((data != null) && (rentity != null) && (dhide != null) && (dshow != null))
             {
                 List<T> entities = default(List<T>);
                 T entity = default(T);
                 if (typeof(T) == typeof(Farm))
                 {
-                    entities = data.farms as List<T>;
-                    entity = (T)(data.farm as object);
+                    if ((data.farms != null) && (data.farm != null))
+                    {
+                        entities = data.farms as List<T>;
+                        entity = (T)(data.farm as object);
+                    }
                 }
                 else if (typeof(T) == typeof(Service))
                 {
-                    entities = data.services as List<T>;
-                    entity = (T)(data.service as object);
+                    if ((data.services != null) && (data.service != null))
+                    {
+                        entities = data.services as List<T>;
+                        entity = (T)(data.service as object);
+                    }
                 }
                 if ((entities != null) && (entity != null))
                 {
@@ -837,19 +872,25 @@ namespace WinAMBurner
         public async Task<ErrCode> responseEditOk<T>(Data data, T rentity)
         {
             ErrCode errcode = ErrCode.ERROR;
-            if ((data != null) && (data.farms != null) && (data.farm != null) && (data.services != null) && (data.service != null) && (rentity != null) && (dhide != null) && (dshow != null))
+            if ((data != null) && (rentity != null) && (dhide != null) && (dshow != null))
             {
                 List<T> entities = default(List<T>);
                 T entity = default(T);
                 if (typeof(T) == typeof(Farm))
                 {
-                    entities = data.farms as List<T>;
-                    entity = (T)(data.farm as object);
+                    if ((data.farms != null) && (data.farm != null))
+                    {
+                        entities = data.farms as List<T>;
+                        entity = (T)(data.farm as object);
+                    }
                 }
                 else if (typeof(T) == typeof(Service))
                 {
-                    entities = data.services as List<T>;
-                    entity = (T)(data.service as object);
+                    if ((data.services != null) && (data.service != null))
+                    {
+                        entities = data.services as List<T>;
+                        entity = (T)(data.service as object);
+                    }
                 }
                 if ((entities != null) && (entity != null))
                 {
@@ -861,6 +902,27 @@ namespace WinAMBurner
                 }
             }
             return errcode;
+        }
+
+        public async Task<List<string>> responseErr<T>(Data data, ErrCode errcode)
+        {
+            if (errcode != ErrCode.OK)
+            {
+                Type[] pages = new Type[] { };
+                if (typeof(T) == typeof(Farm))
+                    pages = new Type[] { typeof(IPage1), typeof(IFarmPage2), typeof(IFarmPage3), typeof(IFarmPage4) };
+                else if (typeof(T) == typeof(Service))
+                    pages = new Type[] { typeof(IPage1), typeof(IServicePage2), typeof(IServicePage3) };
+                foreach (Type page in pages)
+                {
+                    if (ddrawPage(typeof(T), page) != ErrCode.OK)
+                    {
+                        checkFields();
+                        return null;
+                    }
+                }
+            }
+            return null;
         }
 
         public override string ToString()
@@ -968,7 +1030,7 @@ namespace WinAMBurner
             LocationOfTreatmentType = new Field(type: typeof(ComboBox), ltype: typeof(Label), dflt: "Treatment Location", ltext: "Treatment Location:", width: Field.DefaultWidthMedium, autosize: false, items: Const.LOCATION_OF_TREATMENT_TYPE, placeh: Place.Fourh, lplaceh: Place.Threeh, placev: Place.Five);
 
             Picture = new Field(ltype: typeof(PictureBox), lplaceh: Place.Twoh, lplacev: Place.One);
-            Caption = new Field(ltype: typeof(Label), ltext: "Add Farm", font: Field.DefaultFontLarge, lplacev: Place.One);
+            Caption = new Field(ltype: typeof(Label), ltext: "Farm", width: Field.DefaultWidthLarge, font: Field.DefaultFontLarge, lplacev: Place.One);
             Cancel = new Field(ltype: typeof(Button), ltext: "Cancel", lplaceh: Place.Twoh, lplacev: Place.Seven);
             Submit = new Field(ltype: typeof(Button), ltext: "Submit", lplaceh: Place.Fiveh, lplacev: Place.Seven);
             Back = new Field(ltype: typeof(Button), ltext: "Back", lplaceh: Place.Threeh, lplacev: Place.Seven);
@@ -985,83 +1047,6 @@ namespace WinAMBurner
                 dlogout, dhide, denabled, dnotify, ddraw, ddrawPage, dshow);
         }
 
-        //public void initFields(bool edit, EventHandler countryHandler, EventHandler cancelHandler, EventHandler submitHandler,
-        //    EventHandler toPage1Handler, EventHandler toPage2Handler, EventHandler toPage3Handler,
-        //    dLogout dlogout, dHide dhide, dEnabled denabled, dNotify dnotify, dDraw ddraw, dShow dshow = null)
-        //{
-        //    if (edit)
-        //    {
-        //        Caption.ltext = "Edit Farm";
-        //        ContractType.view = false;
-        //    }
-        //    else
-        //    {
-        //        Caption.ltext = "Add Farm";
-        //        ContractType.view = true;
-        //    }
-        //    if (Country.val == "United States of America")
-        //        State.enable = true;
-        //    else
-        //        State.enable = false;
-        //    Cancel.eventHandler = cancelHandler;
-        //    Submit.eventHandler = submitHandler;
-        //    Country.eventHandler = countryHandler;
-        //    Back.toPage1Handler = toPage1Handler;
-        //    Back.toPage2Handler = toPage2Handler;
-        //    Back.toPage3Handler = toPage3Handler;
-        //    Next.toPage1Handler = toPage1Handler;
-        //    Next.toPage2Handler = toPage2Handler;
-        //    Next.toPage3Handler = toPage3Handler;
-        //
-        //    this.dlogout = dlogout;
-        //    this.dhide = dhide;
-        //    this.denabled = denabled;
-        //    this.dnotify = dnotify;
-        //    this.ddraw = ddraw;
-        //    if (dshow != null)
-        //        this.dshow = dshow;
-        //}
-
-        //public async Task<ErrCode> responseAddOk(Data data, Farm rfarm)
-        //{
-        //    ErrCode errcode = ErrCode.ERROR;
-        //    if ((data != null) && (data.farms != null) && (rfarm != null) && (dhide != null) && (dshow != null))
-        //    {
-        //        data.farms.Add(rfarm);
-        //        dhide();
-        //        dshow();
-        //        errcode = ErrCode.OK;
-        //    }
-        //    return errcode;
-        //}
-
-        //public async Task<ErrCode> responseEditOk(Data data, Farm rfarm)
-        //{
-        //    ErrCode errcode = ErrCode.ERROR;
-        //    if ((data != null) && (data.farms != null) && (data.farm != null) && (rfarm != null) && (dhide != null) && (dshow != null))
-        //    {
-        //        data.farms.Insert(data.farms.IndexOf(data.farm), rfarm);
-        //        data.farms.Remove(data.farm);
-        //        dhide();
-        //        dshow();
-        //        errcode = ErrCode.OK;
-        //    }
-        //    return errcode;
-        //}
-
-        public async Task<List<string>> responseErr(Data data, ErrCode errcode)
-        {
-            if (errcode == ErrCode.EPARAM)
-            {
-                if (ddrawPage(typeof(Farm), typeof(IPage1)) == ErrCode.OK)
-                    if (ddrawPage(typeof(Farm), typeof(IFarmPage2)) == ErrCode.OK)
-                        if (ddrawPage(typeof(Farm), typeof(IFarmPage3)) == ErrCode.OK)
-                            if (ddrawPage(typeof(Farm), typeof(IFarmPage4)) == ErrCode.OK)
-                                return null;
-            }
-            return null;
-        }
-
         public async Task send(Data data, bool edit)
         {
             if ((data != null) && (data.farm != null) && (data.web != null))
@@ -1071,14 +1056,14 @@ namespace WinAMBurner
                     await send<FarmJson, Farm>(data.farm, "api/p/farms/" + data.farm.Id + "/", data.web.entityEdit,
                         "Submit Success", "Submit Failed", false, responseEditOk, data,
                         messagesErr: new List<string>() { "Submit failed, can't add empty or negative fields,",
-                        "make sure all the fields are filled with valid values" }, dresponseErr: responseErr);
+                        "make sure all the fields are filled with valid values" }, dresponseErr: responseErr<Farm>);
                 }
                 else
                 { 
                     await send<FarmJson, Farm>(data.farm, "api/p/farms/", data.web.entityAdd,
                         "Submit Success", "Submit Failed", false, responseAddOk, data,
                         messagesErr: new List<string>() { "Submit failed, can't add empty or negative fields,",
-                        "make sure all the fields are filled with valid values" }, dresponseErr: responseErr);
+                        "make sure all the fields are filled with valid values" }, dresponseErr: responseErr<Farm>);
                 }
             }
         }
@@ -1148,7 +1133,7 @@ namespace WinAMBurner
             ContractType = new Field(type: typeof(ComboBox), ltype: typeof(Label), dflt: "Contract Type", ltext: "Contract Type:", width: Field.DefaultWidthMedium, autosize: false, items: Const.CONTRACT_TYPE, placeh: Place.Fourh, lplaceh: Place.Threeh, placev: Place.Four);
 
             Picture = new Field(ltype: typeof(PictureBox), lplaceh: Place.Twoh, lplacev: Place.One);
-            Caption = new Field(ltype: typeof(Label), ltext: "Add Service", font: Field.DefaultFontLarge, lplacev: Place.One);
+            Caption = new Field(ltype: typeof(Label), ltext: "Service Provider", width: Field.DefaultWidthLarge, font: Field.DefaultFontLarge, lplacev: Place.One);
             Cancel = new Field(ltype: typeof(Button), ltext: "Cancel", lplaceh: Place.Twoh, lplacev: Place.Seven);
             Submit = new Field(ltype: typeof(Button), ltext: "Submit", lplaceh: Place.Fiveh, lplacev: Place.Seven);
             Back = new Field(ltype: typeof(Button), ltext: "Back", lplaceh: Place.Threeh, lplacev: Place.Seven);
@@ -1165,70 +1150,6 @@ namespace WinAMBurner
                 dlogout, dhide, denabled, dnotify, ddraw, ddrawPage, dshow);
         }
 
-        //public void initFields(bool edit, EventHandler countryHandler, EventHandler cancelHandler, EventHandler submitHandler,
-        //    EventHandler toPage1Handler, EventHandler toPage2Handler, EventHandler toPage3Handler,
-        //    dLogout dlogout, dHide dhide, dEnabled denabled, dNotify dnotify, dDraw ddraw, dShow dshow = null)
-        //{
-        //    if (edit)
-        //    {
-        //        Caption.ltext = "Edit Service";
-        //        ContractType.view = false;
-        //    }
-        //    else
-        //    {
-        //        Caption.ltext = "Add Service";
-        //        ContractType.view = true;
-        //    }
-        //    if (Country.val == "United States of America")
-        //        State.enable = true;
-        //    else
-        //        State.enable = false;
-        //    Cancel.eventHandler = cancelHandler;
-        //    Submit.eventHandler = submitHandler;
-        //    Country.eventHandler = countryHandler;
-        //    Back.toPage1Handler = toPage1Handler;
-        //    Back.toPage2Handler = toPage2Handler;
-        //    Back.toPage3Handler = toPage3Handler;
-        //    Next.toPage1Handler = toPage1Handler;
-        //    Next.toPage2Handler = toPage2Handler;
-        //    Next.toPage3Handler = toPage3Handler;
-        //
-        //    this.dlogout = dlogout;
-        //    this.dhide = dhide;
-        //    this.denabled = denabled;
-        //    this.dnotify = dnotify;
-        //    this.ddraw = ddraw;
-        //    if (dshow != null)
-        //        this.dshow = dshow;
-        //}
-
-        //public async Task<ErrCode> responseAddOk(Data data, Service rservice)
-        //{
-        //    ErrCode errcode = ErrCode.ERROR;
-        //    if ((data != null) && (data.services != null) && (rservice != null) && (dhide != null) && (dshow != null))
-        //    {
-        //        data.services.Add(rservice);
-        //        dhide();
-        //        dshow();
-        //        errcode = ErrCode.OK;
-        //    }
-        //    return errcode;
-        //}
-
-        //public async Task<ErrCode> responseEditOk(Data data, Service rservice)
-        //{
-        //    ErrCode errcode = ErrCode.ERROR;
-        //    if ((data != null) && (data.services != null) && (data.service != null) && (rservice != null) && (dhide != null) && (dshow != null))
-        //    {
-        //        data.services.Insert(data.services.IndexOf(data.service), rservice);
-        //        data.services.Remove(data.service);
-        //        dhide();
-        //        dshow();
-        //        errcode = ErrCode.OK;
-        //    }
-        //    return errcode;
-        //}
-
         public async Task send(Data data, bool edit)
         {
             if ((data != null) && (data.service != null) && (data.web != null))
@@ -1238,14 +1159,14 @@ namespace WinAMBurner
                     await send<ServiceJson, Service>(data.service, "api/p/service_providers/" + data.service.Id + "/", data.web.entityEdit,
                         "Submit Success", "Submit Failed", false, responseEditOk, data,
                         messagesErr: new List<string>() { "Submit failed, can't add empty or negative fields,",
-                        "make sure all the fields are filled with valid values" });
+                        "make sure all the fields are filled with valid values" }, dresponseErr: responseErr<Service>);
                 }
                 else
                 { 
                     await send<ServiceJson, Service>(data.service, "api/p/service_providers/", data.web.entityAdd,
                         "Submit Success", "Submit Failed", false, responseAddOk, data,
                         messagesErr: new List<string>() { "Submit failed, can't add empty or negative fields,",
-                        "make sure all the fields are filled with valid values" });
+                        "make sure all the fields are filled with valid values" }, dresponseErr: responseErr<Service>);
                 }
             }
         }
@@ -1317,8 +1238,9 @@ namespace WinAMBurner
 
             Picture = new Field(ltype: typeof(PictureBox), lplaceh: Place.Twoh, lplacev: Place.One);
             Welcome = new Field(ltype: typeof(Label), ltext: "Welcome distributor", font: Field.DefaultFontLarge, lplacev: Place.One);
-            RadioFarm = new Field(ltype: typeof(RadioButton), ltext: "Farm", lplaceh: Place.Sixh, lplacev: Place.Two);
-            RadioService = new Field(ltype: typeof(RadioButton), ltext: "Service provider", height: Field.DefaultHeightLarge, lplaceh: Place.Sixh, lplacev: Place.Three) ;
+            RadioFarm = new Field(ltype: typeof(RadioButton), ltext: "Farm", width: Field.DefaultWidthM, lplaceh: Place.Fiveh, lplacev: Place.Two);
+            //RadioService = new Field(ltype: typeof(RadioButton), ltext: "Service provider", height: Field.DefaultHeightLarge, lplaceh: Place.Fiveh, lplacev: Place.Three) ;
+            RadioService = new Field(ltype: typeof(RadioButton), ltext: "Service provider", width: Field.DefaultWidthM, lplaceh: Place.Fiveh, lplacev: Place.Three) ;
             Progress = new Field(ltype: typeof(ProgressBar), width: Field.DefaultWidthLarge, height: Field.DefaultHeightSmall, lplacev: Place.Six);
             Cancel = new Field(ltype: typeof(Button), ltext: "Cancel", lplaceh: Place.Twoh, lplacev: Place.Seven);
             Approve = new Field(ltype: typeof(Button), ltext: "Approve", lplaceh: Place.Fiveh, lplacev: Place.Seven);

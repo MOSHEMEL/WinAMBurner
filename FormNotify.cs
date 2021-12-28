@@ -41,8 +41,8 @@ namespace WinAMBurner
                 new Field(ltype: typeof(Label), ltext: text[4], lplacev: Place.Five).draw(this, true);
 
             buttonOK = new Field(ltype: typeof(Button), ltext: "OK", eventHandler: new EventHandler(this.buttonOK_Click), lplacev: Place.Seven).draw(this, true) as Button;
-            buttonYes = new Field(ltype: typeof(Button), ltext: "Yes", eventHandler: new EventHandler(this.buttonYes_Click), lplaceh: Place.Fourh, lplacev: Place.Seven).draw(this, true) as Button;
-            buttonNo = new Field(ltype: typeof(Button), ltext: "No", eventHandler: new EventHandler(this.buttonNo_Click), lplaceh: Place.Threeh, lplacev: Place.Seven).draw(this, true) as Button;
+            buttonYes = new Field(ltype: typeof(Button), ltext: "Yes", eventHandler: new EventHandler(this.buttonYes_Click), lplaceh: Place.Fiveh, lplacev: Place.Seven).draw(this, true) as Button;
+            buttonNo = new Field(ltype: typeof(Button), ltext: "No", eventHandler: new EventHandler(this.buttonNo_Click), lplaceh: Place.Twoh, lplacev: Place.Seven).draw(this, true) as Button;
 
             switch (notifyButtons)
             {
