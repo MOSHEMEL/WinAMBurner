@@ -20,7 +20,8 @@ namespace WinAMBurner
         SERROR = -7,
         EPARSE = -8,
         EXPIRE = -9,
-        EEMPTY = -10
+        EEMPTY = -10,
+        EREMOTE = -11
     }
 
     enum Cmd

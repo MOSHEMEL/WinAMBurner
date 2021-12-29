@@ -30,15 +30,15 @@ namespace WinAMBurner
             Font = new Font("Segoe UI", Field.DefaultFont, FontStyle.Regular, GraphicsUnit.Point);
             Name = caption;
 
-            new Field(ltype: typeof(Label), ltext: text[0], lplacev: Place.One).draw(this, true);
+            new Field(ltype: typeof(Label), ltext: text[0], lplacev: Place.Two).draw(this, true);
             if (text.Count > 1)
-                new Field(ltype: typeof(Label), ltext: text[1], lplacev: Place.Two).draw(this, true);
+                new Field(ltype: typeof(Label), ltext: text[1], lplacev: Place.Three).draw(this, true);
             if (text.Count > 2)
-                new Field(ltype: typeof(Label), ltext: text[2], lplacev: Place.Three).draw(this, true);
+                new Field(ltype: typeof(Label), ltext: text[2], lplacev: Place.Four).draw(this, true);
             if (text.Count > 3)
-                new Field(ltype: typeof(Label), ltext: text[3], lplacev: Place.Four).draw(this, true);
+                new Field(ltype: typeof(Label), ltext: text[3], lplacev: Place.Five).draw(this, true);
             if (text.Count > 4)
-                new Field(ltype: typeof(Label), ltext: text[4], lplacev: Place.Five).draw(this, true);
+                new Field(ltype: typeof(Label), ltext: text[4], lplacev: Place.Six).draw(this, true);
 
             buttonOK = new Field(ltype: typeof(Button), ltext: "OK", eventHandler: new EventHandler(this.buttonOK_Click), lplacev: Place.Seven).draw(this, true) as Button;
             buttonYes = new Field(ltype: typeof(Button), ltext: "Yes", eventHandler: new EventHandler(this.buttonYes_Click), lplaceh: Place.Fiveh, lplacev: Place.Seven).draw(this, true) as Button;

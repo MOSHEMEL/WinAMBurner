@@ -382,28 +382,34 @@ namespace WinAMBurner
                         uint[] laptxId = new uint[ID_LENGTH] { ERROR, ERROR, ERROR };
                         if (dataLineParseCheck_01(dataRd, laptxId) == ErrCode.OK)
                         {
-                            if (checkError(aptxId))
+                            if (!checkError(laptxId))
                             {
-                                for (int i = 0; i < laptxId.Length; i++)
+                                if (checkError(aptxId))
                                 {
-                                 if(laptxId[i] == ERROR)
-                                    aptxId[i] = laptxId[i];
+                                    for (int i = 0; i < laptxId.Length; i++)
+                                        aptxId[i] = laptxId[i];
                                 }
+                                else
+                                {
+                                    for (int i = 0; i < laptxId.Length; i++)
+                                    {
+                                        if (laptxId[i] != aptxId[i])
+                                        {
+                                            errcode = ErrCode.EPARSE;
+                                            LogFile.logWrite(string.Format("{0} laptxId[{1}] {2} aptxId[{3}] {4}", errcode, i, laptxId[i], i, aptxId[i]));
+                                            return errcode;
+                                        }
+                                    }
+                                }
+                                LogFile.logWrite(string.Format("set aptxId: {0}", aptxId.Aggregate("", (r, m) => r += "0x" + m.ToString("x") + " ")));
+                                errcode = ErrCode.OK;
                             }
                             else
                             {
-                                for (int i = 0; i < laptxId.Length; i++)
-                                {
-                                    if (laptxId[i] != aptxId[i])
-                                    {
-                                        errcode = ErrCode.EPARSE;
-                                        LogFile.logWrite(string.Format("{0} laptxId[{1}] {2} aptxId[{3}] {4}", errcode, i, laptxId[i], i, aptxId[i]));
-                                        return errcode;
-                                    }
-                                }
+                                errcode = ErrCode.EREMOTE;
+                                LogFile.logWrite(string.Format("{0} laptxId {1}", errcode, laptxId.Aggregate("", (r, m) => r += "0x" + m.ToString("x") + " ")));
+                                return errcode;
                             }
-                            LogFile.logWrite(string.Format("set aptxId: {0}", aptxId.Aggregate("", (r, m) => r += "0x" + m.ToString("x") + " ")));
-                            errcode = ErrCode.OK;
                         }
                         else
                         {

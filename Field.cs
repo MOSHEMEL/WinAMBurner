@@ -17,8 +17,9 @@ namespace WinAMBurner
     {
         public const int DefaultWidth = 240;//460;//390;
         public const int DefaultWidthLarge = 900;//1200;
-        public const int DefaultWidthM = 330;
+        public const int DefaultWidthRadio = 330;
         public const int DefaultWidthMedium = 600;//900;
+        public const int DefaultWidthEntity = 500;
         public const int DefaultHeight = 60;
         public const int DefaultHeightSmall = 12;
         public const int DefaultHeightLarge = 200;
@@ -284,6 +285,7 @@ namespace WinAMBurner
                         if (eventHandler != null)
                             linkLabel.Click += eventHandler;
                     }
+                    control.AutoSize = autosize;
                 }
                 if (type == typeof(ComboBox))
                 {
@@ -310,8 +312,10 @@ namespace WinAMBurner
                 {
                     CheckBox checkBox = control as CheckBox;
                     if (checkBox != null)
+                    {
                         if (eventHandler != null)
                             checkBox.CheckedChanged += eventHandler;
+                    }
                 }
 
                 control.Location = placeCalc(thisForm, control, placeh: placeh, placev: placev);
@@ -513,7 +517,7 @@ namespace WinAMBurner
             dataGridView.RowTemplate.Height = 33;
             dataGridView.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
             dataGridView.ReadOnly = true;
-            dataGridView.Size = new Size(1050, 800); //1853, 800);
+            dataGridView.Size = new Size(1200, 800); //1853, 800);
             dataGridView.Scale(new SizeF(ScaleFactor, ScaleFactor));
             dataGridView.Font = new Font("Segoe UI", DefaultFont, FontStyle.Regular, GraphicsUnit.Point);
             dataGridView.Location = placeCalc(thisForm, dataGridView, placeh: placeh, placev: placev);

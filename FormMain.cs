@@ -326,7 +326,7 @@ namespace WinAMBurner
             new Field(ltype: typeof(Label), ltext: "Please make sure the AM is connected to your tablet before continue", lplacev: Place.Three).draw(this, true);
             label1 = new Field(ltype: typeof(Label), lplacev: Place.Three).draw(this, true) as Label;
             progressBar1 = new Field(ltype: typeof(ProgressBar), width: Field.DefaultWidthLarge, height: Field.DefaultHeightSmall, lplacev: Place.Five).draw(this, true) as ProgressBar;
-            button1 = new Field(ltype: typeof(Button), ltext: "Check AM present", eventHandler: buttonCheckAM_Click, lplacev: Place.Seven).draw(this, true) as Button;
+            button1 = new Field(ltype: typeof(Button), ltext: "Check AM present", width: Field.DefaultWidthMedium, eventHandler: buttonCheckAM_Click, lplacev: Place.Seven).draw(this, true) as Button;
             if (AMConnected)
                 AMConnectedShow();
             else
@@ -369,6 +369,7 @@ namespace WinAMBurner
                         progressBar1.Value = progressBar1.Maximum;
                     }
                 }
+
                 if (errcode == ErrCode.OK)
                 {
                     //if ok
@@ -382,7 +383,10 @@ namespace WinAMBurner
                     clearAM();
                     AMDisconnectedShow();
 
-                    await notify("AM not connected", "AM not found make sure the AM is connected\nto the tablet by using a USB cable", "OK");
+                    if (errcode == ErrCode.EREMOTE)
+                        await notify("Blank AM", "AM is blank, please run the AM at least once \nwith the remote control before burning", "OK");
+                    else
+                        await notify("AM not connected", "AM not found make sure the AM is connected\nto the tablet by using a USB cable", "OK");
                 }
                 label1.Visible = true;
                 button1.Enabled = true;
