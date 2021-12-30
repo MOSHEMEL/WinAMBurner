@@ -19,7 +19,7 @@ namespace WinAMBurner
         public const int DefaultWidthLarge = 900;//1200;
         public const int DefaultWidthRadio = 330;
         public const int DefaultWidthMedium = 600;//900;
-        public const int DefaultWidthEntity = 500;
+        public const int DefaultWidthEntity = 400;
         public const int DefaultHeight = 60;
         public const int DefaultHeightSmall = 12;
         public const int DefaultHeightLarge = 200;

@@ -596,8 +596,8 @@ namespace WinAMBurner
         {
             Picture = new Field(ltype: typeof(PictureBox), lplaceh: Place.Twoh, lplacev: Place.One);
             Password1 = new Field(type: typeof(TextBox), ltype: typeof(Label), dflt: "Password", ltext: "Please Enter a new password. \nPassword should be complex and at least 8 chars long.", 
-                width: Field.DefaultWidthMedium, placev: Place.Five, lplacev: Place.Three);
-            Password2 = new Field(type: typeof(TextBox), dflt: "Confirm Password", width: Field.DefaultWidthMedium, placev: Place.Six);
+                width: Field.DefaultWidthLarge, placev: Place.Five, lplacev: Place.Three);
+            Password2 = new Field(type: typeof(TextBox), dflt: "Confirm Password", width: Field.DefaultWidthLarge, placev: Place.Six);
             ChangePassword = new Field(ltype: typeof(Button), ltext: "Change Password", width: Field.DefaultWidthMedium, lplacev: Place.Seven);
         }
 
@@ -696,7 +696,7 @@ namespace WinAMBurner
         private void initFields()
         {
             Picture = new Field(ltype: typeof(PictureBox), lplaceh: Place.Twoh, lplacev: Place.One);
-            Email = new Field(type: typeof(RichTextBox), ltype: typeof(Label), dflt: "Email@email.com", ltext: "The password will be reseted, please enter an email to send a temporary password:", width: Field.DefaultWidthMedium, placev: Place.Five, lplacev: Place.Three);
+            Email = new Field(type: typeof(RichTextBox), ltype: typeof(Label), dflt: "Email@email.com", ltext: "The password will be reseted, please enter an email to send a temporary password:", width: Field.DefaultWidthLarge, placev: Place.Five, lplacev: Place.Three);
             ResetPassword = new Field(ltype: typeof(Button), ltext: "Reset Password", width: Field.DefaultWidthMedium, lplacev: Place.Seven);
         }
 
@@ -1302,17 +1302,22 @@ namespace WinAMBurner
                                     "Do you want to proceed?", "Yes", "No");
                         if (answer)
                         {
-                            if ((errcode = await data.am.AMCmd(Cmd.WRITE)) == ErrCode.OK)
+                            if (data.action.PartNumber.val.ToLower() != Const.PART_NUMBER_STATUS.ToLower())
                             {
-                                if ((errcode = await data.am.AMCmd(Cmd.READ)) == ErrCode.OK)
+                                if ((errcode = await data.am.AMCmd(Cmd.WRITE)) == ErrCode.OK)
                                 {
-                                    errcode = ErrCode.OK;
+                                    if ((errcode = await data.am.AMCmd(Cmd.READ)) == ErrCode.OK)
+                                    {
+                                        errcode = ErrCode.OK;
+                                    }
+                                    else
+                                        errcode = ErrCode.SERROR;
                                 }
                                 else
                                     errcode = ErrCode.SERROR;
                             }
                             else
-                                errcode = ErrCode.SERROR;
+                                errcode = ErrCode.OK;
                         }
                         else
                             errcode = ErrCode.CANSEL;

@@ -242,8 +242,8 @@ namespace WinAMBurner
                 //data.login.Email.control.Text = "mikiy@armentavet.com";
                 //data.login.Password.control.Text = "miki1973";
                 //data.login.tablet = "VAKD9Z0199D2";
-                //login.email = "yaelv@armentavet.com";
-                //login.password = "Yyyaeeel123";
+                //data.login.Email.control.Text = "yaelv@armentavet.com";
+                //data.login.Password.control.Text = "yael1234";
                 //login.tablet = "kjh1g234123";
                 await data.login.send(data);
             }

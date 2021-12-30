@@ -35,6 +35,7 @@ namespace WinAMBurner
     static class Const
     {
         public const string Version = "1.4";
+        public const string PART_NUMBER_STATUS = "Status";
 
         public static Dictionary<string, string> DCOUNTRY;
         public static string[] COUNTRY;
