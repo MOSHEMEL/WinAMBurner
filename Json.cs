@@ -1246,9 +1246,9 @@ namespace WinAMBurner
 
             Picture = new Field(ltype: typeof(PictureBox), lplaceh: Place.Twoh, lplacev: Place.One);
             Welcome = new Field(ltype: typeof(Label), ltext: "Welcome distributor", font: Field.DefaultFontLarge, lplacev: Place.One);
-            RadioFarm = new Field(ltype: typeof(RadioButton), ltext: "Farm", width: Field.DefaultWidthRadio, lplaceh: Place.Fiveh, lplacev: Place.Two);
+            RadioFarm = new Field(ltype: typeof(RadioButton), ltext: "Farm", autosize: false, width: Field.DefaultWidthRadio, lplaceh: Place.Fiveh, lplacev: Place.Two);
             //RadioService = new Field(ltype: typeof(RadioButton), ltext: "Service provider", height: Field.DefaultHeightLarge, lplaceh: Place.Fiveh, lplacev: Place.Three) ;
-            RadioService = new Field(ltype: typeof(RadioButton), ltext: "Service provider", width: Field.DefaultWidthRadio, lplaceh: Place.Fiveh, lplacev: Place.Three) ;
+            RadioService = new Field(ltype: typeof(RadioButton), ltext: "Service provider", autosize: false, width: Field.DefaultWidthRadio, lplaceh: Place.Fiveh, lplacev: Place.Three) ;
             Progress = new Field(ltype: typeof(ProgressBar), width: Field.DefaultWidthLarge, height: Field.DefaultHeightSmall, lplacev: Place.Six);
             Cancel = new Field(ltype: typeof(Button), ltext: "Cancel", lplaceh: Place.Twoh, lplacev: Place.Seven);
             Approve = new Field(ltype: typeof(Button), ltext: "Approve", lplaceh: Place.Fiveh, lplacev: Place.Seven);
@@ -1302,7 +1302,8 @@ namespace WinAMBurner
                                     "Do you want to proceed?", "Yes", "No");
                         if (answer)
                         {
-                            if (data.action.PartNumber.val.ToLower() != Const.PART_NUMBER_STATUS.ToLower())
+                            if ((data.action.PartNumber.val.ToLower() != Const.PART_NUMBER_STATUS_PURCHASE.ToLower()) &&
+                                (data.action.PartNumber.val.ToLower() != Const.PART_NUMBER_STATUS_SUBSCRIPTION.ToLower()))
                             {
                                 if ((errcode = await data.am.AMCmd(Cmd.WRITE)) == ErrCode.OK)
                                 {
@@ -1317,7 +1318,10 @@ namespace WinAMBurner
                                     errcode = ErrCode.SERROR;
                             }
                             else
+                            {
+                                data.am.MaxiPrev = data.am.Maxi;
                                 errcode = ErrCode.OK;
+                            }
                         }
                         else
                             errcode = ErrCode.CANSEL;

@@ -187,8 +187,8 @@ namespace WinAMBurner
                         if ((errcode = await amCmdBlock(Cmd.NUKE)) != ErrCode.OK)
                             break;
                     if ((errcode = await amCmdBlock(Cmd.WRIRE_00)) == ErrCode.OK)
-                        if ((errcode = await amCmdBlock(Cmd.WRITE_03_FF, "FF", maxi)) == ErrCode.OK)
-                            if ((errcode = await amCmdBlock(Cmd.READ_00)) == ErrCode.OK)
+                        if ((errcode = await amCmdBlock(Cmd.READ_00)) == ErrCode.OK)
+                            if ((errcode = await amCmdBlock(Cmd.WRITE_03_FF, "FF", maxi)) == ErrCode.OK)
                                 if ((errcode = await amCmdBlock(Cmd.READ_03_FF, "FF")) == ErrCode.OK)
                                     errcode = ErrCode.OK;
                     break;
@@ -208,7 +208,6 @@ namespace WinAMBurner
         //private async Task<ErrCode> amReadBlock(string blockNum)
         private async Task<ErrCode> amCmdBlock(Cmd cmd, string blockNum = "", uint max = 0)
         {
-            ErrCode errcode = ErrCode.ERROR;
             List<string> cmds = new List<string>();
             if (cmd == Cmd.ID)
             {
@@ -245,189 +244,146 @@ namespace WinAMBurner
             string dataRdStr = await serialReadWrite(cmds);
             //write to log
             LogFile.logWrite(dataSplit(dataRdStr));
-            if (cmd == Cmd.WRIRE_00)
-            {
-                uint lfactor = ERROR;
-                errcode = dataLineParseCheck_00(dataSplit(dataRdStr), blockNum, ref lfactor);
-            }
-            else if (cmd == Cmd.WRITE_03_FF)
+            if (cmd == Cmd.WRITE_03_FF)
             {
                 uint lmaxi = ERROR;
                 uint ldate = ERROR;
                 uint lsnum = ERROR;
                 uint lfactor = ERROR;
                 uint lremaining = ERROR;
-                errcode = dataLineParseCheck_03_FF(dataSplit(dataRdStr), blockNum, ref lmaxi, ref ldate, ref lsnum, ref lfactor, ref lremaining, false);
+                return dataLineParseCheck_03_FF(dataSplit(dataRdStr), blockNum, ref lmaxi, ref ldate, ref lsnum, ref lfactor, ref lremaining, false);
+            }
+            else if (cmd == Cmd.WRIRE_00)
+            {
+                uint lfactor = ERROR;
+                return dataLineParseCheck_00(dataSplit(dataRdStr), ref lfactor);
+            }
+            else if(cmd == Cmd.NUKE)
+            {
+                uint lnuke = ERROR;
+                return dataLineParseCheck_Nuke(dataSplit(dataRdStr), lnuke);
             }
             else
             {
-                errcode = parseBlock(dataRdStr, cmd, blockNum);
+                return parseBlock(dataRdStr, cmd, blockNum);
             }
-            return errcode;
         }
 
         private static void get_id(List<string> cmd)
         {
-            cmd.Add("getid,3#");
-            //cmd.Add("NOP#");
-            //cmd.Add("NOP#");
+            if (cmd != null)
+            {
+                cmd.Add("getid,3#");
+                //cmd.Add("NOP#");
+                //cmd.Add("NOP#");
+            }
         }
 
         private void read_01(List<string> cmd)
         {
-            cmd.Add("rd,3,0x0001008#");
-            cmd.Add("rd,3,0x0001004#");
-            cmd.Add("rd,3,0x0001000#");
-            //cmd.Add("NOP#");
-            //cmd.Add("NOP#");
+            if (cmd != null)
+            {
+                cmd.Add("rd,3,0x0001008#");
+                cmd.Add("rd,3,0x0001004#");
+                cmd.Add("rd,3,0x0001000#");
+                //cmd.Add("NOP#");
+                //cmd.Add("NOP#");
+            }
         }
 
         private void read_03_FF(string blockNum, List<string> cmd)
         {
-            cmd.Add("rd,3,0x000" + blockNum + "F40#");
-            cmd.Add("Read REMAINING 3#");
-            cmd.Add("rd,3,0x000" + blockNum + "FF6#");
-            cmd.Add("Read SNUM 3#");
-            cmd.Add("rd,3,0x000" + blockNum + "FEE#");
-            cmd.Add("Read DATE 3#");
-            cmd.Add("rd,3,0x000" + blockNum + "FE6#");
-            cmd.Add("Read MAX 3#");
-            cmd.Add("status2,3#");
-            cmd.Add("status1,3#");
-            if (blockNum == "3")
-                cmd.Add("rd,3,0x000" + blockNum + "F50#");
-            else
-                cmd.Add("find,3,1#");
-            //cmd.Add("NOP#");
-            //cmd.Add("NOP#");
+            if (cmd != null)
+            {
+                cmd.Add("rd,3,0x000" + blockNum + "F40#");
+                cmd.Add("Read REMAINING 3#");
+                cmd.Add("rd,3,0x000" + blockNum + "FF6#");
+                cmd.Add("Read SNUM 3#");
+                cmd.Add("rd,3,0x000" + blockNum + "FEE#");
+                cmd.Add("Read DATE 3#");
+                cmd.Add("rd,3,0x000" + blockNum + "FE6#");
+                cmd.Add("Read MAX 3#");
+                cmd.Add("status2,3#");
+                cmd.Add("status1,3#");
+                if (blockNum == "3")
+                    cmd.Add("rd,3,0x000" + blockNum + "F50#");
+                else
+                    cmd.Add("find,3,1#");
+                //cmd.Add("NOP#");
+                //cmd.Add("NOP#");
+            }
         }
 
         private void write_03_FF(string blockNum, List<string> cmd, uint max)
         {
-            cmd.Add("!!!WRITE COMPLETE!!!#");
-            //cmd.Add(string.Format("snum,3,{0}#", snum));
-            //cmd.Add(string.Format("maxi,3,{0}#", maxi + maxiSet));
-            //cmd.Add(string.Format("date,3,{0}#", (int)date));
-            //cmd.Add(string.Format("wrt,3,0x00FFF50,00{0:x}#", factor));
-            if ((factor >= max) && (factor <= (max + TOLERANCE)))
-                cmd.Add(string.Format("wrt,3,0x00" + blockNum + "F40,00{0:x}#", remaining));
-            cmd.Add(string.Format("wrt,3,0x00" + blockNum + "FF6,00{0:x}#", snum));
-            cmd.Add(string.Format("wrt,3,0x00" + blockNum + "FEE,00{0:x}#", (int)date));
-            //cmd.Add(string.Format("wrt,3,0x00" + blokNum + "FE6,00{0:x}#", maxi + maxiSet));
-            cmd.Add(string.Format("wrt,3,0x00" + blockNum + "FE6,00{0:x}#", max));
-            cmd.Add(string.Format("wrt,3,0x00" + blockNum + "F50,00{0:x}#", factor));
+            if (cmd != null)
+            {
+                cmd.Add("!!!WRITE COMPLETE!!!#");
+                //cmd.Add(string.Format("snum,3,{0}#", snum));
+                //cmd.Add(string.Format("maxi,3,{0}#", maxi + maxiSet));
+                //cmd.Add(string.Format("date,3,{0}#", (int)date));
+                //cmd.Add(string.Format("wrt,3,0x00FFF50,00{0:x}#", factor));
+                if ((factor >= max) && (factor <= (max + TOLERANCE)))
+                    cmd.Add(string.Format("wrt,3,0x00" + blockNum + "F40,00{0:x}#", remaining));
+                cmd.Add(string.Format("wrt,3,0x00" + blockNum + "FF6,00{0:x}#", snum));
+                cmd.Add(string.Format("wrt,3,0x00" + blockNum + "FEE,00{0:x}#", (int)date));
+                //cmd.Add(string.Format("wrt,3,0x00" + blokNum + "FE6,00{0:x}#", maxi + maxiSet));
+                cmd.Add(string.Format("wrt,3,0x00" + blockNum + "FE6,00{0:x}#", max));
+                cmd.Add(string.Format("wrt,3,0x00" + blockNum + "F50,00{0:x}#", factor));
 
-            //erase
-            cmd.Add("scan,3,0#");
-            cmd.Add("scan,3,0#");
-            cmd.Add("scan,3,0#");
-            for (int i = 0; i < 10; i++)
-                cmd.Add("NOP#");
-            //cmd.Add("nuke,3#");
-            cmd.Add("erase,3,0x" + blockNum + "000#");
-            //erase
-            cmd.Add("set registers readonly#");
-            cmd.Add("status2,3#");
-            cmd.Add("status1,3#");
-            cmd.Add("statusw,3,8001#");
-            cmd.Add("clear registers#");
-            cmd.Add("status2,3#");
-            cmd.Add("status1,3#");
-            cmd.Add("statusw,3,0000#");
-            cmd.Add("status2,3#");
-            cmd.Add("status1,3#");
+                //erase
+                cmd.Add("scan,3,0#");
+                cmd.Add("scan,3,0#");
+                cmd.Add("scan,3,0#");
+                for (int i = 0; i < 10; i++)
+                    cmd.Add("NOP#");
+                //cmd.Add("nuke,3#");
+                cmd.Add("erase,3,0x" + blockNum + "000#");
+                //erase
+                cmd.Add("set registers readonly#");
+                cmd.Add("status2,3#");
+                cmd.Add("status1,3#");
+                cmd.Add("statusw,3,8001#");
+                cmd.Add("clear registers#");
+                cmd.Add("status2,3#");
+                cmd.Add("status1,3#");
+                cmd.Add("statusw,3,0000#");
+                cmd.Add("status2,3#");
+                cmd.Add("status1,3#");
+            }
         }
 
         private void read_00(List<string> cmd)
         {
-            cmd.Add("rd,3,0x0000000#");
+            if (cmd != null)
+            {
+                cmd.Add("rd,3,0x0000000#");
+            }
         }
 
         private void write_00(List<string> cmd)
         {
-            cmd.Add(string.Format("wrt,3,0x000000,00{0:x}#", factor));
+            if (cmd != null)
+            {
+                cmd.Add(string.Format("wrt,3,0x000000,00{0:x}#", factor));
+            }
         }
 
         private void nuke(List<string> cmd)
         {
-            cmd.Add("scan,3,0#");
-            cmd.Add("scan,3,0#");
-            cmd.Add("scan,3,0#");
-            for (int i = 0; i < 10; i++)
-                cmd.Add("NOP#");
-            cmd.Add("nuke,3#");
+            if (cmd != null)
+            {
+                cmd.Add("scan,3,0#");
+                cmd.Add("scan,3,0#");
+                cmd.Add("scan,3,0#");
+                for (int i = 0; i < 10; i++)
+                    cmd.Add("NOP#");
+                cmd.Add("nuke,3#");
+            }
         }
-
-        //private async Task<ErrCode> amWriteBlock(string blockNum, uint max)
-        //{
-        //    ErrCode errcode = ErrCode.ERROR;
-        //    Date = DateTime.Now;
-        //    List<string> cmd = new List<string>();
-        //    if (blockNum == "0")
-        //    {
-        //        cmd.Add(string.Format("wrt,3,0x00" + blockNum + "000,00{0:x}#", factor));
-        //    }
-        //    else
-        //    {
-        //        cmd.Add("!!!WRITE COMPLETE!!!#");
-        //        //cmd.Add(string.Format("snum,3,{0}#", snum));
-        //        //cmd.Add(string.Format("maxi,3,{0}#", maxi + maxiSet));
-        //        //cmd.Add(string.Format("date,3,{0}#", (int)date));
-        //        //cmd.Add(string.Format("wrt,3,0x00FFF50,00{0:x}#", factor));
-        //        cmd.Add(string.Format("wrt,3,0x00" + blockNum + "FF6,00{0:x}#", snum));
-        //        cmd.Add(string.Format("wrt,3,0x00" + blockNum + "FEE,00{0:x}#", (int)date));
-        //        //cmd.Add(string.Format("wrt,3,0x00" + blokNum + "FE6,00{0:x}#", maxi + maxiSet));
-        //        cmd.Add(string.Format("wrt,3,0x00" + blockNum + "FE6,00{0:x}#", max));
-        //        cmd.Add(string.Format("wrt,3,0x00" + blockNum + "F50,00{0:x}#", factor));
-        //
-        //        //erase
-        //        cmd.Add("scan,3,0#");
-        //        cmd.Add("scan,3,0#");
-        //        cmd.Add("scan,3,0#");
-        //        for (int i = 0; i < 10; i++)
-        //            cmd.Add("NOP#");
-        //        //cmd.Add("nuke,3#");
-        //        cmd.Add("erase,3,0x" + blockNum + "000#");
-        //        //erase
-        //        cmd.Add("set registers readonly#");
-        //        cmd.Add("status2,3#");
-        //        cmd.Add("status1,3#");
-        //        cmd.Add("statusw,3,8001#");
-        //        cmd.Add("clear registers#");
-        //        cmd.Add("status2,3#");
-        //        cmd.Add("status1,3#");
-        //        cmd.Add("statusw,3,0000#");
-        //        cmd.Add("status2,3#");
-        //        cmd.Add("status1,3#");
-        //    }
-        //    cmd.Add("NOP#");
-        //    cmd.Add("NOP#");
-        //
-        //    LogFile.logWrite(cmd);
-        //
-        //    string dataRdStr = await serialReadWrite(cmd);
-        //    //write to log
-        //    LogFile.logWrite(dataSplit(dataRdStr));
-        //    if (blockNum == "0")
-        //    {
-        //        uint lfactor = ERROR;
-        //        errcode = dataLineParseCheck_00(dataSplit(dataRdStr), blockNum, ref lfactor);
-        //    }
-        //    else
-        //    {
-        //        uint lmaxi = ERROR;
-        //        uint ldate = ERROR;
-        //        uint lsnum = ERROR;
-        //        uint lfactor = ERROR;
-        //        uint lremaining = ERROR;
-        //        errcode = dataLineParseCheck_03_FF(dataSplit(dataRdStr), blockNum, ref lmaxi, ref ldate, ref lsnum, ref lfactor, ref lremaining, false);
-        //    }
-        //    return errcode;
-        //}
 
         private ErrCode parseBlock(string dataRdStr, Cmd cmd, string blokNum)
         {
-            ErrCode errcode = ErrCode.ERROR;
             if (dataRdStr != null)
             {
                 //parse to lines
@@ -438,160 +394,120 @@ namespace WinAMBurner
                     //id
                     if (cmd == Cmd.ID)
                     {
-                        uint[] lid = new uint[ID_LENGTH] { ERROR, ERROR, ERROR };
-                        if (dataLineParseCheck_id(dataRd, lid) == ErrCode.OK)
-                        {
-                            if (checkError(id))
-                            {
-                                for (int i = 0; i < lid.Length; i++)
-                                    id[i] = lid[i];
-                            }
-                            else
-                            {
-                                for (int i = 0; i < lid.Length; i++)
-                                {
-                                    if (lid[i] != id[i])
-                                    {
-                                        errcode = ErrCode.EPARSE;
-                                        LogFile.logWrite(string.Format("{0} lid[{1}] {2} id[{3}] {4}", errcode, i, lid[i], i, id[i]));
-                                        return errcode;
-                                    }
-                                }
-                            }
-                            LogFile.logWrite(string.Format("set id: {0}", id.Aggregate("", (r, m) => r += "0x" + m.ToString("x") + " ")));
-                            errcode = ErrCode.OK;
-                        }
-                    }
-                    else if (cmd == Cmd.READ_03_FF)
-                    {
-                        uint lmaxi = ERROR;
-                        uint ldate = ERROR;
-                        uint lsnum = ERROR;
-                        uint lfactor = ERROR;
-                        uint lremaining = ERROR;
-                        //maxi
-                        if (dataLineParseCheck_03_FF(dataRd, blokNum, ref lmaxi, ref ldate, ref lsnum, ref lfactor, ref lremaining, true) == ErrCode.OK)
-                        {
-                            //maxiprev = maxi;
-                            //maxi = lmaxi;
-                            //date = ldate;
-                            //if (snum == ERROR)
-                            //    snum = lsnum;
-                            //else
-                            //{
-                            //    if (lsnum != snum)
-                            //    {
-                            //        errcode = ErrCode.EPARSE;
-                            //        LogFile.logWrite(string.Format("{0} lsnum {1} snum {2}", errcode, lsnum, snum));
-                            //        return errcode;
-                            //    }
-                            //}
-                            //
-                            //if (factor == ERROR)
-                            //    factor = lfactor;
-                            //else
-                            //{
-                            //    if (lfactor != factor)
-                            //    {
-                            //        errcode = ErrCode.EPARSE;
-                            //        LogFile.logWrite(string.Format("{0} lfactor {1} factor {2}", errcode, lfactor, factor));
-                            //        return errcode;
-                            //    }
-                            //}
-                            //errcode = ErrCode.OK;
-                            if (blokNum == "3")
-                                errcode = dataSet(ref bckup_maxiprev, ref bckup_maxi, ref bckup_date, ref bckup_snum, ref bckup_factor, ref backup_remaining, ref lmaxi, ref ldate, ref lsnum, ref lfactor, ref lremaining);
-                            else
-                                errcode = dataSet(ref maxiprev, ref maxi, ref date, ref snum, ref factor, ref remaining, ref lmaxi, ref ldate, ref lsnum, ref lfactor, ref lremaining);
-                        }
-                        else
-                        {
-                            errcode = ErrCode.EPARSE;
-                            return errcode;
-                        }
-                    }
-                    else if (cmd == Cmd.READ_01)
-                    {
-                        uint[] laptxId = new uint[ID_LENGTH] { ERROR, ERROR, ERROR };
-                        if (dataLineParseCheck_01(dataRd, laptxId) == ErrCode.OK)
-                        {
-                            if (!checkError(laptxId))
-                            {
-                                if (checkError(aptxId))
-                                {
-                                    for (int i = 0; i < laptxId.Length; i++)
-                                        aptxId[i] = laptxId[i];
-                                }
-                                else
-                                {
-                                    for (int i = 0; i < laptxId.Length; i++)
-                                    {
-                                        if (laptxId[i] != aptxId[i])
-                                        {
-                                            errcode = ErrCode.EPARSE;
-                                            LogFile.logWrite(string.Format("{0} laptxId[{1}] {2} aptxId[{3}] {4}", errcode, i, laptxId[i], i, aptxId[i]));
-                                            return errcode;
-                                        }
-                                    }
-                                }
-                                LogFile.logWrite(string.Format("set aptxId: {0}", aptxId.Aggregate("", (r, m) => r += "0x" + m.ToString("x") + " ")));
-                                errcode = ErrCode.OK;
-                            }
-                            else
-                            {
-                                errcode = ErrCode.EREMOTE;
-                                LogFile.logWrite(string.Format("{0} laptxId {1}", errcode, laptxId.Aggregate("", (r, m) => r += "0x" + m.ToString("x") + " ")));
-                                return errcode;
-                            }
-                        }
-                        else
-                        {
-                            errcode = ErrCode.EPARSE;
-                            return errcode;
-                        }
+                        return dataLineParse_id(dataRd);
                     }
                     else if (cmd == Cmd.READ_00)
                     {
-                        uint lfactor = ERROR;
-                        //factor
-                        if (dataLineParseCheck_00(dataRd, blokNum, ref lfactor) == ErrCode.OK)
-                        {
-                            if (factor == ERROR)
-                            {
-                                factor = lfactor;
-                            }
-                            else
-                            {
-                                if (lfactor > (factor + TOLERANCE))
-                                {
-                                    errcode = ErrCode.EPARSE;
-                                    LogFile.logWrite(string.Format("{0} lfactor {1} factor {2}", errcode, lfactor, factor));
-                                    return errcode;
-                                }
-                            }
-                            LogFile.logWrite(string.Format("set factor: {0}", factor));
-                        }
+                        return dataLineParse_00(dataRd);
+                    }
+                    else if (cmd == Cmd.READ_01)
+                    {
+                        return dataLineParse_01(dataRd);
+                    }
+                    else if (cmd == Cmd.READ_03_FF)
+                    {
+                        return dataLineParse_03_FF(dataRd, blokNum);
+                    }
+                    else
+                    {
+                        LogFile.logWrite(string.Format("{0} cmd {1}", ErrCode.EUNKNOWN, cmd));
+                        return ErrCode.EUNKNOWN;
                     }
                 }
                 else
                 {
-                    errcode = ErrCode.EPARSE;
-                    LogFile.logWrite(string.Format("{0} dataRd {1}", errcode, dataRd));
-                    return errcode;
+                    LogFile.logWrite(string.Format("{0} dataRd {1}", ErrCode.EPARSE, dataRd));
+                    return ErrCode.EPARSE;
                 }
+            }
+            LogFile.logWrite(string.Format("{0} dataRdStr {1}", ErrCode.EPARSE, dataRdStr));
+            return ErrCode.EPARSE;
+        }
+
+        private ErrCode dataLineSet_id(ref uint[] id, uint[] lid)
+        {
+            if (checkError(id))
+            {
+                for (int i = 0; i < lid.Length; i++)
+                    id[i] = lid[i];
             }
             else
             {
-                errcode = ErrCode.EPARSE;
-                LogFile.logWrite(string.Format("{0} dataRdStr {1}", errcode, dataRdStr));
-                return errcode;
+                for (int i = 0; i < lid.Length; i++)
+                {
+                    if (lid[i] != id[i])
+                    {
+                        LogFile.logWrite(string.Format("{0} lid[{1}] {2} id[{3}] {4}", ErrCode.EPARSE, i, lid[i], i, id[i]));
+                        return ErrCode.EPARSE;
+                    }
+                }
             }
-            return errcode;
+            LogFile.logWrite(string.Format("set id: {0}", id.Aggregate("", (r, m) => r += "0x" + m.ToString("x") + " ")));
+            return ErrCode.OK;
         }
 
-        private ErrCode dataSet(ref uint maxiprev, ref uint maxi, ref double date, ref uint snum, ref uint factor, ref uint remaining, ref uint lmaxi, ref uint ldate, ref uint lsnum, ref uint lfactor, ref uint lremaining)
+        private ErrCode dataLineParse_id(List<string> dataRd)
         {
-            ErrCode errcode = ErrCode.ERROR;
+            if (dataRd != null)
+            {
+                uint[] lid = new uint[ID_LENGTH] { ERROR, ERROR, ERROR };
+                if (dataLineParseCheck_id(dataRd, lid) == ErrCode.OK)
+                {
+                    LogFile.logWrite(string.Format("set Id:"));
+                    return dataLineSet_id(ref id, lid);
+                }
+            }
+            return ErrCode.EPARSE;
+        }
+
+        private ErrCode dataLineParse_01(List<string> dataRd)
+        {
+            if (dataRd != null)
+            {
+                uint[] laptxId = new uint[ID_LENGTH] { ERROR, ERROR, ERROR };
+                if (dataLineParseCheck_01(dataRd, laptxId) == ErrCode.OK)
+                {
+                    if (!checkError(laptxId))
+                    {
+                        LogFile.logWrite(string.Format("set aptxId:"));
+                        return dataLineSet_id(ref aptxId, laptxId);
+                    }
+                    LogFile.logWrite(string.Format("{0} laptxId {1}", ErrCode.EREMOTE, laptxId.Aggregate("", (r, m) => r += "0x" + m.ToString("x") + " ")));
+                    return ErrCode.EREMOTE;
+                }
+            }
+            return ErrCode.EPARSE;
+        }
+
+        private ErrCode dataLineParse_00(List<string> dataRd)
+        {
+            if (dataRd != null)
+            {
+                uint lfactor = ERROR;
+                //factor
+                if (dataLineParseCheck_00(dataRd, ref lfactor) == ErrCode.OK)
+                {
+                    if (factor == ERROR)
+                    {
+                        factor = lfactor;
+                    }
+                    else
+                    {
+                        if (lfactor > (factor + TOLERANCE))
+                        {
+                            LogFile.logWrite(string.Format("{0} lfactor {1} factor {2}", ErrCode.EPARSE, lfactor, factor));
+                            return ErrCode.EPARSE;
+                        }
+                    }
+                    LogFile.logWrite(string.Format("set factor: {0}", factor));
+                    return ErrCode.OK;
+                }
+            }
+            return ErrCode.EPARSE;
+        }
+
+        private ErrCode dataLineSet_03_FF(ref uint maxiprev, ref uint maxi, ref double date, ref uint snum, ref uint factor, ref uint remaining, ref uint lmaxi, ref uint ldate, ref uint lsnum, ref uint lfactor, ref uint lremaining)
+        {
             if ((lsnum != 0) && (lsnum != ERROR))
             {
                 if (snum == ERROR)
@@ -602,9 +518,8 @@ namespace WinAMBurner
                 {
                     if (lsnum != snum)
                     {
-                        errcode = ErrCode.EPARSE;
-                        LogFile.logWrite(string.Format("{0} lsnum {1} snum {2}", errcode, lsnum, snum));
-                        return errcode;
+                        LogFile.logWrite(string.Format("{0} lsnum {1} snum {2}", ErrCode.EPARSE, lsnum, snum));
+                        return ErrCode.EPARSE;
                     }
                 }
                 LogFile.logWrite(string.Format("set snum: {0}", snum));
@@ -618,9 +533,8 @@ namespace WinAMBurner
                 {
                     if (lfactor > (factor + TOLERANCE))
                     {
-                        errcode = ErrCode.EPARSE;
-                        LogFile.logWrite(string.Format("{0} lfactor {1} factor {2}", errcode, lfactor, factor));
-                        return errcode;
+                        LogFile.logWrite(string.Format("{0} lfactor {1} factor {2}", ErrCode.EPARSE, lfactor, factor));
+                        return ErrCode.EPARSE;
                     }
                 }
                 LogFile.logWrite(string.Format("set factor: {0}", factor));
@@ -632,112 +546,85 @@ namespace WinAMBurner
                 LogFile.logWrite(string.Format("set date: {0}", date));
                 remaining = lremaining;
                 LogFile.logWrite(string.Format("set remaining: {0}", remaining));
-                errcode = ErrCode.OK;
+                return ErrCode.OK;
             }
-            else
+            LogFile.logWrite(string.Format("{0} lsnum {1} lmaxi {2} lfactor {3}", ErrCode.EEMPTY, lsnum, lmaxi, lfactor));
+            return ErrCode.EEMPTY;
+        }
+
+        private ErrCode dataLineParse_03_FF(List<string> dataRd, string blokNum)
+        {
+            if (dataRd != null)
             {
-                errcode = ErrCode.EEMPTY;
-                LogFile.logWrite(string.Format("{0} lsnum {1} lmaxi {2} lfactor {3}", errcode, lsnum, lmaxi, lfactor));
-                return errcode;
+                uint lmaxi = ERROR;
+                uint ldate = ERROR;
+                uint lsnum = ERROR;
+                uint lfactor = ERROR;
+                uint lremaining = ERROR;
+                //maxi
+                if (dataLineParseCheck_03_FF(dataRd, blokNum, ref lmaxi, ref ldate, ref lsnum, ref lfactor, ref lremaining, true) == ErrCode.OK)
+                {
+                    if (blokNum == "3")
+                        return dataLineSet_03_FF(ref bckup_maxiprev, ref bckup_maxi, ref bckup_date, ref bckup_snum, ref bckup_factor, ref backup_remaining, ref lmaxi, ref ldate, ref lsnum, ref lfactor, ref lremaining);
+                    else
+                        return dataLineSet_03_FF(ref maxiprev, ref maxi, ref date, ref snum, ref factor, ref remaining, ref lmaxi, ref ldate, ref lsnum, ref lfactor, ref lremaining);
+                }
             }
-            return errcode;
+            return ErrCode.EPARSE;
         }
 
         private ErrCode dataLineParseCheck_01(List<string> dataRd, uint[] laptxId)
         {
-            ErrCode errcode = ErrCode.ERROR;
             if (dataRd != null)
             {
-                if ((dataLineParse(dataRd, "0x1000", ref laptxId[0]) == ErrCode.OK) &&
-                    (dataLineParse(dataRd, "0x1004", ref laptxId[1]) == ErrCode.OK) &&
-                    (dataLineParse(dataRd, "0x1008", ref laptxId[2]) == ErrCode.OK))
-                    errcode = ErrCode.OK;
+                ErrCode errcode;
+                if ((errcode = dataLineParse(dataRd, "0x1000", ref laptxId[0])) == ErrCode.OK)
+                    if ((errcode = dataLineParse(dataRd, "0x1004", ref laptxId[1])) == ErrCode.OK)
+                        if ((errcode = dataLineParse(dataRd, "0x1008", ref laptxId[2])) == ErrCode.OK)
+                            return ErrCode.OK;
+                return errcode;
             }
-            return errcode;
+            return ErrCode.EPARSE;
         }
 
         private ErrCode dataLineParseCheck_03_FF(List<string> dataRd, string blokNum, ref uint lmaxi, ref uint ldate, ref uint lsnum, ref uint lfactor, ref uint lremaining, bool read)
         {
-            ErrCode errcode = ErrCode.ERROR;
             if (dataRd != null)
             {
+                ErrCode errcode;
                 //maxi
-                if (dataLineParse(dataRd, "0x" + blokNum + "FE6", ref lmaxi) == ErrCode.OK)
+                if ((errcode = dataLineParse(dataRd, "0x" + blokNum + "FE6", ref lmaxi)) == ErrCode.OK)
                     //date
-                    if (dataLineParse(dataRd, "0x" + blokNum + "FEE", ref ldate) == ErrCode.OK)
+                    if ((errcode = dataLineParse(dataRd, "0x" + blokNum + "FEE", ref ldate)) == ErrCode.OK)
                         //snum
-                        if (dataLineParse(dataRd, "0x" + blokNum + "FF6", ref lsnum) == ErrCode.OK)
+                        if ((errcode = dataLineParse(dataRd, "0x" + blokNum + "FF6", ref lsnum)) == ErrCode.OK)
                             //factor
-                            if (((read) && (dataLineParse(dataRd, "pulses written", ref lfactor) == ErrCode.OK)) ||
-                                ((!read) && (dataLineParse(dataRd, "0x" + blokNum + "F50", ref lfactor) == ErrCode.OK)))
+                            if (((read) && ((errcode = dataLineParse(dataRd, "pulses written", ref lfactor)) == ErrCode.OK)) ||
+                                ((!read) && ((errcode = dataLineParse(dataRd, "0x" + blokNum + "F50", ref lfactor)) == ErrCode.OK)))
                                 //remaining
-                                if (((read) && (dataLineParse(dataRd, "0x" + blokNum + "F40", ref lremaining) == ErrCode.OK)) ||
+                                if (((read) && ((errcode = dataLineParse(dataRd, "0x" + blokNum + "F40", ref lremaining)) == ErrCode.OK)) ||
                                     (!read))
-                                    errcode = ErrCode.OK;
+                                    return ErrCode.OK;
+                return errcode;
             }
-            return errcode;
+            return ErrCode.EPARSE;
         }
 
-        private ErrCode dataLineParseCheck_00(List<string> dataRd, string blokNum, ref uint lfactor)
+        private ErrCode dataLineParseCheck_00(List<string> dataRd, ref uint lfactor)
         {
-            ErrCode errcode = ErrCode.ERROR;
             if (dataRd != null)
-            {
                 //factor
-                if (dataLineParse(dataRd, "0x" + blokNum + "000", ref lfactor) == ErrCode.OK)
-                    errcode = ErrCode.OK;
-            }
-            return errcode;
+                return dataLineParse(dataRd, "address 0x0", ref lfactor);
+            return ErrCode.EPARSE;
         }
 
-        //private ErrCode dataParseId(string dataRdStr)
-        //{
-        //    ErrCode errcode = ErrCode.ERROR;
-        //    if (dataRdStr != null)
-        //    {
-        //        uint[] lid = new uint[ID_LENGTH] { ERROR, ERROR, ERROR };
-        //        //parse to lines
-        //        string[] dataRd = dataSplit(dataRdStr);
-        //        if (dataRd != null)
-        //        {
-        //            //maxi
-        //            if (dataLineParseCheck_id(dataRd, lid) == ErrCode.OK)
-        //            {
-        //                if (checkError(id))
-        //                {
-        //                    for (int i = 0; i < lid.Length; i++)
-        //                        id[i] = lid[i];
-        //                }
-        //                else
-        //                {
-        //                    for (int i = 0; i < lid.Length; i++)
-        //                    {
-        //                        if (lid[i] != id[i])
-        //                        {
-        //                            errcode = ErrCode.EPARSE;
-        //                            LogFile.logWrite(string.Format("{0} lid[{1}] {2} id[{3}] {4}", errcode, i, lid[i], i, id[i]));
-        //                            return errcode;
-        //                        }
-        //                    }
-        //                }
-        //                errcode = ErrCode.OK;
-        //            }
-        //        }
-        //        else
-        //        {
-        //            errcode = ErrCode.EPARSE;
-        //            LogFile.logWrite(string.Format("{0} dataRd {1}", errcode, dataRd));
-        //            return errcode;
-        //        }
-        //    }
-        //    else
-        //    {
-        //        errcode = ErrCode.EPARSE;
-        //        LogFile.logWrite(string.Format("{0} dataRdStr {1}", errcode, dataRdStr));
-        //        return errcode;
-        //    }
-        //    return errcode;
-        //}
+        private ErrCode dataLineParseCheck_Nuke(List<string> dataRd, uint lnuke)
+        {
+            if (dataRd != null)
+                //nuke
+                return dataLineParse(dataRd, "nuke,", ref lnuke);
+            return ErrCode.EPARSE;
+        }
 
         private ErrCode dataLineParseCheck_id(List<string> dataRd, uint[] lid)
         {
@@ -762,7 +649,6 @@ namespace WinAMBurner
 
         private ErrCode dataLineParse(List<string> dataRd, string pattern, ref uint number)
         {
-            ErrCode errcode = ErrCode.ERROR;
             if (dataRd != null)
             {
                 string? dataFind = dataRd.Find(data => data.Contains(pattern));
@@ -772,60 +658,37 @@ namespace WinAMBurner
                     if (snumber != null)
                     {
                         if (uint.TryParse(snumber, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out number))
+                            return ErrCode.OK;
+                         
+                        string? logsnum = snumber;
+                        snumber = new string(dataFind.SkipWhile(c => (c < '0') || (c > '9')).ToArray());
+                        if (snumber != null)
                         {
-                            errcode = ErrCode.OK;
+                            if (uint.TryParse(snumber, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
+                                return ErrCode.OK;
+                                
+                            LogFile.logWrite(string.Format("{0} pattern \"{1}\" logsnum {2} snumber {3} number {4}", ErrCode.EPARSE, pattern, logsnum, snumber, number));
+                            return ErrCode.EPARSE;
                         }
-                        else
-                        {
-                            string? logsnum = snumber;
-                            snumber = new string(dataFind.SkipWhile(c => (c < '0') || (c > '9')).ToArray());
-                            if (snumber != null)
-                            {
-                                if (uint.TryParse(snumber, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
-                                {
-                                    errcode = ErrCode.OK;
-                                }
-                                else
-                                {
-                                    errcode = ErrCode.EPARSE;
-                                    LogFile.logWrite(string.Format("{0} pattern \"{1}\" logsnum {2} snumber {3} number {4}", errcode, pattern, logsnum, snumber, number));
-                                    return errcode;
-                                }
-                            }
-                            else
-                            {
-                                errcode = ErrCode.EPARSE;
-                                LogFile.logWrite(string.Format("{0} pattern \"{1}\" logsnum {2} snumber {3}", errcode, pattern, logsnum, snumber));
-                                return errcode;
-                            }
-                        }
+                            
+                        LogFile.logWrite(string.Format("{0} pattern \"{1}\" logsnum {2} snumber {3}", ErrCode.EPARSE, pattern, logsnum, snumber));
+                        return ErrCode.EPARSE;
                     }
-                    else
-                    {
-                        errcode = ErrCode.EPARSE;
-                        LogFile.logWrite(string.Format("{0} pattern \"{1}\" snumber {2}", errcode, pattern, snumber));
-                        return errcode;
-                    }
+                    
+                    LogFile.logWrite(string.Format("{0} pattern \"{1}\" snumber {2}", ErrCode.EPARSE, pattern, snumber));
+                    return ErrCode.EPARSE;
                 }
-                else
-                {
-                    errcode = ErrCode.EPARSE;
-                    LogFile.logWrite(string.Format("{0} dataFind {1} pattern \"{2}\"", errcode, dataFind, pattern));
-                    return errcode;
-                }
+
+                LogFile.logWrite(string.Format("{0} dataFind {1} pattern \"{2}\"", ErrCode.EPARSE, dataFind, pattern));
+                return ErrCode.EPARSE;
             }
-            else
-            {
-                errcode = ErrCode.EPARSE;
-                LogFile.logWrite(string.Format("{0} dataRd {1} pattern \"{2}\"", errcode, dataRd, pattern));
-                return errcode;
-            }
-            return errcode;
+
+            LogFile.logWrite(string.Format("{0} dataRd {1} pattern \"{2}\"", ErrCode.EPARSE, dataRd, pattern));
+            return ErrCode.EPARSE;
         }
 
-        private ErrCode dataLineParse(List<string> dataRd, string pattern, ref uint[] number)
+        private ErrCode dataLineParse(List<string> dataRd, string pattern, ref uint[] numbers)
         {
-            ErrCode errcode = ErrCode.OK;
             if (dataRd != null)
             {
                 string? dataFind = dataRd.Find(data => data.Contains(pattern));
@@ -834,47 +697,33 @@ namespace WinAMBurner
                     string[] dataSplit = dataFind.Split(new char[] { '-' }, StringSplitOptions.RemoveEmptyEntries);
                     if (dataSplit != null)
                     {
-                        for (int i = 0; i < number.Count(); i++)
+                        for (int i = 0; i < numbers.Count(); i++)
                         {
                             if (i < dataSplit.Count())
                             {
                                 if (!uint.TryParse(new string(dataSplit[i].SkipWhile(c => c != 'x').Skip(1).ToArray())
-                                    , NumberStyles.HexNumber, CultureInfo.InvariantCulture, out number[i]))
+                                    , NumberStyles.HexNumber, CultureInfo.InvariantCulture, out numbers[i]))
                                 {
-                                    errcode = ErrCode.EPARSE;
-                                    LogFile.logWrite(string.Format("{0} number[{1}] {2} pattern \"{3}\"", errcode, i, number, pattern));
-                                    return errcode;
+                                    LogFile.logWrite(string.Format("{0} number[{1}] {2} pattern \"{3}\"", ErrCode.EPARSE, i, numbers, pattern));
+                                    return ErrCode.EPARSE;
                                 }
                             }
                             else
                             {
-                                errcode = ErrCode.EPARSE;
-                                LogFile.logWrite(string.Format("{0} dataSplit.Count() {1} pattern \"{2}\"", errcode, dataSplit.Count(), pattern));
-                                return errcode;
+                                LogFile.logWrite(string.Format("{0} dataSplit.Count() {1} pattern \"{2}\"", ErrCode.EPARSE, dataSplit.Count(), pattern));
+                                return ErrCode.EPARSE;
                             }
                         }
+                        return ErrCode.OK;
                     }
-                    else
-                    {
-                        errcode = ErrCode.EPARSE;
-                        LogFile.logWrite(string.Format("{0} dataSplit {1} pattern \"{2}\"", errcode, dataSplit, pattern));
-                        return errcode;
-                    }
+                    LogFile.logWrite(string.Format("{0} dataSplit {1} pattern \"{2}\"", ErrCode.EPARSE, dataSplit, pattern));
+                    return ErrCode.EPARSE;
                 }
-                else
-                {
-                    errcode = ErrCode.EPARSE;
-                    LogFile.logWrite(string.Format("{0} dataFind {1} pattern \"{2}\"", errcode, dataFind, pattern));
-                    return errcode;
-                }
+                LogFile.logWrite(string.Format("{0} dataFind {1} pattern \"{2}\"", ErrCode.EPARSE, dataFind, pattern));
+                return ErrCode.EPARSE;
             }
-            else
-            {
-                errcode = ErrCode.EPARSE;
-                LogFile.logWrite(string.Format("{0} dataRd {1} pattern \"{2}\"", errcode, dataRd, pattern));
-                return errcode;
-            }
-            return errcode;
+            LogFile.logWrite(string.Format("{0} dataRd {1} pattern \"{2}\"", ErrCode.EPARSE, dataRd, pattern));
+            return ErrCode.EPARSE;
         }
 
         private async Task<string> serialReadWrite(List<string> cmd)

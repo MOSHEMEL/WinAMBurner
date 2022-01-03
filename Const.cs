@@ -21,7 +21,8 @@ namespace WinAMBurner
         EPARSE = -8,
         EXPIRE = -9,
         EEMPTY = -10,
-        EREMOTE = -11
+        EREMOTE = -11,
+        EUNKNOWN = 1
     }
 
     public enum Cmd
@@ -42,7 +43,8 @@ namespace WinAMBurner
     static class Const
     {
         public const string Version = "1.4";
-        public const string PART_NUMBER_STATUS = "Status";
+        public const string PART_NUMBER_STATUS_PURCHASE = "Status-Purchase";
+        public const string PART_NUMBER_STATUS_SUBSCRIPTION = "Status-Subscription";
 
         public static Dictionary<string, string> DCOUNTRY;
         public static string[] COUNTRY;
