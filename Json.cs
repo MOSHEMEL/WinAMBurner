@@ -488,7 +488,7 @@ namespace WinAMBurner
         {
             Email = new Field(type: typeof(RichTextBox), dflt: "Username", width: Field.DefaultWidthLarge, placev: Place.Two);
             Password = new Field(type: typeof(TextBox), dflt: "Password", width: Field.DefaultWidthLarge, placev: Place.Three);
-            ShowPassword = new Field(type: typeof(CheckBox), dflt: "Show password", width: Field.DefaultWidthLarge, placev: Place.Four);
+            ShowPassword = new Field(type: typeof(CheckBox), dflt: "Show password", autosize: false, width: Field.DefaultWidthLarge, placev: Place.Four);
             Picture = new Field(ltype: typeof(PictureBox), lplaceh: Place.Twoh, lplacev: Place.One);
             Forgot = new Field(ltype: typeof(LinkLabel), ltext: "Forgot password", autosize: false, width: Field.DefaultWidthLarge, lplacev: Place.Five);
             Press = new Field(ltype: typeof(Button), ltext: "Login", lplacev: Place.Seven);

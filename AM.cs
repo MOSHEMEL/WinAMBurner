@@ -8,7 +8,7 @@ using System.IO.Ports;
 
 namespace WinAMBurner
 {
-    class Am
+    public class Am
     {
         private SerialPort serialPort;
         private const int serialPortBaudRate = 115200;
@@ -101,6 +101,7 @@ namespace WinAMBurner
         public delegate void dProgress(Object progress, bool reset);
         public dProgress dprogress;
         public Object progress;
+        public bool Nuke;
 
         public Am(dProgress dprogress)
         {
@@ -148,13 +149,13 @@ namespace WinAMBurner
             switch (cmd)
             {
                 case Cmd.ID:
-                    if ((errcode = await amReadBlock("ID")) == ErrCode.OK)
+                    if ((errcode = await amCmdBlock(Cmd.ID)) == ErrCode.OK)
                         errcode = ErrCode.OK;
                     break;
                 case Cmd.READ:
-                    if ((errcode = await amReadBlock("ID")) == ErrCode.OK)
-                        if ((errcode = await amReadBlock("1")) == ErrCode.OK)
-                            if ((errcode = await amReadBlock("FF")) == ErrCode.OK)
+                    if ((errcode = await amCmdBlock(Cmd.ID)) == ErrCode.OK)
+                        if ((errcode = await amCmdBlock(Cmd.READ_01)) == ErrCode.OK)
+                            if ((errcode = await amCmdBlock(Cmd.READ_03_FF, "FF")) == ErrCode.OK)
                                 errcode = ErrCode.OK;
                     break;
                 case Cmd.WRITE:
@@ -162,24 +163,34 @@ namespace WinAMBurner
                         maxi = 0;
                     if (maxiprev == ERROR)
                         maxiprev = 0;
-                    if ((errcode = await amReadBlock("ID")) == ErrCode.OK)
-                        if ((errcode = await amWriteBlock("3", maxi + maxiSet)) == ErrCode.OK)
-                            if ((errcode = await amWriteBlock("FF", maxi + maxiSet)) == ErrCode.OK)
+                    if ((errcode = await amCmdBlock(Cmd.ID)) == ErrCode.OK)
+                        if ((errcode = await amCmdBlock(Cmd.WRITE_03_FF, "3", maxi + maxiSet)) == ErrCode.OK)
+                            if ((errcode = await amCmdBlock(Cmd.WRITE_03_FF, "FF", maxi + maxiSet)) == ErrCode.OK)
                                 errcode = ErrCode.OK;
                     break;
                 case Cmd.RESTORE:
-                    if ((errcode = await amReadBlock("ID")) == ErrCode.OK)
-                        if ((errcode = await amReadBlock("3")) == ErrCode.OK)
+                    if ((errcode = await amCmdBlock(Cmd.ID)) == ErrCode.OK)
+                        if ((errcode = await amCmdBlock(Cmd.READ_03_FF, "3")) == ErrCode.OK)
                         {
                             snum = bckup_snum;
                             maxi = bckup_maxi;
                             date = bckup_date;
                             factor = bckup_factor;
 
-                            if ((errcode = await amWriteBlock("FF", maxi)) == ErrCode.OK)
-                                if ((errcode = await amReadBlock("FF")) == ErrCode.OK)
+                            if ((errcode = await amCmdBlock(Cmd.WRITE_03_FF, "FF", maxi)) == ErrCode.OK)
+                                if ((errcode = await amCmdBlock(Cmd.READ_03_FF, "FF")) == ErrCode.OK)
                                     errcode = ErrCode.OK;
                         }
+                    break;
+                case Cmd.INIT:
+                    if (Nuke)
+                        if ((errcode = await amCmdBlock(Cmd.NUKE)) != ErrCode.OK)
+                            break;
+                    if ((errcode = await amCmdBlock(Cmd.WRIRE_00)) == ErrCode.OK)
+                        if ((errcode = await amCmdBlock(Cmd.WRITE_03_FF, "FF", maxi)) == ErrCode.OK)
+                            if ((errcode = await amCmdBlock(Cmd.READ_00)) == ErrCode.OK)
+                                if ((errcode = await amCmdBlock(Cmd.READ_03_FF, "FF")) == ErrCode.OK)
+                                    errcode = ErrCode.OK;
                     break;
             }
             try
@@ -194,68 +205,118 @@ namespace WinAMBurner
             return errcode;
         }
 
-        private async Task<ErrCode> amReadBlock(string blockNum)//2 4 11
+        //private async Task<ErrCode> amReadBlock(string blockNum)
+        private async Task<ErrCode> amCmdBlock(Cmd cmd, string blockNum = "", uint max = 0)
         {
             ErrCode errcode = ErrCode.ERROR;
-            List<string> cmd = new List<string>();
-            if (blockNum == "ID")
+            List<string> cmds = new List<string>();
+            if (cmd == Cmd.ID)
             {
-                cmd.Add("getid,3#");
-                cmd.Add("NOP#");
-                cmd.Add("NOP#");
+                get_id(cmds);
             }
-            else if (blockNum == "1")
+            else if (cmd == Cmd.READ_01)
             {
-                cmd.Add("rd,3,0x0001008#");
-                cmd.Add("rd,3,0x0001004#");
-                cmd.Add("rd,3,0x0001000#");
-                cmd.Add("NOP#");
-                cmd.Add("NOP#");
+                read_01(cmds);
             }
-            else if ((blockNum == "3") || (blockNum == "FF"))
+            else if (cmd == Cmd.READ_03_FF)
             {
-                cmd.Add("rd,3,0x000" + blockNum + "F40#");
-                cmd.Add("Read REMAINING 3#");
-                cmd.Add("rd,3,0x000" + blockNum + "FF6#");
-                cmd.Add("Read SNUM 3#");
-                cmd.Add("rd,3,0x000" + blockNum + "FEE#");
-                cmd.Add("Read DATE 3#");
-                cmd.Add("rd,3,0x000" + blockNum + "FE6#");
-                cmd.Add("Read MAX 3#");
-                cmd.Add("status2,3#");
-                cmd.Add("status1,3#");
-                if (blockNum == "3")
-                    cmd.Add("rd,3,0x000" + blockNum + "F50#");
-                else
-                    cmd.Add("find,3,1#");
-                cmd.Add("NOP#");
-                cmd.Add("NOP#");
+                read_03_FF(blockNum, cmds);
             }
-            LogFile.logWrite(cmd);
+            else if (cmd == Cmd.WRITE_03_FF)
+            {
+                write_03_FF(blockNum, cmds, max);
+            }
+            else if (cmd == Cmd.READ_00)
+            {
+                read_00(cmds);
+            }
+            else if (cmd == Cmd.WRIRE_00)
+            {
+                write_00(cmds);
+            }
+            else if (cmd == Cmd.NUKE)
+            {
+                nuke(cmds);
+            }
+            cmds.Add("NOP#");
+            cmds.Add("NOP#");
+            LogFile.logWrite(cmds);
 
-            string dataRdStr = await serialReadWrite(cmd);
+            string dataRdStr = await serialReadWrite(cmds);
             //write to log
             LogFile.logWrite(dataSplit(dataRdStr));
-
-            errcode = parseBlock(dataRdStr, blockNum);
+            if (cmd == Cmd.WRIRE_00)
+            {
+                uint lfactor = ERROR;
+                errcode = dataLineParseCheck_00(dataSplit(dataRdStr), blockNum, ref lfactor);
+            }
+            else if (cmd == Cmd.WRITE_03_FF)
+            {
+                uint lmaxi = ERROR;
+                uint ldate = ERROR;
+                uint lsnum = ERROR;
+                uint lfactor = ERROR;
+                uint lremaining = ERROR;
+                errcode = dataLineParseCheck_03_FF(dataSplit(dataRdStr), blockNum, ref lmaxi, ref ldate, ref lsnum, ref lfactor, ref lremaining, false);
+            }
+            else
+            {
+                errcode = parseBlock(dataRdStr, cmd, blockNum);
+            }
             return errcode;
         }
 
-        private async Task<ErrCode> amWriteBlock(string blockNum, uint max)//31
+        private static void get_id(List<string> cmd)
         {
-            ErrCode errcode = ErrCode.ERROR;
-            Date = DateTime.Now;
-            List<string> cmd = new List<string>();
+            cmd.Add("getid,3#");
+            //cmd.Add("NOP#");
+            //cmd.Add("NOP#");
+        }
+
+        private void read_01(List<string> cmd)
+        {
+            cmd.Add("rd,3,0x0001008#");
+            cmd.Add("rd,3,0x0001004#");
+            cmd.Add("rd,3,0x0001000#");
+            //cmd.Add("NOP#");
+            //cmd.Add("NOP#");
+        }
+
+        private void read_03_FF(string blockNum, List<string> cmd)
+        {
+            cmd.Add("rd,3,0x000" + blockNum + "F40#");
+            cmd.Add("Read REMAINING 3#");
+            cmd.Add("rd,3,0x000" + blockNum + "FF6#");
+            cmd.Add("Read SNUM 3#");
+            cmd.Add("rd,3,0x000" + blockNum + "FEE#");
+            cmd.Add("Read DATE 3#");
+            cmd.Add("rd,3,0x000" + blockNum + "FE6#");
+            cmd.Add("Read MAX 3#");
+            cmd.Add("status2,3#");
+            cmd.Add("status1,3#");
+            if (blockNum == "3")
+                cmd.Add("rd,3,0x000" + blockNum + "F50#");
+            else
+                cmd.Add("find,3,1#");
+            //cmd.Add("NOP#");
+            //cmd.Add("NOP#");
+        }
+
+        private void write_03_FF(string blockNum, List<string> cmd, uint max)
+        {
             cmd.Add("!!!WRITE COMPLETE!!!#");
             //cmd.Add(string.Format("snum,3,{0}#", snum));
             //cmd.Add(string.Format("maxi,3,{0}#", maxi + maxiSet));
             //cmd.Add(string.Format("date,3,{0}#", (int)date));
             //cmd.Add(string.Format("wrt,3,0x00FFF50,00{0:x}#", factor));
+            if ((factor >= max) && (factor <= (max + TOLERANCE)))
+                cmd.Add(string.Format("wrt,3,0x00" + blockNum + "F40,00{0:x}#", remaining));
             cmd.Add(string.Format("wrt,3,0x00" + blockNum + "FF6,00{0:x}#", snum));
             cmd.Add(string.Format("wrt,3,0x00" + blockNum + "FEE,00{0:x}#", (int)date));
             //cmd.Add(string.Format("wrt,3,0x00" + blokNum + "FE6,00{0:x}#", maxi + maxiSet));
             cmd.Add(string.Format("wrt,3,0x00" + blockNum + "FE6,00{0:x}#", max));
             cmd.Add(string.Format("wrt,3,0x00" + blockNum + "F50,00{0:x}#", factor));
+
             //erase
             cmd.Add("scan,3,0#");
             cmd.Add("scan,3,0#");
@@ -275,24 +336,96 @@ namespace WinAMBurner
             cmd.Add("statusw,3,0000#");
             cmd.Add("status2,3#");
             cmd.Add("status1,3#");
-            cmd.Add("NOP#");
-            cmd.Add("NOP#");
-            LogFile.logWrite(cmd);
-
-            string dataRdStr = await serialReadWrite(cmd);
-            //write to log
-            LogFile.logWrite(dataSplit(dataRdStr));
-            uint lmaxi = ERROR;
-            uint ldate = ERROR;
-            uint lsnum = ERROR;
-            uint lfactor = ERROR;
-            uint lremaining = ERROR;
-            errcode = dataLineParseCheck_03_FF(dataSplit(dataRdStr), blockNum, ref lmaxi, ref ldate, ref lsnum, ref lfactor, ref lremaining, false);
-
-            return errcode;
         }
 
-        private ErrCode parseBlock(string dataRdStr, string blokNum)
+        private void read_00(List<string> cmd)
+        {
+            cmd.Add("rd,3,0x0000000#");
+        }
+
+        private void write_00(List<string> cmd)
+        {
+            cmd.Add(string.Format("wrt,3,0x000000,00{0:x}#", factor));
+        }
+
+        private void nuke(List<string> cmd)
+        {
+            cmd.Add("scan,3,0#");
+            cmd.Add("scan,3,0#");
+            cmd.Add("scan,3,0#");
+            for (int i = 0; i < 10; i++)
+                cmd.Add("NOP#");
+            cmd.Add("nuke,3#");
+        }
+
+        //private async Task<ErrCode> amWriteBlock(string blockNum, uint max)
+        //{
+        //    ErrCode errcode = ErrCode.ERROR;
+        //    Date = DateTime.Now;
+        //    List<string> cmd = new List<string>();
+        //    if (blockNum == "0")
+        //    {
+        //        cmd.Add(string.Format("wrt,3,0x00" + blockNum + "000,00{0:x}#", factor));
+        //    }
+        //    else
+        //    {
+        //        cmd.Add("!!!WRITE COMPLETE!!!#");
+        //        //cmd.Add(string.Format("snum,3,{0}#", snum));
+        //        //cmd.Add(string.Format("maxi,3,{0}#", maxi + maxiSet));
+        //        //cmd.Add(string.Format("date,3,{0}#", (int)date));
+        //        //cmd.Add(string.Format("wrt,3,0x00FFF50,00{0:x}#", factor));
+        //        cmd.Add(string.Format("wrt,3,0x00" + blockNum + "FF6,00{0:x}#", snum));
+        //        cmd.Add(string.Format("wrt,3,0x00" + blockNum + "FEE,00{0:x}#", (int)date));
+        //        //cmd.Add(string.Format("wrt,3,0x00" + blokNum + "FE6,00{0:x}#", maxi + maxiSet));
+        //        cmd.Add(string.Format("wrt,3,0x00" + blockNum + "FE6,00{0:x}#", max));
+        //        cmd.Add(string.Format("wrt,3,0x00" + blockNum + "F50,00{0:x}#", factor));
+        //
+        //        //erase
+        //        cmd.Add("scan,3,0#");
+        //        cmd.Add("scan,3,0#");
+        //        cmd.Add("scan,3,0#");
+        //        for (int i = 0; i < 10; i++)
+        //            cmd.Add("NOP#");
+        //        //cmd.Add("nuke,3#");
+        //        cmd.Add("erase,3,0x" + blockNum + "000#");
+        //        //erase
+        //        cmd.Add("set registers readonly#");
+        //        cmd.Add("status2,3#");
+        //        cmd.Add("status1,3#");
+        //        cmd.Add("statusw,3,8001#");
+        //        cmd.Add("clear registers#");
+        //        cmd.Add("status2,3#");
+        //        cmd.Add("status1,3#");
+        //        cmd.Add("statusw,3,0000#");
+        //        cmd.Add("status2,3#");
+        //        cmd.Add("status1,3#");
+        //    }
+        //    cmd.Add("NOP#");
+        //    cmd.Add("NOP#");
+        //
+        //    LogFile.logWrite(cmd);
+        //
+        //    string dataRdStr = await serialReadWrite(cmd);
+        //    //write to log
+        //    LogFile.logWrite(dataSplit(dataRdStr));
+        //    if (blockNum == "0")
+        //    {
+        //        uint lfactor = ERROR;
+        //        errcode = dataLineParseCheck_00(dataSplit(dataRdStr), blockNum, ref lfactor);
+        //    }
+        //    else
+        //    {
+        //        uint lmaxi = ERROR;
+        //        uint ldate = ERROR;
+        //        uint lsnum = ERROR;
+        //        uint lfactor = ERROR;
+        //        uint lremaining = ERROR;
+        //        errcode = dataLineParseCheck_03_FF(dataSplit(dataRdStr), blockNum, ref lmaxi, ref ldate, ref lsnum, ref lfactor, ref lremaining, false);
+        //    }
+        //    return errcode;
+        //}
+
+        private ErrCode parseBlock(string dataRdStr, Cmd cmd, string blokNum)
         {
             ErrCode errcode = ErrCode.ERROR;
             if (dataRdStr != null)
@@ -302,8 +435,8 @@ namespace WinAMBurner
 
                 if (dataRd != null)
                 {
-                    //maxi
-                    if (blokNum == "ID")
+                    //id
+                    if (cmd == Cmd.ID)
                     {
                         uint[] lid = new uint[ID_LENGTH] { ERROR, ERROR, ERROR };
                         if (dataLineParseCheck_id(dataRd, lid) == ErrCode.OK)
@@ -329,7 +462,7 @@ namespace WinAMBurner
                             errcode = ErrCode.OK;
                         }
                     }
-                    else if ((blokNum == "FF") || (blokNum == "3"))
+                    else if (cmd == Cmd.READ_03_FF)
                     {
                         uint lmaxi = ERROR;
                         uint ldate = ERROR;
@@ -377,7 +510,7 @@ namespace WinAMBurner
                             return errcode;
                         }
                     }
-                    else if (blokNum == "1")
+                    else if (cmd == Cmd.READ_01)
                     {
                         uint[] laptxId = new uint[ID_LENGTH] { ERROR, ERROR, ERROR };
                         if (dataLineParseCheck_01(dataRd, laptxId) == ErrCode.OK)
@@ -415,6 +548,28 @@ namespace WinAMBurner
                         {
                             errcode = ErrCode.EPARSE;
                             return errcode;
+                        }
+                    }
+                    else if (cmd == Cmd.READ_00)
+                    {
+                        uint lfactor = ERROR;
+                        //factor
+                        if (dataLineParseCheck_00(dataRd, blokNum, ref lfactor) == ErrCode.OK)
+                        {
+                            if (factor == ERROR)
+                            {
+                                factor = lfactor;
+                            }
+                            else
+                            {
+                                if (lfactor > (factor + TOLERANCE))
+                                {
+                                    errcode = ErrCode.EPARSE;
+                                    LogFile.logWrite(string.Format("{0} lfactor {1} factor {2}", errcode, lfactor, factor));
+                                    return errcode;
+                                }
+                            }
+                            LogFile.logWrite(string.Format("set factor: {0}", factor));
                         }
                     }
                 }
@@ -519,6 +674,18 @@ namespace WinAMBurner
                                 if (((read) && (dataLineParse(dataRd, "0x" + blokNum + "F40", ref lremaining) == ErrCode.OK)) ||
                                     (!read))
                                     errcode = ErrCode.OK;
+            }
+            return errcode;
+        }
+
+        private ErrCode dataLineParseCheck_00(List<string> dataRd, string blokNum, ref uint lfactor)
+        {
+            ErrCode errcode = ErrCode.ERROR;
+            if (dataRd != null)
+            {
+                //factor
+                if (dataLineParse(dataRd, "0x" + blokNum + "000", ref lfactor) == ErrCode.OK)
+                    errcode = ErrCode.OK;
             }
             return errcode;
         }
@@ -745,7 +912,8 @@ namespace WinAMBurner
                         break;
                 }
                 dataRdStr += dataExist;
-                dprogress(progress, false);
+                if (dprogress != null)
+                    dprogress(progress, false);
             }
             return dataRdStr;
         }

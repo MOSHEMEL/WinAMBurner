@@ -13,7 +13,7 @@ namespace WinAMBurner
         Oneh, Twoh, Threeh, Fourh, Fiveh, Sixh
     }
 
-    class Field
+    public class Field
     {
         public const int DefaultWidth = 240;//460;//390;
         public const int DefaultWidthLarge = 900;//1200;
@@ -234,19 +234,22 @@ namespace WinAMBurner
                 control.TabIndex = 1;
                 control.Text = val;
                 control.Font = new Font("Segoe UI", font, FontStyle.Regular, GraphicsUnit.Point);
+                if (color != Color.Empty)
+                    control.ForeColor = color;
+                control.AutoSize = autosize;
 
-                if (type == typeof(Label))
-                {
-                    if (color != Color.Empty)
-                        control.ForeColor = color;
-                    control.AutoSize = autosize;
-                }
+                //if (type == typeof(Label))
+                //{
+                //    if (color != Color.Empty)
+                //        control.ForeColor = color;
+                //    control.AutoSize = autosize;
+                //}
                 if (type == typeof(PictureBox))
                 {
                     PictureBox pictureBox = (control as PictureBox);
                     if (pictureBox != null)
                     {
-                        control.AutoSize = true;
+                        //control.AutoSize = true;
                         pictureBox.Image = Properties.Resources.ARmentaSmall;
                     }
                 }
@@ -279,13 +282,13 @@ namespace WinAMBurner
                     LinkLabel linkLabel = control as LinkLabel;
                     if (linkLabel != null)
                     {
-                        control.AutoSize = true;
+                        //control.AutoSize = true;
                         if (linkEventHandler != null)
                             linkLabel.LinkClicked += linkEventHandler;
                         if (eventHandler != null)
                             linkLabel.Click += eventHandler;
                     }
-                    control.AutoSize = autosize;
+                    //control.AutoSize = autosize;
                 }
                 if (type == typeof(ComboBox))
                 {

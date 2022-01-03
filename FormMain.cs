@@ -43,19 +43,26 @@ namespace WinAMBurner
             return "BIOS Serial Number: Unknown";
         }
 
+        public static void Enables(Form form, bool enabled)
+        {
+            foreach (Control control in form.Controls)
+                control.Enabled = enabled;
+        }
+
         public void hide()
         {
             while (Controls.Count > 0)
                 Controls[0].Dispose();
         }
 
-        private void enabled(bool enabled)
+        public void enables(bool enables)
         {
-            foreach (Control control in this.Controls)
-                control.Enabled = enabled;
+            //foreach (Control control in this.Controls)
+            //    control.Enabled = enabled;
+            Enables(this, enables);
         }
 
-        private async Task notify(string title, string messages, string cancel)
+        public static async Task notify(string title, string messages, string cancel)
         {
             DialogResult dialogResult = default;
             if ((title != null) && (messages != null) && (cancel != null))
@@ -177,8 +184,8 @@ namespace WinAMBurner
             {
                 data.web = new Web();
                 data.am = new Am(progressBar_Callback);
-                data.login = new Login(forgot_Click, buttonLogin_Click, checkBox_CheckedChanged, logout, hide, enabled, notify, draw, dshow: screenActionShow) { tablet = TabletNo };
-                data.password = new Password(buttonChangePassword_Click, logout, hide, enabled, notify, draw);
+                data.login = new Login(forgot_Click, buttonLogin_Click, checkBox_CheckedChanged, logout, hide, enables, notify, draw, dshow: screenActionShow) { tablet = TabletNo };
+                data.password = new Password(buttonChangePassword_Click, logout, hide, enables, notify, draw);
                 if (data.login != null)
                     data.login.ddraw(data.login);
             }
@@ -188,7 +195,7 @@ namespace WinAMBurner
         {
             if (data.login != null)
                 hide();
-            data.reset = new Reset(buttonResetPassword_Click, logout, hide, enabled, notify, draw);
+            data.reset = new Reset(buttonResetPassword_Click, logout, hide, enables, notify, draw);
             if (data.reset != null)
                 data.reset.ddraw(data.reset);
         }
@@ -197,7 +204,7 @@ namespace WinAMBurner
         {
             if ((data != null) && (data.reset != null))
             {
-                data.login = new Login(forgot_Click, buttonLogin_Click, checkBox_CheckedChanged, logout, hide, enabled, notify, draw, dshow: screenActionShow) { tablet = TabletNo };
+                data.login = new Login(forgot_Click, buttonLogin_Click, checkBox_CheckedChanged, logout, hide, enables, notify, draw, dshow: screenActionShow) { tablet = TabletNo };
                 await data.reset.send(data);
             }
         }
@@ -220,7 +227,7 @@ namespace WinAMBurner
 
             data.settings = null;
 
-            data.login = new Login(forgot_Click, buttonLogin_Click, checkBox_CheckedChanged, logout, hide, enabled, notify, draw, dshow: screenActionShow) { tablet = TabletNo };
+            data.login = new Login(forgot_Click, buttonLogin_Click, checkBox_CheckedChanged, logout, hide, enables, notify, draw, dshow: screenActionShow) { tablet = TabletNo };
             data.user = null;
         }
 
@@ -287,7 +294,7 @@ namespace WinAMBurner
 
         private void buttonUpdateAM_Click(object sender, EventArgs e)
         {
-            enabled(false);
+            enables(false);
             hide();
             screenConnectShow();
         }
@@ -435,7 +442,7 @@ namespace WinAMBurner
             hide();
             data.action = new Action(data.am, TabletNo, data.farms.ToArray(), data.services.ToArray(),
                 comboBoxPartNumber_SelectedIndexChanged, comboBoxFarm_SelectedIndexChanged, radioButton_CheckedChanged,
-                buttonTreatCansel_Click, buttonTreatApprove_Click, logout, hide, enabled, notify, draw, dshow: screenActionShow, dnotifyAnswer: notify);
+                buttonTreatCansel_Click, buttonTreatApprove_Click, logout, hide, enables, notify, draw, dshow: screenActionShow, dnotifyAnswer: notify);
             if ((data != null) && (data.action != null) && (data.action.RadioFarm != null) && (data.action.Progress != null))
             {
                 data.action.ddraw(data.action);
@@ -559,7 +566,7 @@ namespace WinAMBurner
             }
         }
 
-        private void progressBar_Callback(Object progress, bool reset)
+        public static void progressBar_Callback(Object progress, bool reset)
         {
             ProgressBar progressBar = progress as ProgressBar;
 
@@ -701,7 +708,7 @@ namespace WinAMBurner
                     (entity as Entity).initFields(edit, comboBoxCountry_SelectedIndexChanged,
                         buttonEntityCancel_Click<T, IPage2, IPage3, IPage4>, esubmit,
                         buttonToPage_Click<T, IPage1>, buttonToPage_Click<T, IPage2>, buttonToPage_Click<T, IPage3>, buttonToPage_Click<T, IPage4>,
-                        logout, hide, enabled, notify, draw, drawPage, screenEntityShow<T, IPage2, IPage3, IPage4>);
+                        logout, hide, enables, notify, draw, drawPage, screenEntityShow<T, IPage2, IPage3, IPage4>);
                 if (typeof(T) == typeof(Farm))
                     data.farm = entity as Farm;
                 else if (typeof(T) == typeof(Service))
@@ -755,7 +762,7 @@ namespace WinAMBurner
 
         private async void buttonEntity_Click<T, IPage2, IPage3, IPage4>(object sender, EventArgs e)
         {
-            enabled(false);
+            enables(false);
             hide();
             screenEntityShow<T, IPage2, IPage3, IPage4>();
         }

@@ -8,7 +8,7 @@ using System.Text.Json;
 
 namespace WinAMBurner
 {
-    enum ErrCode
+    public enum ErrCode
     {
         OK = 0,
         ERROR = -1,
@@ -24,12 +24,19 @@ namespace WinAMBurner
         EREMOTE = -11
     }
 
-    enum Cmd
+    public enum Cmd
     {
         ID,
         READ,
         WRITE,
-        RESTORE
+        INIT,
+        RESTORE,
+        READ_01,
+        READ_03_FF,
+        WRITE_03_FF,
+        READ_00,
+        WRIRE_00,
+        NUKE
     }
 
     static class Const
