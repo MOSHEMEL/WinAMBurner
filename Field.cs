@@ -16,6 +16,7 @@ namespace WinAMBurner
     public class Field
     {
         public const int DefaultWidth = 240;//460;//390;
+        public const int DefaultWidthAPTX = 820;
         public const int DefaultWidthLarge = 900;//1200;
         public const int DefaultWidthRadio = 330;
         public const int DefaultWidthMedium = 600;//900;

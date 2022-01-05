@@ -36,8 +36,10 @@ namespace WinAMBurner
         READ_03_FF,
         WRITE_03_FF,
         READ_00,
-        WRIRE_00,
-        NUKE
+        WRITE_00,
+        NUKE,
+        READALL,
+        WRITE_01
     }
 
     static class Const

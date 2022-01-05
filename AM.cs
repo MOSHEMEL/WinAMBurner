@@ -39,34 +39,42 @@ namespace WinAMBurner
         private uint[] id = new uint[ID_LENGTH] { ERROR, ERROR, ERROR };
         private uint[] aptxId = new uint[ID_LENGTH] { ERROR, ERROR, ERROR };
 
-        double get(double param)
-        {
-            return param == ERROR ? 0 : param;
-        }
+        //double get(double param)
+        //{
+        //    return param == ERROR ? 0 : param;
+        //}
+        //
+        //double set(double param)
+        //{
+        //    return param == 0 ? ERROR : param;
+        //}
+        //
+        //uint get(uint param)
+        //{
+        //    return (uint)get((double)param);
+        //}
+        //
+        //uint set(uint param)
+        //{
+        //    return (uint)set((double)param);
+        //}
 
-        double set(double param)
-        {
-            return param == 0 ? ERROR : param;
-        }
-
-        uint get(uint param)
-        {
-            return (uint)get((double)param);
-        }
-
-        uint set(uint param)
-        {
-            return (uint)set((double)param);
-        }
-
-        public uint SNum { get => get(snum); set => snum = set(value); }
-        public uint Maxi { get => get(maxi); set => maxi = set(value); }
-        public uint MaxiPrev { get => get(maxiprev); set => maxiprev = set(value); }
-        public uint MaxiSet { get => get(maxiSet); set => maxiSet = set(value); }
-        public uint Factor { get => get(factor); set => factor = set(value); }
-        public uint Current { get => get(maxi - factor); }
-        public uint CurrentPrev { get => get(maxiprev - factor); }
-        public uint[] AptxId { get => aptxId.Reverse().Select(a => { return get(a); }).ToArray(); set => value.Reverse().Select(a => { return set(a); }); }
+        //public uint SNum { get => get(snum); set => snum = set(value); }
+        //public uint Maxi { get => get(maxi); set => maxi = set(value); }
+        //public uint MaxiPrev { get => get(maxiprev); set => maxiprev = set(value); }
+        //public uint MaxiSet { get => get(maxiSet); set => maxiSet = set(value); }
+        //public uint Factor { get => get(factor); set => factor = set(value); }
+        //public uint Current { get => get(maxi - factor); }
+        //public uint CurrentPrev { get => get(maxiprev - factor); }
+        //public uint[] AptxId { get => aptxId.Reverse().Select(a => { return get(a); }).ToArray(); set => value.Reverse().Select(a => { return set(a); }); }
+        public uint SNum { get => snum; set => snum = value; }
+        public uint Maxi { get => maxi; set => maxi = value; }
+        public uint MaxiPrev { get => maxiprev; set => maxiprev = value; }
+        public uint MaxiSet { get => maxiSet; set => maxiSet = value; }
+        public uint Factor { get => factor; set => factor = value; }
+        public uint Current { get => maxi - factor; }
+        public uint CurrentPrev { get => maxiprev - factor; }
+        public uint[] AptxId { get => aptxId.Reverse().Select(a => { return a; }).ToArray(); set => value.Reverse().Select(a => { return a; }); }
         //{
         //    get
         //    {
@@ -94,14 +102,14 @@ namespace WinAMBurner
 
         public DateTime Date
         {
-            get => epoch.AddSeconds(get(date));
-            set => date = set(value.Subtract(epoch).TotalSeconds);
+            get => epoch.AddSeconds(date);
+            set => date = value.Subtract(epoch).TotalSeconds;
         }
 
         public delegate void dProgress(Object progress, bool reset);
         public dProgress dprogress;
         public Object progress;
-        public bool Nuke;
+        //public bool Nuke;
 
         public Am(dProgress dprogress)
         {
@@ -183,14 +191,21 @@ namespace WinAMBurner
                         }
                     break;
                 case Cmd.INIT:
-                    if (Nuke)
-                        if ((errcode = await amCmdBlock(Cmd.NUKE)) != ErrCode.OK)
-                            break;
-                    if ((errcode = await amCmdBlock(Cmd.WRIRE_00)) == ErrCode.OK)
-                        if ((errcode = await amCmdBlock(Cmd.READ_00)) == ErrCode.OK)
-                            if ((errcode = await amCmdBlock(Cmd.WRITE_03_FF, "FF", maxi)) == ErrCode.OK)
-                                if ((errcode = await amCmdBlock(Cmd.READ_03_FF, "FF")) == ErrCode.OK)
-                                    errcode = ErrCode.OK;
+                    //if (Nuke)
+                    //    if ((errcode = await amCmdBlock(Cmd.NUKE)) != ErrCode.OK)
+                    //        break;
+                    errcode = await amCmdBlock(Cmd.NUKE);
+                    errcode = await amCmdBlock(Cmd.WRITE_00);
+                    errcode = await amCmdBlock(Cmd.READ_00);
+                    errcode = await amCmdBlock(Cmd.WRITE_01);
+                    errcode = await amCmdBlock(Cmd.READ_01);
+                    errcode = await amCmdBlock(Cmd.WRITE_03_FF, "FF", maxi);
+                    errcode = await amCmdBlock(Cmd.READ_03_FF, "FF");
+                    break;
+                case Cmd.READALL:
+                    errcode = await amCmdBlock(Cmd.ID);
+                    errcode = await amCmdBlock(Cmd.READ_01);
+                    errcode = await amCmdBlock(Cmd.READ_03_FF, "FF");
                     break;
             }
             try
@@ -217,6 +232,10 @@ namespace WinAMBurner
             {
                 read_01(cmds);
             }
+            else if (cmd == Cmd.WRITE_01)
+            {
+                write_01(cmds);
+            }
             else if (cmd == Cmd.READ_03_FF)
             {
                 read_03_FF(blockNum, cmds);
@@ -229,7 +248,7 @@ namespace WinAMBurner
             {
                 read_00(cmds);
             }
-            else if (cmd == Cmd.WRIRE_00)
+            else if (cmd == Cmd.WRITE_00)
             {
                 write_00(cmds);
             }
@@ -253,12 +272,17 @@ namespace WinAMBurner
                 uint lremaining = ERROR;
                 return dataLineParseCheck_03_FF(dataSplit(dataRdStr), blockNum, ref lmaxi, ref ldate, ref lsnum, ref lfactor, ref lremaining, false);
             }
-            else if (cmd == Cmd.WRIRE_00)
+            else if (cmd == Cmd.WRITE_00)
             {
                 uint lfactor = ERROR;
                 return dataLineParseCheck_00(dataSplit(dataRdStr), ref lfactor);
             }
-            else if(cmd == Cmd.NUKE)
+            else if (cmd == Cmd.WRITE_01)
+            {
+                uint[] laptxid = { ERROR, ERROR, ERROR };
+                return dataLineParseCheck_01(dataSplit(dataRdStr), laptxid);
+            }
+            else if (cmd == Cmd.NUKE)
             {
                 uint lnuke = ERROR;
                 return dataLineParseCheck_Nuke(dataSplit(dataRdStr), lnuke);
@@ -286,6 +310,18 @@ namespace WinAMBurner
                 cmd.Add("rd,3,0x0001008#");
                 cmd.Add("rd,3,0x0001004#");
                 cmd.Add("rd,3,0x0001000#");
+                //cmd.Add("NOP#");
+                //cmd.Add("NOP#");
+            }
+        }
+
+        private void write_01(List<string> cmd)
+        {
+            if (cmd != null)
+            {
+                cmd.Add(string.Format("wrt,3,0x0001008,00{0:x}#", aptxId[0]));
+                cmd.Add(string.Format("wrt,3,0x0001004,00{0:x}#", aptxId[1]));
+                cmd.Add(string.Format("wrt,3,0x0001000,00{0:x}#", aptxId[2]));
                 //cmd.Add("NOP#");
                 //cmd.Add("NOP#");
             }
@@ -324,9 +360,10 @@ namespace WinAMBurner
                 //cmd.Add(string.Format("date,3,{0}#", (int)date));
                 //cmd.Add(string.Format("wrt,3,0x00FFF50,00{0:x}#", factor));
                 if ((factor >= max) && (factor <= (max + TOLERANCE)))
-                    cmd.Add(string.Format("wrt,3,0x00" + blockNum + "F40,00{0:x}#", remaining));
+                    cmd.Add(string.Format("wrt,3,0x00" + blockNum + "F40,00{0:x}#", MAGIC_NUM));
                 cmd.Add(string.Format("wrt,3,0x00" + blockNum + "FF6,00{0:x}#", snum));
-                cmd.Add(string.Format("wrt,3,0x00" + blockNum + "FEE,00{0:x}#", (int)date));
+                //cmd.Add(string.Format("wrt,3,0x00" + blockNum + "FEE,00{0:x}#", (int)date));
+                cmd.Add(string.Format("wrt,3,0x00" + blockNum + "FEE,00{0:x}#", (int)DateTime.Now.Subtract(epoch).TotalSeconds));
                 //cmd.Add(string.Format("wrt,3,0x00" + blokNum + "FE6,00{0:x}#", maxi + maxiSet));
                 cmd.Add(string.Format("wrt,3,0x00" + blockNum + "FE6,00{0:x}#", max));
                 cmd.Add(string.Format("wrt,3,0x00" + blockNum + "F50,00{0:x}#", factor));
@@ -384,6 +421,7 @@ namespace WinAMBurner
 
         private ErrCode parseBlock(string dataRdStr, Cmd cmd, string blokNum)
         {
+            ErrCode errcode = ErrCode.OK;
             if (dataRdStr != null)
             {
                 //parse to lines
@@ -394,38 +432,43 @@ namespace WinAMBurner
                     //id
                     if (cmd == Cmd.ID)
                     {
-                        return dataLineParse_id(dataRd);
+                        errcode = dataLineParse_id(dataRd);
                     }
                     else if (cmd == Cmd.READ_00)
                     {
-                        return dataLineParse_00(dataRd);
+                        errcode = dataLineParse_00(dataRd);
                     }
                     else if (cmd == Cmd.READ_01)
                     {
-                        return dataLineParse_01(dataRd);
+                        errcode = dataLineParse_01(dataRd);
                     }
                     else if (cmd == Cmd.READ_03_FF)
                     {
-                        return dataLineParse_03_FF(dataRd, blokNum);
+                        errcode = dataLineParse_03_FF(dataRd, blokNum);
                     }
                     else
                     {
                         LogFile.logWrite(string.Format("{0} cmd {1}", ErrCode.EUNKNOWN, cmd));
-                        return ErrCode.EUNKNOWN;
+                        errcode = ErrCode.EUNKNOWN;
                     }
                 }
                 else
                 {
                     LogFile.logWrite(string.Format("{0} dataRd {1}", ErrCode.EPARSE, dataRd));
-                    return ErrCode.EPARSE;
+                    errcode = ErrCode.EPARSE;
                 }
             }
-            LogFile.logWrite(string.Format("{0} dataRdStr {1}", ErrCode.EPARSE, dataRdStr));
-            return ErrCode.EPARSE;
+            else
+            {
+                LogFile.logWrite(string.Format("{0} dataRdStr {1}", ErrCode.EPARSE, dataRdStr));
+                errcode = ErrCode.EPARSE;
+            }
+            return errcode;
         }
 
         private ErrCode dataLineSet_id(ref uint[] id, uint[] lid)
         {
+            ErrCode errcode = ErrCode.OK;
             if (checkError(id))
             {
                 for (int i = 0; i < lid.Length; i++)
@@ -437,31 +480,35 @@ namespace WinAMBurner
                 {
                     if (lid[i] != id[i])
                     {
-                        LogFile.logWrite(string.Format("{0} lid[{1}] {2} id[{3}] {4}", ErrCode.EPARSE, i, lid[i], i, id[i]));
-                        return ErrCode.EPARSE;
+                        errcode = ErrCode.EPARSE;
+                        LogFile.logWrite(string.Format("{0} lid[{1}] {2} id[{3}] {4}", errcode, i, lid[i], i, id[i]));
                     }
                 }
             }
             LogFile.logWrite(string.Format("set id: {0}", id.Aggregate("", (r, m) => r += "0x" + m.ToString("x") + " ")));
-            return ErrCode.OK;
+            return errcode;
         }
 
         private ErrCode dataLineParse_id(List<string> dataRd)
         {
+            ErrCode errcode = ErrCode.OK;
             if (dataRd != null)
             {
                 uint[] lid = new uint[ID_LENGTH] { ERROR, ERROR, ERROR };
                 if (dataLineParseCheck_id(dataRd, lid) == ErrCode.OK)
                 {
                     LogFile.logWrite(string.Format("set Id:"));
-                    return dataLineSet_id(ref id, lid);
+                    errcode = dataLineSet_id(ref id, lid);
                 }
             }
-            return ErrCode.EPARSE;
+            else
+                errcode = ErrCode.EPARSE;
+            return errcode;
         }
 
         private ErrCode dataLineParse_01(List<string> dataRd)
         {
+            ErrCode errcode = ErrCode.OK;
             if (dataRd != null)
             {
                 uint[] laptxId = new uint[ID_LENGTH] { ERROR, ERROR, ERROR };
@@ -470,17 +517,23 @@ namespace WinAMBurner
                     if (!checkError(laptxId))
                     {
                         LogFile.logWrite(string.Format("set aptxId:"));
-                        return dataLineSet_id(ref aptxId, laptxId);
+                        errcode = dataLineSet_id(ref aptxId, laptxId);
                     }
-                    LogFile.logWrite(string.Format("{0} laptxId {1}", ErrCode.EREMOTE, laptxId.Aggregate("", (r, m) => r += "0x" + m.ToString("x") + " ")));
-                    return ErrCode.EREMOTE;
+                    else
+                    {
+                        errcode = ErrCode.EREMOTE;
+                        LogFile.logWrite(string.Format("{0} laptxId {1}", errcode, laptxId.Aggregate("", (r, m) => r += "0x" + m.ToString("x") + " ")));
+                    }
                 }
             }
-            return ErrCode.EPARSE;
+            else
+                errcode = ErrCode.EPARSE;
+            return errcode;
         }
 
         private ErrCode dataLineParse_00(List<string> dataRd)
         {
+            ErrCode errcode = ErrCode.OK;
             if (dataRd != null)
             {
                 uint lfactor = ERROR;
@@ -495,19 +548,21 @@ namespace WinAMBurner
                     {
                         if (lfactor > (factor + TOLERANCE))
                         {
-                            LogFile.logWrite(string.Format("{0} lfactor {1} factor {2}", ErrCode.EPARSE, lfactor, factor));
-                            return ErrCode.EPARSE;
+                            errcode = ErrCode.EPARSE;
+                            LogFile.logWrite(string.Format("{0} lfactor {1} factor {2}", errcode, lfactor, factor));
                         }
                     }
                     LogFile.logWrite(string.Format("set factor: {0}", factor));
-                    return ErrCode.OK;
                 }
             }
-            return ErrCode.EPARSE;
+            else
+                errcode = ErrCode.EPARSE;
+            return errcode;
         }
 
         private ErrCode dataLineSet_03_FF(ref uint maxiprev, ref uint maxi, ref double date, ref uint snum, ref uint factor, ref uint remaining, ref uint lmaxi, ref uint ldate, ref uint lsnum, ref uint lfactor, ref uint lremaining)
         {
+            ErrCode errcode = ErrCode.OK;
             if ((lsnum != 0) && (lsnum != ERROR))
             {
                 if (snum == ERROR)
@@ -518,8 +573,8 @@ namespace WinAMBurner
                 {
                     if (lsnum != snum)
                     {
-                        LogFile.logWrite(string.Format("{0} lsnum {1} snum {2}", ErrCode.EPARSE, lsnum, snum));
-                        return ErrCode.EPARSE;
+                        errcode = ErrCode.EPARSE;
+                        LogFile.logWrite(string.Format("{0} lsnum {1} snum {2}", errcode, lsnum, snum));
                     }
                 }
                 LogFile.logWrite(string.Format("set snum: {0}", snum));
@@ -533,8 +588,8 @@ namespace WinAMBurner
                 {
                     if (lfactor > (factor + TOLERANCE))
                     {
-                        LogFile.logWrite(string.Format("{0} lfactor {1} factor {2}", ErrCode.EPARSE, lfactor, factor));
-                        return ErrCode.EPARSE;
+                        errcode = ErrCode.EPARSE;
+                        LogFile.logWrite(string.Format("{0} lfactor {1} factor {2}", errcode, lfactor, factor));
                     }
                 }
                 LogFile.logWrite(string.Format("set factor: {0}", factor));
@@ -546,14 +601,18 @@ namespace WinAMBurner
                 LogFile.logWrite(string.Format("set date: {0}", date));
                 remaining = lremaining;
                 LogFile.logWrite(string.Format("set remaining: {0}", remaining));
-                return ErrCode.OK;
             }
-            LogFile.logWrite(string.Format("{0} lsnum {1} lmaxi {2} lfactor {3}", ErrCode.EEMPTY, lsnum, lmaxi, lfactor));
-            return ErrCode.EEMPTY;
+            else
+            {
+                errcode = ErrCode.EEMPTY;
+                LogFile.logWrite(string.Format("{0} lsnum {1} lmaxi {2} lfactor {3}", errcode, lsnum, lmaxi, lfactor));
+            }
+            return errcode;
         }
 
         private ErrCode dataLineParse_03_FF(List<string> dataRd, string blokNum)
         {
+            ErrCode errcode = ErrCode.OK;
             if (dataRd != null)
             {
                 uint lmaxi = ERROR;
@@ -565,33 +624,37 @@ namespace WinAMBurner
                 if (dataLineParseCheck_03_FF(dataRd, blokNum, ref lmaxi, ref ldate, ref lsnum, ref lfactor, ref lremaining, true) == ErrCode.OK)
                 {
                     if (blokNum == "3")
-                        return dataLineSet_03_FF(ref bckup_maxiprev, ref bckup_maxi, ref bckup_date, ref bckup_snum, ref bckup_factor, ref backup_remaining, ref lmaxi, ref ldate, ref lsnum, ref lfactor, ref lremaining);
+                        errcode = dataLineSet_03_FF(ref bckup_maxiprev, ref bckup_maxi, ref bckup_date, ref bckup_snum, ref bckup_factor, ref backup_remaining, ref lmaxi, ref ldate, ref lsnum, ref lfactor, ref lremaining);
                     else
-                        return dataLineSet_03_FF(ref maxiprev, ref maxi, ref date, ref snum, ref factor, ref remaining, ref lmaxi, ref ldate, ref lsnum, ref lfactor, ref lremaining);
+                        errcode = dataLineSet_03_FF(ref maxiprev, ref maxi, ref date, ref snum, ref factor, ref remaining, ref lmaxi, ref ldate, ref lsnum, ref lfactor, ref lremaining);
                 }
             }
-            return ErrCode.EPARSE;
+            else
+                errcode = ErrCode.EPARSE;
+            return errcode;
         }
 
         private ErrCode dataLineParseCheck_01(List<string> dataRd, uint[] laptxId)
         {
+            ErrCode errcode = ErrCode.OK;
             if (dataRd != null)
             {
-                ErrCode errcode;
                 if ((errcode = dataLineParse(dataRd, "0x1000", ref laptxId[0])) == ErrCode.OK)
                     if ((errcode = dataLineParse(dataRd, "0x1004", ref laptxId[1])) == ErrCode.OK)
                         if ((errcode = dataLineParse(dataRd, "0x1008", ref laptxId[2])) == ErrCode.OK)
-                            return ErrCode.OK;
-                return errcode;
+                            errcode = ErrCode.OK;
             }
-            return ErrCode.EPARSE;
+            else
+                errcode = ErrCode.EPARSE;
+            return errcode;
         }
 
         private ErrCode dataLineParseCheck_03_FF(List<string> dataRd, string blokNum, ref uint lmaxi, ref uint ldate, ref uint lsnum, ref uint lfactor, ref uint lremaining, bool read)
         {
+            
+            ErrCode errcode = ErrCode.OK;
             if (dataRd != null)
             {
-                ErrCode errcode;
                 //maxi
                 if ((errcode = dataLineParse(dataRd, "0x" + blokNum + "FE6", ref lmaxi)) == ErrCode.OK)
                     //date
@@ -604,31 +667,44 @@ namespace WinAMBurner
                                 //remaining
                                 if (((read) && ((errcode = dataLineParse(dataRd, "0x" + blokNum + "F40", ref lremaining)) == ErrCode.OK)) ||
                                     (!read))
-                                    return ErrCode.OK;
-                return errcode;
+                                    errcode = ErrCode.OK;
             }
-            return ErrCode.EPARSE;
+            else
+                errcode = ErrCode.EPARSE;
+            return errcode;
         }
 
         private ErrCode dataLineParseCheck_00(List<string> dataRd, ref uint lfactor)
         {
+            ErrCode errcode = ErrCode.OK;
             if (dataRd != null)
                 //factor
-                return dataLineParse(dataRd, "address 0x0", ref lfactor);
-            return ErrCode.EPARSE;
+                errcode = dataLineParse(dataRd, "address 0x0", ref lfactor);
+            else
+                errcode = ErrCode.EPARSE;
+            return errcode;
         }
 
         private ErrCode dataLineParseCheck_Nuke(List<string> dataRd, uint lnuke)
         {
+            ErrCode errcode = ErrCode.OK;
             if (dataRd != null)
                 //nuke
-                return dataLineParse(dataRd, "nuke,", ref lnuke);
-            return ErrCode.EPARSE;
+                errcode = dataLineParse(dataRd, "nuke,", ref lnuke);
+            else
+                errcode = ErrCode.EPARSE;
+            return errcode;
         }
 
         private ErrCode dataLineParseCheck_id(List<string> dataRd, uint[] lid)
         {
-            return dataLineParse(dataRd, "0x1f-0x85-0x01", ref lid);
+            ErrCode errcode = ErrCode.OK;
+            if (dataRd != null)
+                //id
+                errcode = dataLineParse(dataRd, "0x1f-0x85-0x01", ref lid);
+            else
+                errcode = ErrCode.EPARSE;
+            return errcode;
         }
 
         private bool checkError(uint [] prms)
@@ -649,6 +725,7 @@ namespace WinAMBurner
 
         private ErrCode dataLineParse(List<string> dataRd, string pattern, ref uint number)
         {
+            ErrCode errcode = ErrCode.OK;
             if (dataRd != null)
             {
                 string? dataFind = dataRd.Find(data => data.Contains(pattern));
@@ -657,38 +734,49 @@ namespace WinAMBurner
                     string? snumber = new string(dataFind.SkipWhile(c => c != 'x').Skip(1).TakeWhile(c => c != ':').ToArray());
                     if (snumber != null)
                     {
-                        if (uint.TryParse(snumber, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out number))
-                            return ErrCode.OK;
-                         
-                        string? logsnum = snumber;
-                        snumber = new string(dataFind.SkipWhile(c => (c < '0') || (c > '9')).ToArray());
-                        if (snumber != null)
+                        if (!uint.TryParse(snumber, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out number))
                         {
-                            if (uint.TryParse(snumber, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
-                                return ErrCode.OK;
-                                
-                            LogFile.logWrite(string.Format("{0} pattern \"{1}\" logsnum {2} snumber {3} number {4}", ErrCode.EPARSE, pattern, logsnum, snumber, number));
-                            return ErrCode.EPARSE;
+
+                            string? logsnum = snumber;
+                            snumber = new string(dataFind.SkipWhile(c => (c < '0') || (c > '9')).ToArray());
+                            if (snumber != null)
+                            {
+                                if (!uint.TryParse(snumber, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
+                                {
+                                    errcode = ErrCode.EPARSE;
+                                    LogFile.logWrite(string.Format("{0} pattern \"{1}\" logsnum {2} snumber {3} number {4}", errcode, pattern, logsnum, snumber, number));
+                                }
+                            }
+                            else
+                            {
+                                errcode = ErrCode.EPARSE;
+                                LogFile.logWrite(string.Format("{0} pattern \"{1}\" logsnum {2} snumber {3}", errcode, pattern, logsnum, snumber));
+                            }
                         }
-                            
-                        LogFile.logWrite(string.Format("{0} pattern \"{1}\" logsnum {2} snumber {3}", ErrCode.EPARSE, pattern, logsnum, snumber));
-                        return ErrCode.EPARSE;
                     }
-                    
-                    LogFile.logWrite(string.Format("{0} pattern \"{1}\" snumber {2}", ErrCode.EPARSE, pattern, snumber));
-                    return ErrCode.EPARSE;
+                    else
+                    {
+                        errcode = ErrCode.EPARSE;
+                        LogFile.logWrite(string.Format("{0} pattern \"{1}\" snumber {2}", errcode, pattern, snumber));
+                    }
                 }
-
-                LogFile.logWrite(string.Format("{0} dataFind {1} pattern \"{2}\"", ErrCode.EPARSE, dataFind, pattern));
-                return ErrCode.EPARSE;
+                else
+                {
+                    errcode = ErrCode.EPARSE;
+                    LogFile.logWrite(string.Format("{0} dataFind {1} pattern \"{2}\"", errcode, dataFind, pattern));
+                }
             }
-
-            LogFile.logWrite(string.Format("{0} dataRd {1} pattern \"{2}\"", ErrCode.EPARSE, dataRd, pattern));
-            return ErrCode.EPARSE;
+            else
+            {
+                errcode = ErrCode.EPARSE;
+                LogFile.logWrite(string.Format("{0} dataRd {1} pattern \"{2}\"", errcode, dataRd, pattern));
+            }
+            return errcode;
         }
 
         private ErrCode dataLineParse(List<string> dataRd, string pattern, ref uint[] numbers)
         {
+            ErrCode errcode = ErrCode.OK;
             if (dataRd != null)
             {
                 string? dataFind = dataRd.Find(data => data.Contains(pattern));
@@ -704,26 +792,36 @@ namespace WinAMBurner
                                 if (!uint.TryParse(new string(dataSplit[i].SkipWhile(c => c != 'x').Skip(1).ToArray())
                                     , NumberStyles.HexNumber, CultureInfo.InvariantCulture, out numbers[i]))
                                 {
-                                    LogFile.logWrite(string.Format("{0} number[{1}] {2} pattern \"{3}\"", ErrCode.EPARSE, i, numbers, pattern));
-                                    return ErrCode.EPARSE;
+                                    errcode = ErrCode.EPARSE;
+                                    LogFile.logWrite(string.Format("{0} number[{1}] {2} pattern \"{3}\"", errcode, i, numbers, pattern));
                                 }
                             }
                             else
                             {
-                                LogFile.logWrite(string.Format("{0} dataSplit.Count() {1} pattern \"{2}\"", ErrCode.EPARSE, dataSplit.Count(), pattern));
-                                return ErrCode.EPARSE;
+                                errcode = ErrCode.EPARSE;
+                                LogFile.logWrite(string.Format("{0} dataSplit.Count() {1} pattern \"{2}\"", errcode, dataSplit.Count(), pattern));
+                                break;
                             }
                         }
-                        return ErrCode.OK;
                     }
-                    LogFile.logWrite(string.Format("{0} dataSplit {1} pattern \"{2}\"", ErrCode.EPARSE, dataSplit, pattern));
-                    return ErrCode.EPARSE;
+                    else
+                    {
+                        errcode = ErrCode.EPARSE;
+                        LogFile.logWrite(string.Format("{0} dataSplit {1} pattern \"{2}\"", errcode, dataSplit, pattern));
+                    }
                 }
-                LogFile.logWrite(string.Format("{0} dataFind {1} pattern \"{2}\"", ErrCode.EPARSE, dataFind, pattern));
-                return ErrCode.EPARSE;
+                else
+                {
+                    errcode = ErrCode.EPARSE;
+                    LogFile.logWrite(string.Format("{0} dataFind {1} pattern \"{2}\"", errcode, dataFind, pattern));
+                }
             }
-            LogFile.logWrite(string.Format("{0} dataRd {1} pattern \"{2}\"", ErrCode.EPARSE, dataRd, pattern));
-            return ErrCode.EPARSE;
+            else
+            {
+                errcode = ErrCode.EPARSE;
+                LogFile.logWrite(string.Format("{0} dataRd {1} pattern \"{2}\"", errcode, dataRd, pattern));
+            }
+            return errcode;
         }
 
         private async Task<string> serialReadWrite(List<string> cmd)
