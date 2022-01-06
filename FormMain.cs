@@ -358,7 +358,7 @@ namespace WinAMBurner
                 progressBar1.Maximum = 27;
                 data.am.progress = progressBar1;
 
-                ErrCode errcode = ErrCode.ERROR;
+                ErrCode errcode = ErrCode.ECONNECT;
 
                 if ((errcode = await data.am.AMCheckConnect()) == ErrCode.OK)
                     errcode = await data.am.AMCmd(Cmd.READ);
@@ -596,7 +596,7 @@ namespace WinAMBurner
         {
             if ((data != null) && (data.action != null))
             {
-                ErrCode errcode = ErrCode.ERROR;
+                ErrCode errcode = ErrCode.ECONNECT;
                 ProgressBar progressBar = data.action.Progress.lcontrol as ProgressBar;
 
                 if (progressBar != null)

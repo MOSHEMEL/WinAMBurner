@@ -11,18 +11,18 @@ namespace WinAMBurner
     public enum ErrCode
     {
         OK = 0,
-        ERROR = -1,
+        ECONNECT = -1,
         EPARAM = -2,
         EMAX = -3,
         CANSEL = -4,
         EMATCH = -5,
         ELENGTH = -6,
-        SERROR = -7,
+        ESERVER = -7,
         EPARSE = -8,
         EXPIRE = -9,
         EEMPTY = -10,
         EREMOTE = -11,
-        EUNKNOWN = 1
+        EUNKNOWN = -12
     }
 
     public enum Cmd

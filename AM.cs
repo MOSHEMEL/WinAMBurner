@@ -16,7 +16,7 @@ namespace WinAMBurner
         private const int RD_TIMEOUT = 1000;
         private const int WR_TIMEOUT = 1000;
         private const int MAX_TIMEOUT = 3000;
-        private const uint ERROR = 0xffffffff;
+        public const uint ERROR = 0xffffffff;
         private const int ID_LENGTH = 3;
         private const uint TOLERANCE = 10;
         private const uint MAGIC_NUM = 0x444f4e45;
@@ -39,71 +39,71 @@ namespace WinAMBurner
         private uint[] id = new uint[ID_LENGTH] { ERROR, ERROR, ERROR };
         private uint[] aptxId = new uint[ID_LENGTH] { ERROR, ERROR, ERROR };
 
-        //double get(double param)
-        //{
-        //    return param == ERROR ? 0 : param;
-        //}
-        //
-        //double set(double param)
-        //{
-        //    return param == 0 ? ERROR : param;
-        //}
-        //
-        //uint get(uint param)
-        //{
-        //    return (uint)get((double)param);
-        //}
-        //
-        //uint set(uint param)
-        //{
-        //    return (uint)set((double)param);
-        //}
+        double get(double param)
+        {
+            return param == ERROR ? 0 : param;
+        }
+        
+        double set(double param)
+        {
+            return param == 0 ? ERROR : param;
+        }
+
+        uint get(uint param)
+        {
+            return (uint)get((double)param);
+        }
+        
+        uint set(uint param)
+        {
+            return (uint)set((double)param);
+        }
 
         //public uint SNum { get => get(snum); set => snum = set(value); }
-        //public uint Maxi { get => get(maxi); set => maxi = set(value); }
-        //public uint MaxiPrev { get => get(maxiprev); set => maxiprev = set(value); }
         //public uint MaxiSet { get => get(maxiSet); set => maxiSet = set(value); }
-        //public uint Factor { get => get(factor); set => factor = set(value); }
-        //public uint Current { get => get(maxi - factor); }
         //public uint CurrentPrev { get => get(maxiprev - factor); }
         //public uint[] AptxId { get => aptxId.Reverse().Select(a => { return get(a); }).ToArray(); set => value.Reverse().Select(a => { return set(a); }); }
         public uint SNum { get => snum; set => snum = value; }
-        public uint Maxi { get => maxi; set => maxi = value; }
+        //public uint Maxi { get => maxi; set => maxi = value; }
+        public uint Maxi { get => get(maxi); set => maxi = set(value); }
         public uint MaxiPrev { get => maxiprev; set => maxiprev = value; }
         public uint MaxiSet { get => maxiSet; set => maxiSet = value; }
-        public uint Factor { get => factor; set => factor = value; }
-        public uint Current { get => maxi - factor; }
+        //public uint Factor { get => factor; set => factor = value; }
+        public uint Factor { get => get(factor); set => factor = set(value); }
+        //public uint Current { get => maxi - factor; }
+        public uint Current { get => get(maxi) - get(factor); }
         public uint CurrentPrev { get => maxiprev - factor; }
-        public uint[] AptxId { get => aptxId.Reverse().Select(a => { return a; }).ToArray(); set => value.Reverse().Select(a => { return a; }); }
-        //{
-        //    get
-        //    {
-        //        uint[] value = new uint[ID_LENGTH];
-        //        for (int i = 0; i < aptxId.Length; i++)
-        //        {
-        //            byte[] bytes = BitConverter.GetBytes(get(aptxId[i]));
-        //            Array.Reverse(bytes, 0, bytes.Length);
-        //            value[i] = BitConverter.ToUInt32(bytes, 0);
-        //        }
-        //        return value;
-        //        
-        //    }
-        //    set
-        //    {
-        //        for (int i = 0; i < aptxId.Length; i++)
-        //        {
-        //            byte[] bytes = BitConverter.GetBytes(set(value[i]));
-        //            Array.Reverse(bytes, 0, bytes.Length);
-        //            aptxId[i] = BitConverter.ToUInt32(bytes, 0);
-        //        }
-        //        
-        //    }
-        //}
+        //public uint[] AptxId { get => aptxId.Reverse().Select(a => { return a; }).ToArray(); set => aptxId = value.Reverse().Select(a => { return a; }); }
+        public uint[] AptxId 
+        {
+            get
+            {
+                uint[] value = new uint[ID_LENGTH];
+                for (int i = 0; i < aptxId.Length; i++)
+                {
+                    byte[] bytes = BitConverter.GetBytes(aptxId[i]);
+                    Array.Reverse(bytes, 0, bytes.Length);
+                    value[i] = BitConverter.ToUInt32(bytes, 0);
+                }
+                return value;
+                
+            }
+            set
+            {
+                for (int i = 0; i < aptxId.Length; i++)
+                {
+                    byte[] bytes = BitConverter.GetBytes(value[i]);
+                    Array.Reverse(bytes, 0, bytes.Length);
+                    aptxId[i] = BitConverter.ToUInt32(bytes, 0);
+                }
+                
+            }
+        }
 
         public DateTime Date
         {
-            get => epoch.AddSeconds(date);
-            set => date = value.Subtract(epoch).TotalSeconds;
+            get => epoch.AddSeconds(get(date));
+            set => date = set(value.Subtract(epoch).TotalSeconds);
         }
 
         public delegate void dProgress(Object progress, bool reset);
@@ -127,7 +127,7 @@ namespace WinAMBurner
 
         public async Task<ErrCode> AMCheckConnect()
         {
-            ErrCode errcode = ErrCode.ERROR;
+            ErrCode errcode = ErrCode.ECONNECT;
             string[] serialPorts = SerialPort.GetPortNames();
             foreach (string port in serialPorts)
             {
@@ -144,7 +144,7 @@ namespace WinAMBurner
 
         public async Task<ErrCode> AMCmd(Cmd cmd)
         {
-            ErrCode errcode = ErrCode.ERROR;
+            ErrCode errcode = ErrCode.ECONNECT;
             try
             {
                 serialPort.Open();
@@ -466,7 +466,7 @@ namespace WinAMBurner
             return errcode;
         }
 
-        private ErrCode dataLineSet_id(ref uint[] id, uint[] lid)
+        private ErrCode dataLineSet_id(uint[] id, uint[] lid)
         {
             ErrCode errcode = ErrCode.OK;
             if (checkError(id))
@@ -498,7 +498,7 @@ namespace WinAMBurner
                 if (dataLineParseCheck_id(dataRd, lid) == ErrCode.OK)
                 {
                     LogFile.logWrite(string.Format("set Id:"));
-                    errcode = dataLineSet_id(ref id, lid);
+                    errcode = dataLineSet_id(id, lid);
                 }
             }
             else
@@ -517,7 +517,7 @@ namespace WinAMBurner
                     if (!checkError(laptxId))
                     {
                         LogFile.logWrite(string.Format("set aptxId:"));
-                        errcode = dataLineSet_id(ref aptxId, laptxId);
+                        errcode = dataLineSet_id(aptxId, laptxId);
                     }
                     else
                     {

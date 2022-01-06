@@ -297,7 +297,7 @@ namespace WinAMBurner
 
         public ErrCode responseParse(JsonDocument jsonDocument, List<string> errors, List<string> messages)
         {
-            ErrCode errcode = ErrCode.SERROR;
+            ErrCode errcode = ErrCode.ESERVER;
 
             if (jsonDocument != null)
             {
@@ -328,7 +328,7 @@ namespace WinAMBurner
         public async Task<ErrCode> send<TJson, T>(TJson jentity, string url, dWeb<TJson> dweb, string captionOk, string captionErr,
             bool showMsgs, dResponseOk<T> dresponseOk, Data data, dCheck dcheck = null, dApprove<TJson> dapprove = null, dResponseErr<T> dresponseErr = null, List<string> messagesOk = null, List<string> messagesErr = null)
         {
-            ErrCode errcode = ErrCode.ERROR;
+            ErrCode errcode = ErrCode.ECONNECT;
 
             if ((jentity != null) && (url != null) && (dweb != null) && (captionOk != null) && (captionErr != null) && (dresponseOk != null) && (data != null) && (denabled != null) && (dnotify != null) && (dhide != null) && (dlogout != null))
             {
@@ -366,11 +366,11 @@ namespace WinAMBurner
                                     if (rentity != null)
                                         errcode = checkExpire(rentity);
                                     else
-                                        errcode = ErrCode.SERROR;
+                                        errcode = ErrCode.ESERVER;
                                 }
                             }
                             else
-                                errcode = ErrCode.SERROR;
+                                errcode = ErrCode.ESERVER;
                         }
                     }
                 }
@@ -513,7 +513,7 @@ namespace WinAMBurner
 
         public async Task<ErrCode> responseOk(Data data, Login rlogin)
         {
-            ErrCode errcode = ErrCode.ERROR;
+            ErrCode errcode = ErrCode.ECONNECT;
             if ((data != null) && (data.web != null) && (data.password != null) && (data.password.ddraw != null) && (rlogin != null) && 
                 (rlogin.user != null) && (rlogin.token != null) && (dhide != null) && (dshow != null))
             {
@@ -616,7 +616,7 @@ namespace WinAMBurner
 
         public async Task<ErrCode> responseOk(Data data, Password newPassword)
         {
-            ErrCode errcode = ErrCode.ERROR;
+            ErrCode errcode = ErrCode.ECONNECT;
             if ((data != null) && (data.login != null) && (dhide != null) && (data.login.password != null) && (data.login.ddraw != null))
             {
                 dhide();
@@ -715,7 +715,7 @@ namespace WinAMBurner
 
         public async Task<ErrCode> responseOk(Data data, Reset reset)
         {
-            ErrCode errcode = ErrCode.ERROR;
+            ErrCode errcode = ErrCode.ECONNECT;
             if ((data != null) && (data.login != null) && (dhide != null) && (data.login.ddraw != null))
             {
                 dhide();
@@ -845,7 +845,7 @@ namespace WinAMBurner
 
         public async Task<ErrCode> responseAddOk<T>(Data data, T rentity)
         {
-            ErrCode errcode = ErrCode.ERROR;
+            ErrCode errcode = ErrCode.ECONNECT;
             if ((data != null) && (rentity != null) && (dhide != null) && (dshow != null))
             {
                 List<T> entities = default(List<T>);
@@ -879,7 +879,7 @@ namespace WinAMBurner
 
         public async Task<ErrCode> responseEditOk<T>(Data data, T rentity)
         {
-            ErrCode errcode = ErrCode.ERROR;
+            ErrCode errcode = ErrCode.ECONNECT;
             if ((data != null) && (rentity != null) && (dhide != null) && (dshow != null))
             {
                 List<T> entities = default(List<T>);
@@ -1264,7 +1264,7 @@ namespace WinAMBurner
             Service.items = services;
             Service.eventHandler = farmEventHandler;
 
-            aptx_id = string.Format("{0:x} {1:x} {2:x}", am.AptxId[0], am.AptxId[1], am.AptxId[2]);
+            aptx_id = string.Format("{0:X} {1:X} {2:X}", am.AptxId[0], am.AptxId[1], am.AptxId[2]);
             am_id = am.SNum.ToString();
             this.tablet = tablet;
 
@@ -1285,7 +1285,7 @@ namespace WinAMBurner
 
         public async Task<ErrCode> approve(Data data, ActionJson action)
         {
-            ErrCode errcode = ErrCode.ERROR;
+            ErrCode errcode = ErrCode.ECONNECT;
 
             if (((action.farm != null) || (action.service_provider != null)) && (dlogout != null))
             {
@@ -1312,10 +1312,10 @@ namespace WinAMBurner
                                         errcode = ErrCode.OK;
                                     }
                                     else
-                                        errcode = ErrCode.SERROR;
+                                        errcode = ErrCode.ESERVER;
                                 }
                                 else
-                                    errcode = ErrCode.SERROR;
+                                    errcode = ErrCode.ESERVER;
                             }
                             else
                             {
@@ -1337,7 +1337,7 @@ namespace WinAMBurner
 
         public async Task<ErrCode> responseOk(Data data, Action action)
         {
-            ErrCode errcode = ErrCode.ERROR;
+            ErrCode errcode = ErrCode.ECONNECT;
             if ((data != null) && (data.am != null) && (data.settings != null) && (dhide != null) && (dshow != null))
             {
                 await dnotify("Approve Success", string.Format("The original amount of treatments: {0}\n", data.CurrentPrev) +
@@ -1360,7 +1360,7 @@ namespace WinAMBurner
             else if (errcode == ErrCode.EMAX)
                 errors = new List<string>() { "Wrong part number,", "the maximum number of treatments reached,",
                                 "please choose a smaller number of treatments" };
-            else if (errcode == ErrCode.SERROR)
+            else if (errcode == ErrCode.ESERVER)
             {
                 data.am.Maxi = data.am.MaxiPrev;
                 uint maxiset = data.am.MaxiSet;
@@ -1388,7 +1388,7 @@ namespace WinAMBurner
 
         public async Task<ErrCode> send(Data data)
         {
-            ErrCode errcode = ErrCode.ERROR;
+            ErrCode errcode = ErrCode.ECONNECT;
             if ((data != null) && (data.action != null) && (data.web != null))
             {
                 errcode = await send<ActionJson, Action>(data.action, "api/p/actions/", data.web.entityAdd,
