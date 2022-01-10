@@ -8,7 +8,7 @@ using System.Windows.Forms;
 
 namespace WinAMBurner
 {
-    interface Expire
+    interface ExpireJson
     {
         public string detail { get; set; }
     }
@@ -28,26 +28,26 @@ namespace WinAMBurner
 
     class UserJson
     {
-        public int pk { get; set; }
+        //public int? pk { get; set; }
         public string username { get; set; }
         public string email { get; set; }
         public string first_name { get; set; }
         public string last_name { get; set; }
-        public bool is_password_changed { get; set; }
+        public bool? is_password_changed { get; set; }
     }
 
     class DistributorJson
     {
-        public int id { get; set; }
+        //public int? id { get; set; }
         public string address { get; set; }
         public string country { get; set; }
         public string city { get; set; }
         public string state { get; set; }
-        public bool is_active { get; set; }
+        public bool? is_active { get; set; }
         public string phone { get; set; }
         public string name { get; set; }
-        public string company_id { get; set; }
-        public int parent_distributor { get; set; }
+        //public string company_id { get; set; }
+        //public int? parent_distributor { get; set; }
     }
 
     interface PasswordJson
@@ -61,9 +61,9 @@ namespace WinAMBurner
         public string email { get; set; }
     }
 
-    class ContactJson : Expire
+    class ContactJson : ExpireJson
     {
-        public int id { get; set; }
+        //public int? id { get; set; }
         public DistributorJson distributor { get; set; }
         public string address { get; set; }
         public string country { get; set; }
@@ -79,13 +79,13 @@ namespace WinAMBurner
 
     interface FarmJson
     {
-        //public int id { get; set; }
+        public int? id { get; set; }
         public string mobile { get; set; }
         public string address { get; set; }
         public string country { get; set; }
         public string city { get; set; }
         public string state { get; set; }
-        public bool is_active { get; set; }
+        public bool? is_active { get; set; }
         public string email { get; set; }
         public string name { get; set; }
         public string contact_name { get; set; }
@@ -94,21 +94,21 @@ namespace WinAMBurner
         public string milking_setup_type { get; set; }
         public string location_of_treatment_type { get; set; }
         public string contract_type { get; set; }
-        public int number_of_lactating_cows { get; set; }
-        public bool dhi_test { get; set; }
+        public int? number_of_lactating_cows { get; set; }
+        public bool? dhi_test { get; set; }
     }
 
     interface ServiceJson
     {
-        //public int id { get; set; }
+        public int? id { get; set; }
         public string mobile { get; set; }
         public string address { get; set; }
         public string country { get; set; }
         public string city { get; set; }
         public string state { get; set; }
         public string email { get; set; }
-        public int number_of_dairy_farms { get; set; }
-        public int number_of_dairy_cows { get; set; }
+        public int? number_of_dairy_farms { get; set; }
+        public int? number_of_dairy_cows { get; set; }
         public string name { get; set; }
         public string contact_name { get; set; }
         public string contract_type { get; set; }
@@ -116,16 +116,16 @@ namespace WinAMBurner
 
     class SettingsJson
     {
-        public int max_am_pulses { get; set; }
-        public int number_of_pulses_per_treatment { get; set; }
+        public int? max_am_pulses { get; set; }
+        public int? number_of_pulses_per_treatment { get; set; }
     }
 
     interface TreatmentPackageJson
     {
-        public int id { get; set; }
-        public bool is_active { get; set; }
+        //public int? id { get; set; }
+        public bool? is_active { get; set; }
         public string part_number { get; set; }
-        public int amount_of_treatments { get; set; }
+        public int? amount_of_treatments { get; set; }
         public string description { get; set; }
         public string contract_type { get; set; }
         public string added_date { get; set; }
@@ -133,16 +133,16 @@ namespace WinAMBurner
 
     interface ActionJson
     {
-        //public int id { get; set; }
+        //public int? id { get; set; }
         //public string date { get; set; }
         public string aptx_id { get; set; }
         public string am_id { get; set; }
         public string part_number { get; set; }
-        //public int contact { get; set; }
+        //public int? contact { get; set; }
         public string tablet { get; set; }
         public int? farm { get; set; }
         public int? service_provider { get; set; }
-        //public int distributor { get; set; }
+        //public int? distributor { get; set; }
     }
 
     class Data
@@ -188,7 +188,7 @@ namespace WinAMBurner
         }
     }
 
-    class Gui: Expire
+    class Gui: ExpireJson
     {
         public string detail { get; set; }
 
@@ -434,7 +434,7 @@ namespace WinAMBurner
         public ErrCode checkExpire<T>(T rentity)
         {
             ErrCode errcode;
-            Expire expire = rentity as Expire;
+            ExpireJson expire = rentity as ExpireJson;
             if (expire != null)
             {
                 if ((expire.detail != null) && (expire.detail.Contains("Signature has expired")))
@@ -519,7 +519,7 @@ namespace WinAMBurner
             {
                 // if ok
                 data.user = rlogin.user;
-                if (!data.user.is_password_changed)
+                if (data.user.is_password_changed == false)
                 {
                     dhide();
                     data.password.ddraw(data.password);
@@ -532,11 +532,11 @@ namespace WinAMBurner
                         Const.parseConstants(jsonDocument);
                     data.farms = await data.web.entityGet<List<Farm>>("api/p/farms/");
                     if (data.farms != null)
-                        data.farms = data.farms.Where(f => f.is_active).ToList();
+                        data.farms = data.farms.Where(f => f.is_active == true).ToList();
                     data.services = await data.web.entityGet<List<Service>>("api/p/service_providers/");
                     data.treatmentPackages = await data.web.entityGet<List<TreatmentPackage>>("api/p/treatment_package/");
                     if (data.treatmentPackages != null)
-                        data.treatmentPackages = data.treatmentPackages.Where(t => t.is_active).ToList();
+                        data.treatmentPackages = data.treatmentPackages.Where(t => t.is_active == true).ToList();
                     data.settings = await data.web.entityGet<SettingsJson>("api/p/settings/");
 
                     if ((data.user != null) && (data.farms != null) && (data.services != null) && (data.treatmentPackages != null) && (data.settings != null) &&
@@ -758,7 +758,7 @@ namespace WinAMBurner
     class Entity : Gui, IPage1
     {
 
-        public int id { get; set; }
+        public int? id { get; set; }
         public string mobile { get { return Mobile.getValue(); } set { Mobile.setValue(value); } }
         public string address { get { return Address.getValue(); } set { Address.setValue(value); } }
         public string country { get { return Const.DCOUNTRY.FirstOrDefault(c => c.Value == Country.getValue()).Key; } 
@@ -989,13 +989,13 @@ namespace WinAMBurner
     {
         public static string[] DHI_TEST = new string[] { "No", "Yes" };
 
-        public bool is_active { get; set; }
+        public bool? is_active { get; set; }
         public string farm_type { get { return FarmType.getValue(); } set { FarmType.setValue(value); } }
         public string breed_type { get { return BreedType.getValue(); } set { BreedType.setValue(value); } }
         public string milking_setup_type { get { return MilkingSetupType.getValue(); } set { MilkingSetupType.setValue(value); } }
         public string location_of_treatment_type { get { return LocationOfTreatmentType.getValue(); } set { LocationOfTreatmentType.setValue(value); } }
-        public int number_of_lactating_cows  { get { return Field.stringToInt(NumberOfLactatingCows.getValue()); } set { NumberOfLactatingCows.setValue(Field.intToString(value)); } }
-        public bool dhi_test { get { return Field.stringToBool(DhiTest.getValue()); } set { DhiTest.setValue(Field.boolToString(value)); } }
+        public int? number_of_lactating_cows  { get { return Field.stringToInt(NumberOfLactatingCows.getValue()); } set { NumberOfLactatingCows.setValue(Field.intToString(value)); } }
+        public bool? dhi_test { get { return Field.stringToBool(DhiTest.getValue()); } set { DhiTest.setValue(Field.boolToString(value)); } }
 
         public object IsActive { get { return Field.boolToString(is_active); } set { is_active = Field.stringToBool(value as string); } }
 
@@ -1112,8 +1112,8 @@ namespace WinAMBurner
 
     class Service : Entity, ServiceJson, IServicePage2, IServicePage3
     {
-        public int number_of_dairy_farms { get { return Field.stringToInt(NumberOfDairyFarms.getValue()); } set { NumberOfDairyFarms.setValue(Field.intToString(value)); } }
-        public int number_of_dairy_cows { get { return Field.stringToInt(NumberOfDairyCows.getValue()); } set { NumberOfDairyCows.setValue(Field.intToString(value)); } }
+        public int? number_of_dairy_farms { get { return Field.stringToInt(NumberOfDairyFarms.getValue()); } set { NumberOfDairyFarms.setValue(Field.intToString(value)); } }
+        public int? number_of_dairy_cows { get { return Field.stringToInt(NumberOfDairyCows.getValue()); } set { NumberOfDairyCows.setValue(Field.intToString(value)); } }
 
         public Field NumberOfDairyFarms { get; set; }
 
@@ -1182,10 +1182,10 @@ namespace WinAMBurner
 
     class TreatmentPackage : Gui, TreatmentPackageJson
     {
-        public int id { get; set; }
-        public bool is_active { get; set; }
+        //public int? id { get; set; }
+        public bool? is_active { get; set; }
         public string part_number { get; set; }
-        public int amount_of_treatments { get; set; }
+        public int? amount_of_treatments { get; set; }
         public string description { get; set; }
         public string contract_type { get; set; }
         public string added_date { get; set; }
@@ -1200,12 +1200,12 @@ namespace WinAMBurner
 
     class Action : Gui, ActionJson
     {
-        public int id { get; set; }
+        //public int? id { get; set; }
         public string added_date { get; set; }
         public string aptx_id { get; set; }
         public string am_id { get; set; }
         public string part_number { get { return PartNumber.getValue(); } set { PartNumber.setValue(value); } }
-        public int contact { get; set; }
+        //public int? contact { get; set; }
         public string tablet { get; set; }
         public int? farm { get { return Field.stringToIntOrNull(Farm.getValue()); } set { Farm.setValue(Field.intToString(value)); } }
         public int? service_provider { get { return Field.stringToIntOrNull(Service.getValue()); } set { Service.setValue(Field.intToString(value)); } }

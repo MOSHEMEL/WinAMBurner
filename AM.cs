@@ -109,6 +109,8 @@ namespace WinAMBurner
         public delegate void dProgress(Object progress, bool reset);
         public dProgress dprogress;
         public Object progress;
+        //private constant string fileDump = "dumpAM.txt";
+
         //public bool Nuke;
 
         public Am(dProgress dprogress)
@@ -194,18 +196,27 @@ namespace WinAMBurner
                     //if (Nuke)
                     //    if ((errcode = await amCmdBlock(Cmd.NUKE)) != ErrCode.OK)
                     //        break;
-                    errcode = await amCmdBlock(Cmd.NUKE);
-                    errcode = await amCmdBlock(Cmd.WRITE_00);
-                    errcode = await amCmdBlock(Cmd.READ_00);
-                    errcode = await amCmdBlock(Cmd.WRITE_01);
-                    errcode = await amCmdBlock(Cmd.READ_01);
-                    errcode = await amCmdBlock(Cmd.WRITE_03_FF, "FF", maxi);
-                    errcode = await amCmdBlock(Cmd.READ_03_FF, "FF");
+                    if ((errcode = await amCmdBlock(Cmd.ID)) == ErrCode.OK)
+                    {
+                        errcode = await amCmdBlock(Cmd.NUKE);
+                        errcode = await amCmdBlock(Cmd.WRITE_00);
+                        errcode = await amCmdBlock(Cmd.READ_00);
+                        errcode = await amCmdBlock(Cmd.WRITE_01);
+                        errcode = await amCmdBlock(Cmd.READ_01);
+                        errcode = await amCmdBlock(Cmd.WRITE_03_FF, "FF", maxi);
+                        errcode = await amCmdBlock(Cmd.READ_03_FF, "FF");
+                    }
                     break;
                 case Cmd.READALL:
-                    errcode = await amCmdBlock(Cmd.ID);
-                    errcode = await amCmdBlock(Cmd.READ_01);
-                    errcode = await amCmdBlock(Cmd.READ_03_FF, "FF");
+                    if ((errcode = await amCmdBlock(Cmd.ID)) == ErrCode.OK)
+                    {
+                        errcode = await amCmdBlock(Cmd.READ_01);
+                        errcode = await amCmdBlock(Cmd.READ_03_FF, "FF");
+                    }
+                    break;
+                case Cmd.DUMP:
+                    if ((errcode = await amCmdBlock(Cmd.ID)) == ErrCode.OK)
+                        errcode = await amCmdBlock(Cmd.DUMP);
                     break;
             }
             try
@@ -223,38 +234,37 @@ namespace WinAMBurner
         //private async Task<ErrCode> amReadBlock(string blockNum)
         private async Task<ErrCode> amCmdBlock(Cmd cmd, string blockNum = "", uint max = 0)
         {
+            ErrCode errcode = ErrCode.OK;
             List<string> cmds = new List<string>();
-            if (cmd == Cmd.ID)
+            switch (cmd)
             {
-                get_id(cmds);
-            }
-            else if (cmd == Cmd.READ_01)
-            {
-                read_01(cmds);
-            }
-            else if (cmd == Cmd.WRITE_01)
-            {
-                write_01(cmds);
-            }
-            else if (cmd == Cmd.READ_03_FF)
-            {
-                read_03_FF(blockNum, cmds);
-            }
-            else if (cmd == Cmd.WRITE_03_FF)
-            {
-                write_03_FF(blockNum, cmds, max);
-            }
-            else if (cmd == Cmd.READ_00)
-            {
-                read_00(cmds);
-            }
-            else if (cmd == Cmd.WRITE_00)
-            {
-                write_00(cmds);
-            }
-            else if (cmd == Cmd.NUKE)
-            {
-                nuke(cmds);
+                case Cmd.ID:
+                    get_id(cmds);
+                    break;
+                case Cmd.READ_01:
+                    read_01(cmds);
+                    break;
+                case Cmd.WRITE_01:
+                    write_01(cmds);
+                    break;
+                case Cmd.READ_03_FF:
+                    read_03_FF(blockNum, cmds);
+                    break;
+                case Cmd.WRITE_03_FF:
+                    write_03_FF(blockNum, cmds, max);
+                    break;
+                case Cmd.READ_00:
+                    read_00(cmds);
+                    break;
+                case Cmd.WRITE_00:
+                    write_00(cmds);
+                    break;
+                case Cmd.NUKE:
+                    nuke(cmds);
+                    break;
+                case Cmd.DUMP:
+                    dump(cmds);
+                    break;
             }
             cmds.Add("NOP#");
             cmds.Add("NOP#");
@@ -263,159 +273,175 @@ namespace WinAMBurner
             string dataRdStr = await serialReadWrite(cmds);
             //write to log
             LogFile.logWrite(dataSplit(dataRdStr));
-            if (cmd == Cmd.WRITE_03_FF)
+            switch (cmd)
             {
-                uint lmaxi = ERROR;
-                uint ldate = ERROR;
-                uint lsnum = ERROR;
-                uint lfactor = ERROR;
-                uint lremaining = ERROR;
-                return dataLineParseCheck_03_FF(dataSplit(dataRdStr), blockNum, ref lmaxi, ref ldate, ref lsnum, ref lfactor, ref lremaining, false);
+                case Cmd.WRITE_03_FF:
+                    {
+                        uint lmaxi = ERROR;
+                        uint ldate = ERROR;
+                        uint lsnum = ERROR;
+                        uint lfactor = ERROR;
+                        uint lremaining = ERROR;
+                        errcode = dataLineParseCheck_03_FF(dataSplit(dataRdStr), blockNum, ref lmaxi, ref ldate, ref lsnum, ref lfactor, ref lremaining, false);
+                        break;
+                    }
+                case Cmd.WRITE_00:
+                    {
+                        uint lfactor = ERROR;
+                        errcode = dataLineParseCheck_00(dataSplit(dataRdStr), ref lfactor);
+                        break;
+                    }
+                case Cmd.WRITE_01:
+                        uint[] laptxid = { ERROR, ERROR, ERROR };
+                        errcode = dataLineParseCheck_01(dataSplit(dataRdStr), laptxid);
+                        break;
+                case Cmd.NUKE:
+                        errcode = dataLineParseCheck_Nuke(dataSplit(dataRdStr));
+                        break;
+                case Cmd.DUMP:
+                        errcode = dataLineParseCheck_Dump(dataSplit(dataRdStr));
+                        break;
+                default:
+                        errcode = parseBlock(dataRdStr, cmd, blockNum);
+                        break;
             }
-            else if (cmd == Cmd.WRITE_00)
-            {
-                uint lfactor = ERROR;
-                return dataLineParseCheck_00(dataSplit(dataRdStr), ref lfactor);
-            }
-            else if (cmd == Cmd.WRITE_01)
-            {
-                uint[] laptxid = { ERROR, ERROR, ERROR };
-                return dataLineParseCheck_01(dataSplit(dataRdStr), laptxid);
-            }
-            else if (cmd == Cmd.NUKE)
-            {
-                uint lnuke = ERROR;
-                return dataLineParseCheck_Nuke(dataSplit(dataRdStr), lnuke);
-            }
-            else
-            {
-                return parseBlock(dataRdStr, cmd, blockNum);
-            }
+            return errcode;
         }
 
-        private static void get_id(List<string> cmd)
+        private static void get_id(List<string> cmds)
         {
-            if (cmd != null)
+            if (cmds != null)
             {
-                cmd.Add("getid,3#");
-                //cmd.Add("NOP#");
-                //cmd.Add("NOP#");
-            }
-        }
-
-        private void read_01(List<string> cmd)
-        {
-            if (cmd != null)
-            {
-                cmd.Add("rd,3,0x0001008#");
-                cmd.Add("rd,3,0x0001004#");
-                cmd.Add("rd,3,0x0001000#");
+                cmds.Add("getid,3#");
                 //cmd.Add("NOP#");
                 //cmd.Add("NOP#");
             }
         }
 
-        private void write_01(List<string> cmd)
+        private void read_01(List<string> cmds)
         {
-            if (cmd != null)
+            if (cmds != null)
             {
-                cmd.Add(string.Format("wrt,3,0x0001008,00{0:x}#", aptxId[0]));
-                cmd.Add(string.Format("wrt,3,0x0001004,00{0:x}#", aptxId[1]));
-                cmd.Add(string.Format("wrt,3,0x0001000,00{0:x}#", aptxId[2]));
+                cmds.Add("rd,3,0x0001008#");
+                cmds.Add("rd,3,0x0001004#");
+                cmds.Add("rd,3,0x0001000#");
                 //cmd.Add("NOP#");
                 //cmd.Add("NOP#");
             }
         }
 
-        private void read_03_FF(string blockNum, List<string> cmd)
+        private void write_01(List<string> cmds)
         {
-            if (cmd != null)
+            if (cmds != null)
             {
-                cmd.Add("rd,3,0x000" + blockNum + "F40#");
-                cmd.Add("Read REMAINING 3#");
-                cmd.Add("rd,3,0x000" + blockNum + "FF6#");
-                cmd.Add("Read SNUM 3#");
-                cmd.Add("rd,3,0x000" + blockNum + "FEE#");
-                cmd.Add("Read DATE 3#");
-                cmd.Add("rd,3,0x000" + blockNum + "FE6#");
-                cmd.Add("Read MAX 3#");
-                cmd.Add("status2,3#");
-                cmd.Add("status1,3#");
+                cmds.Add(string.Format("wrt,3,0x0001008,00{0:x}#", aptxId[0]));
+                cmds.Add(string.Format("wrt,3,0x0001004,00{0:x}#", aptxId[1]));
+                cmds.Add(string.Format("wrt,3,0x0001000,00{0:x}#", aptxId[2]));
+                //cmd.Add("NOP#");
+                //cmd.Add("NOP#");
+            }
+        }
+
+        private void read_03_FF(string blockNum, List<string> cmds)
+        {
+            if (cmds != null)
+            {
+                cmds.Add("rd,3,0x000" + blockNum + "F40#");
+                cmds.Add("Read REMAINING 3#");
+                cmds.Add("rd,3,0x000" + blockNum + "FF6#");
+                cmds.Add("Read SNUM 3#");
+                cmds.Add("rd,3,0x000" + blockNum + "FEE#");
+                cmds.Add("Read DATE 3#");
+                cmds.Add("rd,3,0x000" + blockNum + "FE6#");
+                cmds.Add("Read MAX 3#");
+                cmds.Add("status2,3#");
+                cmds.Add("status1,3#");
                 if (blockNum == "3")
-                    cmd.Add("rd,3,0x000" + blockNum + "F50#");
+                    cmds.Add("rd,3,0x000" + blockNum + "F50#");
                 else
-                    cmd.Add("find,3,1#");
+                    cmds.Add("find,3,1#");
                 //cmd.Add("NOP#");
                 //cmd.Add("NOP#");
             }
         }
 
-        private void write_03_FF(string blockNum, List<string> cmd, uint max)
+        private void write_03_FF(string blockNum, List<string> cmds, uint max)
         {
-            if (cmd != null)
+            if (cmds != null)
             {
-                cmd.Add("!!!WRITE COMPLETE!!!#");
+                cmds.Add("!!!WRITE COMPLETE!!!#");
                 //cmd.Add(string.Format("snum,3,{0}#", snum));
                 //cmd.Add(string.Format("maxi,3,{0}#", maxi + maxiSet));
                 //cmd.Add(string.Format("date,3,{0}#", (int)date));
                 //cmd.Add(string.Format("wrt,3,0x00FFF50,00{0:x}#", factor));
                 if ((factor >= max) && (factor <= (max + TOLERANCE)))
-                    cmd.Add(string.Format("wrt,3,0x00" + blockNum + "F40,00{0:x}#", MAGIC_NUM));
-                cmd.Add(string.Format("wrt,3,0x00" + blockNum + "FF6,00{0:x}#", snum));
+                    cmds.Add(string.Format("wrt,3,0x00" + blockNum + "F40,00{0:x}#", MAGIC_NUM));
+                cmds.Add(string.Format("wrt,3,0x00" + blockNum + "FF6,00{0:x}#", snum));
                 //cmd.Add(string.Format("wrt,3,0x00" + blockNum + "FEE,00{0:x}#", (int)date));
-                cmd.Add(string.Format("wrt,3,0x00" + blockNum + "FEE,00{0:x}#", (int)DateTime.Now.Subtract(epoch).TotalSeconds));
+                cmds.Add(string.Format("wrt,3,0x00" + blockNum + "FEE,00{0:x}#", (int)DateTime.Now.Subtract(epoch).TotalSeconds));
                 //cmd.Add(string.Format("wrt,3,0x00" + blokNum + "FE6,00{0:x}#", maxi + maxiSet));
-                cmd.Add(string.Format("wrt,3,0x00" + blockNum + "FE6,00{0:x}#", max));
-                cmd.Add(string.Format("wrt,3,0x00" + blockNum + "F50,00{0:x}#", factor));
+                cmds.Add(string.Format("wrt,3,0x00" + blockNum + "FE6,00{0:x}#", max));
+                cmds.Add(string.Format("wrt,3,0x00" + blockNum + "F50,00{0:x}#", factor));
 
                 //erase
-                cmd.Add("scan,3,0#");
-                cmd.Add("scan,3,0#");
-                cmd.Add("scan,3,0#");
+                cmds.Add("scan,3,0#");
+                cmds.Add("scan,3,0#");
+                cmds.Add("scan,3,0#");
                 for (int i = 0; i < 10; i++)
-                    cmd.Add("NOP#");
+                    cmds.Add("NOP#");
                 //cmd.Add("nuke,3#");
-                cmd.Add("erase,3,0x" + blockNum + "000#");
+                cmds.Add("erase,3,0x" + blockNum + "000#");
                 //erase
-                cmd.Add("set registers readonly#");
-                cmd.Add("status2,3#");
-                cmd.Add("status1,3#");
-                cmd.Add("statusw,3,8001#");
-                cmd.Add("clear registers#");
-                cmd.Add("status2,3#");
-                cmd.Add("status1,3#");
-                cmd.Add("statusw,3,0000#");
-                cmd.Add("status2,3#");
-                cmd.Add("status1,3#");
+                cmds.Add("set registers readonly#");
+                cmds.Add("status2,3#");
+                cmds.Add("status1,3#");
+                cmds.Add("statusw,3,8001#");
+                cmds.Add("clear registers#");
+                cmds.Add("status2,3#");
+                cmds.Add("status1,3#");
+                cmds.Add("statusw,3,0000#");
+                cmds.Add("status2,3#");
+                cmds.Add("status1,3#");
             }
         }
 
-        private void read_00(List<string> cmd)
+        private void read_00(List<string> cmds)
         {
-            if (cmd != null)
+            if (cmds != null)
             {
-                cmd.Add("rd,3,0x0000000#");
+                cmds.Add("rd,3,0x0000000#");
             }
         }
 
-        private void write_00(List<string> cmd)
+        private void write_00(List<string> cmds)
         {
-            if (cmd != null)
+            if (cmds != null)
             {
-                cmd.Add(string.Format("wrt,3,0x000000,00{0:x}#", factor));
+                cmds.Add(string.Format("wrt,3,0x000000,00{0:x}#", factor));
             }
         }
 
-        private void nuke(List<string> cmd)
+        private void nuke(List<string> cmds)
         {
-            if (cmd != null)
+            if (cmds != null)
             {
-                cmd.Add("scan,3,0#");
-                cmd.Add("scan,3,0#");
-                cmd.Add("scan,3,0#");
+                cmds.Add("scan,3,0#");
+                cmds.Add("scan,3,0#");
+                cmds.Add("scan,3,0#");
                 for (int i = 0; i < 10; i++)
-                    cmd.Add("NOP#");
-                cmd.Add("nuke,3#");
+                    cmds.Add("NOP#");
+                cmds.Add("nuke,3#");
+            }
+        }
+
+        private void dump(List<string> cmds)
+        {
+            if (cmds != null)
+            {
+                for (int i = 0; i < 500; i++)
+                    cmds.Add("");
+                cmds.Add("dump#");
+                cmds.Add("debug#");
             }
         }
 
@@ -429,27 +455,28 @@ namespace WinAMBurner
 
                 if (dataRd != null)
                 {
-                    //id
-                    if (cmd == Cmd.ID)
+                    switch (cmd)
                     {
-                        errcode = dataLineParse_id(dataRd);
-                    }
-                    else if (cmd == Cmd.READ_00)
-                    {
-                        errcode = dataLineParse_00(dataRd);
-                    }
-                    else if (cmd == Cmd.READ_01)
-                    {
-                        errcode = dataLineParse_01(dataRd);
-                    }
-                    else if (cmd == Cmd.READ_03_FF)
-                    {
-                        errcode = dataLineParse_03_FF(dataRd, blokNum);
-                    }
-                    else
-                    {
-                        LogFile.logWrite(string.Format("{0} cmd {1}", ErrCode.EUNKNOWN, cmd));
-                        errcode = ErrCode.EUNKNOWN;
+                        //id
+                        case Cmd.ID:
+                            errcode = dataLineParse_id(dataRd);
+                            break;
+                        case Cmd.READ_00:
+                            errcode = dataLineParse_00(dataRd);
+                            break;
+                        case Cmd.READ_01:
+                            errcode = dataLineParse_01(dataRd);
+                            break;
+                        case Cmd.READ_03_FF:
+                            errcode = dataLineParse_03_FF(dataRd, blokNum);
+                            break;
+                        //case Cmd.DUMP:
+                        //    errcode = dataLineParse_Dump(dataRd);
+                        //    break;
+                        default:
+                            LogFile.logWrite(string.Format("{0} cmd {1}", ErrCode.EUNKNOWN, cmd));
+                            errcode = ErrCode.EUNKNOWN;
+                            break;
                     }
                 }
                 else
@@ -634,6 +661,21 @@ namespace WinAMBurner
             return errcode;
         }
 
+        //private ErrCode dataLineParse_Dump(List<string> dataRd)
+        //{
+        //    ErrCode errcode = ErrCode.OK;
+        //    if (dataRd != null)
+        //    {
+        //        //if (dataLineParseCheck_Dump(dataRd) == ErrCode.OK)
+        //        //{
+        //        //}
+        //        File.AppendAllText(fileDump, dataRd.Aggregate("", (r, m) => r += m.ToString() + "\n"));
+        //    }
+        //    else
+        //        errcode = ErrCode.EPARSE;
+        //    return errcode;
+        //}
+
         private ErrCode dataLineParseCheck_01(List<string> dataRd, uint[] laptxId)
         {
             ErrCode errcode = ErrCode.OK;
@@ -685,12 +727,29 @@ namespace WinAMBurner
             return errcode;
         }
 
-        private ErrCode dataLineParseCheck_Nuke(List<string> dataRd, uint lnuke)
+        private ErrCode dataLineParseCheck_Nuke(List<string> dataRd)
         {
             ErrCode errcode = ErrCode.OK;
             if (dataRd != null)
+            {
+                string dataFind = null;
                 //nuke
-                errcode = dataLineParse(dataRd, "nuke,", ref lnuke);
+                errcode = dataFindPattern(dataRd, "Nuked chip", ref dataFind);
+            }
+            else
+                errcode = ErrCode.EPARSE;
+            return errcode;
+        }
+
+        private ErrCode dataLineParseCheck_Dump(List<string> dataRd)
+        {
+            ErrCode errcode = ErrCode.OK;
+            if (dataRd != null)
+            {
+                string dataFind = null;
+                //dump
+                errcode = dataFindPattern(dataRd, "cs[dump] Done!", ref dataFind);
+            }
             else
                 errcode = ErrCode.EPARSE;
             return errcode;
@@ -723,21 +782,35 @@ namespace WinAMBurner
             return dataSplit.ToList();
         }
 
+        private ErrCode dataFindPattern(List<string> dataRd, string pattern, ref string dataFind)
+        {
+            ErrCode errcode = ErrCode.OK;
+            if (dataRd != null)
+            {
+                dataFind = dataRd.Find(data => data.Contains(pattern));
+                if (dataFind == null)
+                    errcode = ErrCode.EPARSE;
+            }
+            return errcode;
+        }
+
         private ErrCode dataLineParse(List<string> dataRd, string pattern, ref uint number)
         {
             ErrCode errcode = ErrCode.OK;
             if (dataRd != null)
             {
-                string? dataFind = dataRd.Find(data => data.Contains(pattern));
-                if (dataFind != null)
+                //string? dataFind = dataRd.Find data => data.Contains(pattern));
+                //if (dataFind != null)
+                string dataFind = null;
+                if (dataFindPattern(dataRd, pattern, ref dataFind) == ErrCode.OK)
                 {
-                    string? snumber = new string(dataFind.SkipWhile(c => c != 'x').Skip(1).TakeWhile(c => c != ':').ToArray());
+                    string snumber = new string(dataFind.SkipWhile(c => c != 'x').Skip(1).TakeWhile(c => c != ':').ToArray());
                     if (snumber != null)
                     {
                         if (!uint.TryParse(snumber, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out number))
                         {
 
-                            string? logsnum = snumber;
+                            string logsnum = snumber;
                             snumber = new string(dataFind.SkipWhile(c => (c < '0') || (c > '9')).ToArray());
                             if (snumber != null)
                             {
@@ -779,10 +852,12 @@ namespace WinAMBurner
             ErrCode errcode = ErrCode.OK;
             if (dataRd != null)
             {
-                string? dataFind = dataRd.Find(data => data.Contains(pattern));
-                if (dataFind != null)
+                //string? dataFind = dataRd.Find(data => data.Contains(pattern));
+                //if (dataFind != null)
+                string dataFind = null;
+                if (dataFindPattern(dataRd, pattern, ref dataFind) == ErrCode.OK)
                 {
-                    string[] dataSplit = dataFind.Split(new char[] { '-' }, StringSplitOptions.RemoveEmptyEntries);
+                        string[] dataSplit = dataFind.Split(new char[] { '-' }, StringSplitOptions.RemoveEmptyEntries);
                     if (dataSplit != null)
                     {
                         for (int i = 0; i < numbers.Count(); i++)

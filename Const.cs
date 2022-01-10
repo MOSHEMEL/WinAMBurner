@@ -39,7 +39,8 @@ namespace WinAMBurner
         WRITE_00,
         NUKE,
         READALL,
-        WRITE_01
+        WRITE_01,
+        DUMP
     }
 
     static class Const

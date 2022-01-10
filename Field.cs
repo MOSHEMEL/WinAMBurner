@@ -144,9 +144,9 @@ namespace WinAMBurner
             return false;
         }
         
-        public static string boolToString(bool bVal)
+        public static string boolToString(bool? bVal)
         {
-            if (bVal)
+            if (bVal == true)
                 return "Yes";
             else
                 return "No";
