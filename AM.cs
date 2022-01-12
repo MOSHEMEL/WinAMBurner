@@ -903,39 +903,55 @@ namespace WinAMBurner
         {
             int time = 0;
             string dataRdStr = string.Empty;
-            for (int i = cmd.Count - 1; i >= 0; i--)
+            if (cmd.Count > 0)
             {
-                try
+                for (int i = cmd.Count - 1; i >= 0; i--)
                 {
-                    serialPort.Write(cmd[i]);
-                }
-                catch (Exception e)
-                {
-                    LogFile.logWrite(e.ToString());
-                    return dataRdStr;
-                }
-                time = 0;
-                string dataExist = string.Empty;
-                while (time < MAX_TIMEOUT)
-                {
-                    await Task.Delay(RD_TIMEOUT);
+                    //if(cmd[i].Count > 0)
                     try
                     {
-                        dataExist += serialPort.ReadExisting();
+                        serialPort.Write(cmd[i]);
                     }
                     catch (Exception e)
                     {
                         LogFile.logWrite(e.ToString());
                         return dataRdStr;
                     }
-                    if (dataExist == string.Empty)
-                        time += RD_TIMEOUT;
-                    else
-                        break;
+                    time = 0;
+                    string dataExist = string.Empty;
+                    string dataExistCur = string.Empty;
+                    while (time < MAX_TIMEOUT)
+                    {
+                        await Task.Delay(RD_TIMEOUT);
+                        try
+                        {
+                            //dataExist += serialPort.ReadExisting();
+                            dataExistCur += serialPort.ReadExisting();
+                        }
+                        catch (Exception e)
+                        {
+                            LogFile.logWrite(e.ToString());
+                            return dataRdStr;
+                        }
+                        //if (dataExist == string.Empty)
+                        if (dataExistCur == string.Empty)
+                            time += RD_TIMEOUT;
+                        else
+                        {
+                            //break;
+                            dataExist += dataExistCur;
+                            dataExistCur = string.Empty;
+                        }
+                        if (dataExist.Count() > 1024)
+                        {
+                            LogFile.logWrite(dataExist);
+                            dataExist = string.Empty;
+                        }
+                    }
+                    dataRdStr += dataExist;
+                    if (dprogress != null)
+                        dprogress(progress, false);
                 }
-                dataRdStr += dataExist;
-                if (dprogress != null)
-                    dprogress(progress, false);
             }
             return dataRdStr;
         }
