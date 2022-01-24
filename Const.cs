@@ -22,7 +22,8 @@ namespace WinAMBurner
         EXPIRE = -9,
         EEMPTY = -10,
         EREMOTE = -11,
-        EUNKNOWN = -12
+        EFIND = -12,
+        EUNKNOWN = -13
     }
 
     public enum Cmd
@@ -30,22 +31,19 @@ namespace WinAMBurner
         ID,
         READ,
         WRITE,
-        INIT,
         RESTORE,
         READ_01,
         READ_03_FF,
         WRITE_03_FF,
         READ_00,
         WRITE_00,
-        NUKE,
-        READALL,
         WRITE_01,
-        DUMP
+        GENERAL
     }
 
     static class Const
     {
-        public const string Version = "1.4";
+        public const string Version = "1.5";
         public const string PART_NUMBER_STATUS_PURCHASE = "Status-Purchase";
         public const string PART_NUMBER_STATUS_SUBSCRIPTION = "Status-Subscription";
 
@@ -125,10 +123,10 @@ namespace WinAMBurner
         }
     }
 
-    static class LogFile
+    public static class LogFile
     {
         private static string date = new string (DateTime.Now.ToShortDateString().Select(c => { if ((c == '/') || (c == '\\')) c = '_'; return c; }).ToArray());
-        private static string logFileName = "logFile_" + date + ".txt";
+        public static string logFileName = "logFile_" + date + ".txt";
         private static string logFileNameVerbose = "logFileVerbose_" + date + ".txt";
 
         public static void logWrite(string str, bool verbose = false)

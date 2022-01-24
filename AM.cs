@@ -20,11 +20,11 @@ namespace WinAMBurner
         private const int ID_LENGTH = 3;
         private const uint TOLERANCE = 10;
         private const uint MAGIC_NUM = 0x444f4e45;
-
+        private const int RD_BUFF_SIZE = 1024 * 16;
         private readonly DateTime epoch = new DateTime(1970, 1, 1, 2, 0, 0, DateTimeKind.Utc);
 
         private uint snum = ERROR;
-        private uint maxi = ERROR;
+        private uint maxi = ERROR; 
         private uint maxiprev = ERROR;
         private uint maxiSet = ERROR;
         private double date = ERROR;
@@ -38,12 +38,13 @@ namespace WinAMBurner
         private uint backup_remaining = ERROR;
         private uint[] id = new uint[ID_LENGTH] { ERROR, ERROR, ERROR };
         private uint[] aptxId = new uint[ID_LENGTH] { ERROR, ERROR, ERROR };
+        private uint prm_general = ERROR;
 
         double get(double param)
         {
             return param == ERROR ? 0 : param;
         }
-        
+
         double set(double param)
         {
             return param == 0 ? ERROR : param;
@@ -53,7 +54,7 @@ namespace WinAMBurner
         {
             return (uint)get((double)param);
         }
-        
+
         uint set(uint param)
         {
             return (uint)set((double)param);
@@ -74,7 +75,7 @@ namespace WinAMBurner
         public uint Current { get => get(maxi) - get(factor); }
         public uint CurrentPrev { get => maxiprev - factor; }
         //public uint[] AptxId { get => aptxId.Reverse().Select(a => { return a; }).ToArray(); set => aptxId = value.Reverse().Select(a => { return a; }); }
-        public uint[] AptxId 
+        public uint[] AptxId
         {
             get
             {
@@ -86,7 +87,7 @@ namespace WinAMBurner
                     value[i] = BitConverter.ToUInt32(bytes, 0);
                 }
                 return value;
-                
+
             }
             set
             {
@@ -96,7 +97,7 @@ namespace WinAMBurner
                     Array.Reverse(bytes, 0, bytes.Length);
                     aptxId[i] = BitConverter.ToUInt32(bytes, 0);
                 }
-                
+
             }
         }
 
@@ -106,12 +107,11 @@ namespace WinAMBurner
             set => date = set(value.Subtract(epoch).TotalSeconds);
         }
 
+        public uint PrmGeneral { get => prm_general; set => prm_general = value; }
+
         public delegate void dProgress(Object progress, bool reset);
         public dProgress dprogress;
         public Object progress;
-        //private constant string fileDump = "dumpAM.txt";
-
-        //public bool Nuke;
 
         public Am(dProgress dprogress)
         {
@@ -123,7 +123,7 @@ namespace WinAMBurner
             //serialPort.Handshake = Handshake.None;
             serialPort.ReadTimeout = RD_TIMEOUT;
             serialPort.WriteTimeout = WR_TIMEOUT;
-            serialPort.ReadBufferSize = 8192;
+            serialPort.ReadBufferSize = RD_BUFF_SIZE;
             this.dprogress = dprogress;
         }
 
@@ -144,7 +144,7 @@ namespace WinAMBurner
             return errcode;
         }
 
-        public async Task<ErrCode> AMCmd(Cmd cmd)
+        public async Task<ErrCode> AMCmd(Cmd cmd, string blockNum = "", List<string> request = null, string reply = "")
         {
             ErrCode errcode = ErrCode.ECONNECT;
             try
@@ -192,31 +192,26 @@ namespace WinAMBurner
                                     errcode = ErrCode.OK;
                         }
                     break;
-                case Cmd.INIT:
-                    //if (Nuke)
-                    //    if ((errcode = await amCmdBlock(Cmd.NUKE)) != ErrCode.OK)
-                    //        break;
-                    if ((errcode = await amCmdBlock(Cmd.ID)) == ErrCode.OK)
-                    {
-                        errcode = await amCmdBlock(Cmd.NUKE);
-                        errcode = await amCmdBlock(Cmd.WRITE_00);
-                        errcode = await amCmdBlock(Cmd.READ_00);
-                        errcode = await amCmdBlock(Cmd.WRITE_01);
-                        errcode = await amCmdBlock(Cmd.READ_01);
-                        errcode = await amCmdBlock(Cmd.WRITE_03_FF, "FF", maxi);
-                        errcode = await amCmdBlock(Cmd.READ_03_FF, "FF");
-                    }
+                case Cmd.READ_00:
+                    errcode = await amCmdBlock(Cmd.READ_00);
                     break;
-                case Cmd.READALL:
-                    if ((errcode = await amCmdBlock(Cmd.ID)) == ErrCode.OK)
-                    {
-                        errcode = await amCmdBlock(Cmd.READ_01);
-                        errcode = await amCmdBlock(Cmd.READ_03_FF, "FF");
-                    }
+                case Cmd.WRITE_00:
+                        errcode = await amCmdBlock(Cmd.WRITE_00, blockNum);
                     break;
-                case Cmd.DUMP:
-                    if ((errcode = await amCmdBlock(Cmd.ID)) == ErrCode.OK)
-                        errcode = await amCmdBlock(Cmd.DUMP);
+                case Cmd.READ_01:
+                        errcode = await amCmdBlock(Cmd.READ_01);
+                    break;
+                case Cmd.WRITE_01:
+                    errcode = await amCmdBlock(Cmd.WRITE_01);
+                    break;
+                case Cmd.READ_03_FF:
+                        errcode = await amCmdBlock(Cmd.READ_03_FF, blockNum);
+                    break;
+                case Cmd.WRITE_03_FF:
+                    errcode = await amCmdBlock(Cmd.WRITE_03_FF, blockNum, maxi);
+                    break;
+                case Cmd.GENERAL:
+                    errcode = await amCmdBlock(Cmd.GENERAL, request: request, reply: reply);
                     break;
             }
             try
@@ -232,7 +227,7 @@ namespace WinAMBurner
         }
 
         //private async Task<ErrCode> amReadBlock(string blockNum)
-        private async Task<ErrCode> amCmdBlock(Cmd cmd, string blockNum = "", uint max = 0)
+        private async Task<ErrCode> amCmdBlock(Cmd cmd, string blockNum = "", uint max = 0, List<string> request = null, string reply = "")
         {
             ErrCode errcode = ErrCode.OK;
             List<string> cmds = new List<string>();
@@ -259,11 +254,8 @@ namespace WinAMBurner
                 case Cmd.WRITE_00:
                     write_00(cmds);
                     break;
-                case Cmd.NUKE:
-                    nuke(cmds);
-                    break;
-                case Cmd.DUMP:
-                    dump(cmds);
+                case Cmd.GENERAL:
+                    general(cmds, request);
                     break;
             }
             cmds.Add("NOP#");
@@ -288,22 +280,19 @@ namespace WinAMBurner
                 case Cmd.WRITE_00:
                     {
                         uint lfactor = ERROR;
-                        errcode = dataLineParseCheck_00(dataSplit(dataRdStr), ref lfactor);
+                        errcode = dataLineParseCheck_General(dataSplit(dataRdStr), "address 0x0", ref lfactor);
                         break;
                     }
                 case Cmd.WRITE_01:
-                        uint[] laptxid = { ERROR, ERROR, ERROR };
-                        errcode = dataLineParseCheck_01(dataSplit(dataRdStr), laptxid);
-                        break;
-                case Cmd.NUKE:
-                        errcode = dataLineParseCheck_Nuke(dataSplit(dataRdStr));
-                        break;
-                case Cmd.DUMP:
-                        errcode = dataLineParseCheck_Dump(dataSplit(dataRdStr));
-                        break;
+                    uint[] laptxid = { ERROR, ERROR, ERROR };
+                    errcode = dataLineParseCheck_01(dataSplit(dataRdStr), laptxid);
+                    break;
+                case Cmd.GENERAL:
+                    errcode = dataLineParseCheck_General(dataSplit(dataRdStr), reply, ref prm_general);
+                    break;
                 default:
-                        errcode = parseBlock(dataRdStr, cmd, blockNum);
-                        break;
+                    errcode = parseBlock(dataRdStr, cmd, blockNum);
+                    break;
             }
             return errcode;
         }
@@ -334,9 +323,12 @@ namespace WinAMBurner
         {
             if (cmds != null)
             {
-                cmds.Add(string.Format("wrt,3,0x0001008,00{0:x}#", aptxId[0]));
-                cmds.Add(string.Format("wrt,3,0x0001004,00{0:x}#", aptxId[1]));
-                cmds.Add(string.Format("wrt,3,0x0001000,00{0:x}#", aptxId[2]));
+                if (!checkError(aptxId))
+                {
+                    cmds.Add(string.Format("wrt,3,0x0001008,00{0:x}#", aptxId[0]));
+                    cmds.Add(string.Format("wrt,3,0x0001004,00{0:x}#", aptxId[1]));
+                    cmds.Add(string.Format("wrt,3,0x0001000,00{0:x}#", aptxId[2]));
+                }
                 //cmd.Add("NOP#");
                 //cmd.Add("NOP#");
             }
@@ -417,31 +409,16 @@ namespace WinAMBurner
         {
             if (cmds != null)
             {
-                cmds.Add(string.Format("wrt,3,0x000000,00{0:x}#", factor));
+                if ((factor > 0) && (factor != 0xffffffff))
+                    cmds.Add(string.Format("wrt,3,0x000000,00{0:x}#", factor));
             }
         }
 
-        private void nuke(List<string> cmds)
+        private void general(List<string> cmds, List<string> request)
         {
-            if (cmds != null)
+            if ((cmds != null) && (request != null))
             {
-                cmds.Add("scan,3,0#");
-                cmds.Add("scan,3,0#");
-                cmds.Add("scan,3,0#");
-                for (int i = 0; i < 10; i++)
-                    cmds.Add("NOP#");
-                cmds.Add("nuke,3#");
-            }
-        }
-
-        private void dump(List<string> cmds)
-        {
-            if (cmds != null)
-            {
-                for (int i = 0; i < 500; i++)
-                    cmds.Add("");
-                cmds.Add("dump#");
-                cmds.Add("debug#");
+                cmds.AddRange(request);
             }
         }
 
@@ -470,9 +447,6 @@ namespace WinAMBurner
                         case Cmd.READ_03_FF:
                             errcode = dataLineParse_03_FF(dataRd, blokNum);
                             break;
-                        //case Cmd.DUMP:
-                        //    errcode = dataLineParse_Dump(dataRd);
-                        //    break;
                         default:
                             LogFile.logWrite(string.Format("{0} cmd {1}", ErrCode.EUNKNOWN, cmd));
                             errcode = ErrCode.EUNKNOWN;
@@ -565,7 +539,7 @@ namespace WinAMBurner
             {
                 uint lfactor = ERROR;
                 //factor
-                if (dataLineParseCheck_00(dataRd, ref lfactor) == ErrCode.OK)
+                if (dataLineParseCheck_General(dataRd, "address 0x0", ref lfactor) == ErrCode.OK)
                 {
                     if (factor == ERROR)
                     {
@@ -661,21 +635,6 @@ namespace WinAMBurner
             return errcode;
         }
 
-        //private ErrCode dataLineParse_Dump(List<string> dataRd)
-        //{
-        //    ErrCode errcode = ErrCode.OK;
-        //    if (dataRd != null)
-        //    {
-        //        //if (dataLineParseCheck_Dump(dataRd) == ErrCode.OK)
-        //        //{
-        //        //}
-        //        File.AppendAllText(fileDump, dataRd.Aggregate("", (r, m) => r += m.ToString() + "\n"));
-        //    }
-        //    else
-        //        errcode = ErrCode.EPARSE;
-        //    return errcode;
-        //}
-
         private ErrCode dataLineParseCheck_01(List<string> dataRd, uint[] laptxId)
         {
             ErrCode errcode = ErrCode.OK;
@@ -693,7 +652,7 @@ namespace WinAMBurner
 
         private ErrCode dataLineParseCheck_03_FF(List<string> dataRd, string blokNum, ref uint lmaxi, ref uint ldate, ref uint lsnum, ref uint lfactor, ref uint lremaining, bool read)
         {
-            
+
             ErrCode errcode = ErrCode.OK;
             if (dataRd != null)
             {
@@ -716,40 +675,23 @@ namespace WinAMBurner
             return errcode;
         }
 
-        private ErrCode dataLineParseCheck_00(List<string> dataRd, ref uint lfactor)
-        {
-            ErrCode errcode = ErrCode.OK;
-            if (dataRd != null)
-                //factor
-                errcode = dataLineParse(dataRd, "address 0x0", ref lfactor);
-            else
-                errcode = ErrCode.EPARSE;
-            return errcode;
-        }
+        //private ErrCode dataLineParseCheck_00(List<string> dataRd, ref uint lfactor)
+        //{
+        //    ErrCode errcode = ErrCode.OK;
+        //    if (dataRd != null)
+        //        //factor
+        //        errcode = dataLineParse(dataRd, "address 0x0", ref lfactor);
+        //    else
+        //        errcode = ErrCode.EPARSE;
+        //    return errcode;
+        //}
 
-        private ErrCode dataLineParseCheck_Nuke(List<string> dataRd)
+        private ErrCode dataLineParseCheck_General(List<string> dataRd, string reply, ref uint lprm_general)
         {
             ErrCode errcode = ErrCode.OK;
             if (dataRd != null)
-            {
-                string dataFind = null;
-                //nuke
-                errcode = dataFindPattern(dataRd, "Nuked chip", ref dataFind);
-            }
-            else
-                errcode = ErrCode.EPARSE;
-            return errcode;
-        }
-
-        private ErrCode dataLineParseCheck_Dump(List<string> dataRd)
-        {
-            ErrCode errcode = ErrCode.OK;
-            if (dataRd != null)
-            {
-                string dataFind = null;
-                //dump
-                errcode = dataFindPattern(dataRd, "cs[dump] Done!", ref dataFind);
-            }
+                //prm_general
+                errcode = dataLineParse(dataRd, reply, ref lprm_general);
             else
                 errcode = ErrCode.EPARSE;
             return errcode;
@@ -766,12 +708,17 @@ namespace WinAMBurner
             return errcode;
         }
 
-        private bool checkError(uint [] prms)
+        private bool checkError(uint[] prms)
         {
+            bool check = true;
             foreach (uint prm in prms)
+            {
                 if (prm == ERROR)
                     return true;
-            return false;
+                if (prm != 0)
+                    check = false;
+            }
+            return check;
         }
 
         private List<string> dataSplit(string dataRdStr)
@@ -785,7 +732,7 @@ namespace WinAMBurner
         private ErrCode dataFindPattern(List<string> dataRd, string pattern, ref string dataFind)
         {
             ErrCode errcode = ErrCode.OK;
-            if (dataRd != null)
+            if ((dataRd != null) && (pattern != null))
             {
                 dataFind = dataRd.Find(data => data.Contains(pattern));
                 if (dataFind == null)
@@ -835,7 +782,7 @@ namespace WinAMBurner
                 }
                 else
                 {
-                    errcode = ErrCode.EPARSE;
+                    errcode = ErrCode.EFIND;
                     LogFile.logWrite(string.Format("{0} dataFind {1} pattern \"{2}\"", errcode, dataFind, pattern));
                 }
             }
@@ -857,7 +804,7 @@ namespace WinAMBurner
                 string dataFind = null;
                 if (dataFindPattern(dataRd, pattern, ref dataFind) == ErrCode.OK)
                 {
-                        string[] dataSplit = dataFind.Split(new char[] { '-' }, StringSplitOptions.RemoveEmptyEntries);
+                    string[] dataSplit = dataFind.Split(new char[] { '-' }, StringSplitOptions.RemoveEmptyEntries);
                     if (dataSplit != null)
                     {
                         for (int i = 0; i < numbers.Count(); i++)
@@ -907,7 +854,6 @@ namespace WinAMBurner
             {
                 for (int i = cmd.Count - 1; i >= 0; i--)
                 {
-                    //if(cmd[i].Count > 0)
                     try
                     {
                         serialPort.Write(cmd[i]);
@@ -919,34 +865,22 @@ namespace WinAMBurner
                     }
                     time = 0;
                     string dataExist = string.Empty;
-                    string dataExistCur = string.Empty;
                     while (time < MAX_TIMEOUT)
                     {
                         await Task.Delay(RD_TIMEOUT);
                         try
                         {
-                            //dataExist += serialPort.ReadExisting();
-                            dataExistCur += serialPort.ReadExisting();
+                            dataExist += serialPort.ReadExisting();
                         }
                         catch (Exception e)
                         {
                             LogFile.logWrite(e.ToString());
                             return dataRdStr;
                         }
-                        //if (dataExist == string.Empty)
-                        if (dataExistCur == string.Empty)
+                        if (dataExist == string.Empty)
                             time += RD_TIMEOUT;
                         else
-                        {
-                            //break;
-                            dataExist += dataExistCur;
-                            dataExistCur = string.Empty;
-                        }
-                        if (dataExist.Count() > 1024)
-                        {
-                            LogFile.logWrite(dataExist);
-                            dataExist = string.Empty;
-                        }
+                            break;
                     }
                     dataRdStr += dataExist;
                     if (dprogress != null)
