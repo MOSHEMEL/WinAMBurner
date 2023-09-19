@@ -346,8 +346,8 @@ namespace WinAMBurner
                 cmds.Add("Read DATE 3#");
                 cmds.Add("rd,3,0x000" + blockNum + "FE6#");
                 cmds.Add("Read MAX 3#");
-                cmds.Add("status2,3#");
-                cmds.Add("status1,3#");
+                //cmds.Add("status2,3#");
+                //cmds.Add("status1,3#");
                 if (blockNum == "3")
                     cmds.Add("rd,3,0x000" + blockNum + "F50#");
                 else
@@ -376,24 +376,24 @@ namespace WinAMBurner
                 cmds.Add(string.Format("wrt,3,0x00" + blockNum + "F50,00{0:x}#", factor));
 
                 //erase
-                cmds.Add("scan,3,0#");
-                cmds.Add("scan,3,0#");
-                cmds.Add("scan,3,0#");
+                //cmds.Add("scan,3,0#");
+                //cmds.Add("scan,3,0#");
+                //cmds.Add("scan,3,0#");
                 for (int i = 0; i < 10; i++)
                     cmds.Add("NOP#");
                 //cmd.Add("nuke,3#");
                 cmds.Add("erase,3,0x" + blockNum + "000#");
                 //erase
-                cmds.Add("set registers readonly#");
-                cmds.Add("status2,3#");
-                cmds.Add("status1,3#");
-                cmds.Add("statusw,3,8001#");
-                cmds.Add("clear registers#");
-                cmds.Add("status2,3#");
-                cmds.Add("status1,3#");
-                cmds.Add("statusw,3,0000#");
-                cmds.Add("status2,3#");
-                cmds.Add("status1,3#");
+                //cmds.Add("set registers readonly#");
+                //cmds.Add("status2,3#");
+                //cmds.Add("status1,3#");
+                //cmds.Add("statusw,3,8001#");
+                //cmds.Add("clear registers#");
+                //cmds.Add("status2,3#");
+                //cmds.Add("status1,3#");
+                //cmds.Add("statusw,3,0000#");
+                //cmds.Add("status2,3#");
+                //cmds.Add("status1,3#");
             }
         }
 

@@ -74,7 +74,7 @@ namespace WinAMBurner
             }
         }
 
-        private async Task<bool> notify(string title, string messages, string accept, string cancel)
+        public static async Task<bool> notify(string title, string messages, string accept, string cancel)
         {
             DialogResult dialogResult = default;
             if ((title != null) && (messages != null) && (cancel != null))
